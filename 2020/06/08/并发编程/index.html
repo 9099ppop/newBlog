@@ -7,8 +7,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.jpg">
-  <link rel="icon" type="image/png" href="/img/favicon.jpg">
+  <link rel="apple-touch-icon" sizes="76x76" href="/blog/img/favicon.jpg">
+  <link rel="icon" type="image/png" href="/blog/img/favicon.jpg">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -23,7 +23,7 @@
 
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+  <link  rel="stylesheet" href="/blog/lib/hint/hint.min.css" />
 
   
     <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
@@ -41,12 +41,12 @@
 <link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
 
 
-<link  rel="stylesheet" href="/css/main.css" />
+<link  rel="stylesheet" href="/blog/css/main.css" />
 
 <!-- 自定义样式保持在最底部 -->
 
 
-  <script  src="/js/utils.js" ></script>
+  <script  src="/blog/js/utils.js" ></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 
 
@@ -55,7 +55,7 @@
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
-       href="/">&nbsp;<strong>Nyima</strong>&nbsp;</a>
+       href="/blog/">&nbsp;<strong>Nyima</strong>&nbsp;</a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -72,7 +72,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/">
+              <a class="nav-link" href="/blog/">
                 <i class="iconfont icon-home-fill"></i>
                 Home
               </a>
@@ -84,7 +84,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/archives/">
+              <a class="nav-link" href="/blog/archives/">
                 <i class="iconfont icon-archive-fill"></i>
                 Archives
               </a>
@@ -96,7 +96,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/categories/">
+              <a class="nav-link" href="/blog/categories/">
                 <i class="iconfont icon-category-fill"></i>
                 Categories
               </a>
@@ -108,7 +108,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/tags/">
+              <a class="nav-link" href="/blog/tags/">
                 <i class="iconfont icon-tags-fill"></i>
                 Tags
               </a>
@@ -120,7 +120,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/links/">
+              <a class="nav-link" href="/blog/links/">
                 <i class="iconfont icon-link-fill"></i>
                 Links
               </a>
@@ -132,7 +132,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/about/">
+              <a class="nav-link" href="/blog/about/">
                 <i class="iconfont icon-user-fill"></i>
                 About
               </a>
@@ -151,7 +151,7 @@
 </nav>
 
     <div class="view intro-2" id="background" parallax=true
-         style="background: url('/img/3.jpg') no-repeat center center;
+         style="background: url('/blog/img/3.jpg') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -329,7 +329,7 @@
 &#125;</code></pre>
 
 <p>可以再Runnable上使用Alt+Enter</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144534.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144534.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h4 id="原理之-Thread-与-Runnable-的关系"><a href="#原理之-Thread-与-Runnable-的关系" class="headerlink" title="原理之 Thread 与 Runnable 的关系"></a>原理之 Thread 与 Runnable 的关系</h4><p>分析 Thread 的源码，理清它与 Runnable 的关系<br><strong>小结</strong></p>
 <ul>
 <li>方法1 是把线程和任务合并在了一起</li>
@@ -436,7 +436,7 @@ t1.isInterrupted();</code></pre>
 
 
 <h5 id="interrupt方法的应用——两阶段终止模式"><a href="#interrupt方法的应用——两阶段终止模式" class="headerlink" title="interrupt方法的应用——两阶段终止模式"></a><strong>interrupt方法的应用</strong>——两阶段终止模式</h5><p>当我们在执行线程一时，想要终止线程二，这是就需要使用interrupt方法来<strong>优雅</strong>的停止线程二。</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144553.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144553.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>代码</strong></p>
 <pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test7</span> </span>&#123;
 	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
@@ -509,7 +509,7 @@ t1.isInterrupted();</code></pre>
 <li>Tomcat 中的 Acceptor 和 Poller 线程都是守护线程，所以 Tomcat 接收到 shutdown 命令后，不会等 待它们处理完当前请求</li>
 </ul>
 <h2 id="4、线程的状态"><a href="#4、线程的状态" class="headerlink" title="4、线程的状态"></a>4、线程的状态</h2><h3 id="1-五种状态"><a href="#1-五种状态" class="headerlink" title="(1)五种状态"></a>(1)五种状态</h3><p>这是从 <strong>操作系统</strong> 层面来描述的</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144606.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144606.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li><p>【初始状态】仅是在语言层面创建了线程对象，还未与操作系统线程关联（例如线程调用了start方法）</p>
 </li>
@@ -531,7 +531,7 @@ t1.isInterrupted();</code></pre>
 </li>
 </ul>
 <h3 id="2-六种状态"><a href="#2-六种状态" class="headerlink" title="(2)六种状态"></a>(2)六种状态</h3><p>这是从 <strong>Java API</strong> 层面来描述的<br>根据 Thread.State 枚举，分为六种状态</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144621.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144621.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li><strong>NEW</strong>  线程刚被创建，但是还没有调用 start() 方法</li>
 <li><strong>RUNNABLE</strong> 当调用了 start() 方法之后，注意，Java API 层面的 RUNNABLE 状态涵盖了操作系统层面的 【可运行状态】、【运行状态】和【阻塞状态】（由于 BIO 导致的线程阻塞，在 Java 里无法区分，仍然认为 是可运行） </li>
@@ -664,15 +664,15 @@ t1.isInterrupted();</code></pre>
 <ul>
 <li>局部变量是线程安全的——每个方法都在对应线程的栈中创建栈帧，不会被其他线程共享</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144636.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144636.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>如果调用的对象被共享，且执行了读写操作，则<strong>线程不安全</strong></li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144649.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144649.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>如果是局部变量，则会在堆中创建对应的对象，不会存在线程安全问题。</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144702.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144702.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="常见线程安全类"><a href="#常见线程安全类" class="headerlink" title="常见线程安全类"></a>常见线程安全类</h3><ul>
 <li>String</li>
 <li>Integer</li>
@@ -689,11 +689,11 @@ t1.isInterrupted();</code></pre>
 <li><p>但注意它们<strong>多个方法的组合不是原子的</strong>，所以可能会出现线程安全问题</p>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144903.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144903.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="不可变类线程安全性"><a href="#不可变类线程安全性" class="headerlink" title="不可变类线程安全性"></a>不可变类线程安全性</h3><p>String、Integer 等都是<strong>不可变类</strong>，因为其内部的状态不可以改变，因此它们的方法都是线程安全的 </p>
 <p>有同学或许有疑问，String 有 replace，substring 等方法【可以】改变值啊，那么这些方法又是如何保证线程安 全的呢？</p>
 <p>这是因为这些方法的返回值都<strong>创建了一个新的对象</strong>，而不是直接改变String、Integer对象本身。</p>
-<h2 id="4、Monitor概念"><a href="#4、Monitor概念" class="headerlink" title="4、Monitor概念"></a>4、Monitor概念</h2><h3 id="1-原理之Monitor"><a href="#1-原理之Monitor" class="headerlink" title="(1)原理之Monitor"></a>(1)原理之Monitor</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144917.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="4、Monitor概念"><a href="#4、Monitor概念" class="headerlink" title="4、Monitor概念"></a>4、Monitor概念</h2><h3 id="1-原理之Monitor"><a href="#1-原理之Monitor" class="headerlink" title="(1)原理之Monitor"></a>(1)原理之Monitor</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144917.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li><p>当线程执行到临界区代码时，如果使用了synchronized，会先查询synchronized中所指定的对象(obj)<strong>是否绑定了Monitor</strong>。</p>
 <ul>
@@ -716,31 +716,31 @@ t1.isInterrupted();</code></pre>
 </ul>
 </li>
 </ul>
-<h2 id="5、Synchronized原理进阶"><a href="#5、Synchronized原理进阶" class="headerlink" title="5、Synchronized原理进阶"></a>5、Synchronized原理进阶</h2><h3 id="对象头格式"><a href="#对象头格式" class="headerlink" title="对象头格式"></a>对象头格式</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144926.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="5、Synchronized原理进阶"><a href="#5、Synchronized原理进阶" class="headerlink" title="5、Synchronized原理进阶"></a>5、Synchronized原理进阶</h2><h3 id="对象头格式"><a href="#对象头格式" class="headerlink" title="对象头格式"></a>对象头格式</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144926.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="1-轻量级锁（用于优化Monitor这类的重量级锁）"><a href="#1-轻量级锁（用于优化Monitor这类的重量级锁）" class="headerlink" title="(1)轻量级锁（用于优化Monitor这类的重量级锁）"></a>(1)轻量级锁（用于优化Monitor这类的重量级锁）</h3><p><strong>轻量级锁使用场景：</strong>当一个对象被多个线程所访问，但访问的时间是<strong>错开的（不存在竞争）</strong>，此时就可以使用<strong>轻量级锁</strong>来优化。</p>
 <ul>
 <li><p>创建<strong>锁记录</strong>（Lock Record）对象，每个线程的栈帧都会包含一个锁记录对象，内部可以存储锁定对象的mark word（不再一开始就使用Monitor）</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144942.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144942.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 <li><p>让锁记录中的Object reference指向锁对象（Object），并尝试用cas去替换Object中的mark word，将此mark word放入lock record中保存</p>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144950.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144950.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>如果cas替换成功，则将Object的对象头替换为<strong>锁记录的地址</strong>和<strong>状态 00（轻量级锁状态）</strong>，并由该线程给对象加锁</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144957.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608144957.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="2-锁膨胀"><a href="#2-锁膨胀" class="headerlink" title="(2)锁膨胀"></a>(2)锁膨胀</h3><ul>
 <li>如果一个线程在给一个对象加轻量级锁时，<strong>cas替换操作失败</strong>（因为此时其他线程已经给对象加了轻量级锁），此时该线程就会进入<strong>锁膨胀</strong>过程</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145004.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145004.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li><p>此时便会给对象加上重量级锁（使用Monitor）</p>
 <ul>
 <li><p>将对象头的Mark Word改为Monitor的地址，并且状态改为01(重量级锁)</p>
 </li>
 <li><p>并且该线程放入入EntryList中，并进入阻塞状态(blocked)</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145148.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145148.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
 </li>
@@ -749,21 +749,21 @@ t1.isInterrupted();</code></pre>
 <ul>
 <li>第一种情况</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145136.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145136.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>第二种情况</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145125.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145125.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="4-偏向锁-用于优化轻量级锁重入"><a href="#4-偏向锁-用于优化轻量级锁重入" class="headerlink" title="(4)偏向锁(用于优化轻量级锁重入)"></a>(4)偏向锁(用于优化轻量级锁重入)</h3><p>轻量级锁在没有竞争时，每次<strong>重入</strong>（该线程执行的方法中再次锁住该对象）操作仍需要cas替换操作，这样是会使性能降低的。</p>
 <p>所以引入了<strong>偏向锁</strong>对性能进行优化：在<strong>第一次</strong>cas时会将<strong>线程的ID</strong>写入对象的Mark Word中。此后发现这个线程ID就是自己的，就表示没有竞争，就不需要再次cas，以后只要不发生竞争，这个对象就归该线程所有。</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145109.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145109.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h4 id="偏向状态"><a href="#偏向状态" class="headerlink" title="偏向状态"></a>偏向状态</h4><ul>
 <li>Normal：一般状态，没有加任何锁，前面62位保存的是对象的信息，<strong>最后2位为状态（01），倒数第三位表示是否使用偏向锁（未使用：0）</strong></li>
 <li>Biased：偏向状态，使用偏向锁，前面54位保存的当前线程的ID，<strong>最后2位为状态（01），倒数第三位表示是否使用偏向锁（使用：1）</strong></li>
 <li>Lightweight：使用轻量级锁，前62位保存的是锁记录的指针，<strong>最后两位为状态（00）</strong></li>
 <li>Heavyweight：使用重量级锁，前62位保存的是Monitor的地址指针，<strong>后两位为状态(10)</strong></li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145101.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145101.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>如果开启了偏向锁（默认开启），在创建对象时，对象的Mark Word后三位应该是101</li>
 <li>但是偏向锁默认是<strong>有延迟</strong>的，不会再程序一启动就生效，而是会在程序运行一段时间（几秒之后），才会对创建的对象设置为偏向状态</li>
@@ -783,7 +783,7 @@ t1.isInterrupted();</code></pre>
 <li>当撤销超过20次后（超过阈值），JVM会觉得是不是偏向错了，这时会在给对象加锁时，重新偏向至加锁线程。</li>
 </ul>
 <h3 id="6-批量撤销"><a href="#6-批量撤销" class="headerlink" title="(6)批量撤销"></a>(6)批量撤销</h3><p>当撤销偏向锁的阈值超过40以后，就会将<strong>整个类的对象都改为不可偏向的</strong></p>
-<h2 id="6、Wait-Notify"><a href="#6、Wait-Notify" class="headerlink" title="6、Wait/Notify"></a>6、Wait/Notify</h2><h3 id="1-原理"><a href="#1-原理" class="headerlink" title="(1)原理"></a>(1)原理</h3><p>​    <img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145204.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="6、Wait-Notify"><a href="#6、Wait-Notify" class="headerlink" title="6、Wait/Notify"></a>6、Wait/Notify</h2><h3 id="1-原理"><a href="#1-原理" class="headerlink" title="(1)原理"></a>(1)原理</h3><p>​    <img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145204.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>锁对象调用wait方法（obj.wait），就会使当前线程进入WaitSet中，变为WAITING状态。</li>
 <li>处于BLOCKED和WAITING状态的线程都为<strong>阻塞</strong>状态，CPU都不会分给他们时间片。但是有所区别：<ul>
@@ -836,7 +836,7 @@ t1.isInterrupted();</code></pre>
 	LOCK.notifyAll();
 &#125;</code></pre>
 
-<h2 id="7、模式之保护性暂停"><a href="#7、模式之保护性暂停" class="headerlink" title="7、模式之保护性暂停"></a>7、模式之保护性暂停</h2><h3 id="1-定义"><a href="#1-定义" class="headerlink" title="(1)定义"></a>(1)定义</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145223.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="7、模式之保护性暂停"><a href="#7、模式之保护性暂停" class="headerlink" title="7、模式之保护性暂停"></a>7、模式之保护性暂停</h2><h3 id="1-定义"><a href="#1-定义" class="headerlink" title="(1)定义"></a>(1)定义</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145223.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="2-举例"><a href="#2-举例" class="headerlink" title="(2)举例"></a>(2)举例</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test2</span> </span>&#123;
 	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
 		String hello = <span class="hljs-string">"hello thread!"</span>;
@@ -1003,14 +1003,14 @@ LockSupport.unpark(thread);</code></pre>
 <li><p>去唤醒阻塞队列cond中的线程</p>
 </li>
 <li><p>线程继续运行并将counter的值设为0</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145250.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145250.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145303.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145303.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>先调用unpark，再调用park<ul>
 <li>调用unpark<ul>
@@ -1025,8 +1025,8 @@ LockSupport.unpark(thread);</code></pre>
 </ul>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145313.png" srcset="/img/loading.gif" alt=""></p>
-<h2 id="9、线程中的状态转换"><a href="#9、线程中的状态转换" class="headerlink" title="9、线程中的状态转换"></a>9、线程中的状态转换</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145330.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145313.png" srcset="/blog/img/loading.gif" alt=""></p>
+<h2 id="9、线程中的状态转换"><a href="#9、线程中的状态转换" class="headerlink" title="9、线程中的状态转换"></a>9、线程中的状态转换</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145330.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h4 id="情况一：NEW-–-gt-RUNNABLE"><a href="#情况一：NEW-–-gt-RUNNABLE" class="headerlink" title="情况一：NEW –&gt; RUNNABLE"></a>情况一：NEW –&gt; RUNNABLE</h4><ul>
 <li>当调用了t.start()方法时，由 NEW –&gt; RUNNABLE </li>
 </ul>
@@ -1129,7 +1129,7 @@ LockSupport.unpark(thread);</code></pre>
 <li><p>jps+jstack ThreadID</p>
 <ul>
 <li><p>在JAVA控制台中的Terminal中输入<strong>jps</strong>指令可以查看运行中的线程ID，使用<strong>jstack ThreadID</strong>可以查看线程状态。</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145351.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145351.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
 <pre><code class="hljs angelscript">F:\Thread_study&gt;jps
@@ -1164,13 +1164,13 @@ Found one Java-level deadlock:
 </ul>
 <ul>
 <li><p>jconsole检测死锁</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145405.png" srcset="/img/loading.gif" alt=""></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145416.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145405.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145416.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
-<h4 id="哲学家就餐问题"><a href="#哲学家就餐问题" class="headerlink" title="哲学家就餐问题"></a>哲学家就餐问题</h4><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145436.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="哲学家就餐问题"><a href="#哲学家就餐问题" class="headerlink" title="哲学家就餐问题"></a>哲学家就餐问题</h4><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145436.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h4 id="避免死锁的方法"><a href="#避免死锁的方法" class="headerlink" title="避免死锁的方法"></a>避免死锁的方法</h4><p>在线程使用锁对象时<strong>，顺序加锁</strong>即可避免死锁</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145450.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145450.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="3-活锁"><a href="#3-活锁" class="headerlink" title="(3)活锁"></a>(3)活锁</h3><p>活锁出现在两个线程<strong>互相改变对方的结束条件</strong>，后谁也无法结束。</p>
 <h4 id="避免活锁的方法"><a href="#避免活锁的方法" class="headerlink" title="避免活锁的方法"></a>避免活锁的方法</h4><p>在线程执行时，中途给予<strong>不同的间隔时间</strong>即可。</p>
 <h4 id="死锁与活锁的区别"><a href="#死锁与活锁的区别" class="headerlink" title="死锁与活锁的区别"></a>死锁与活锁的区别</h4><ul>
@@ -1549,15 +1549,15 @@ ReentrantLock lock = <span class="hljs-keyword">new</span> ReentrantLock(<span c
 <ul>
 <li>初始状态， t 线程刚开始从<strong>主内存</strong>读取了 run 的值到<strong>工作内存</strong>。</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145505.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145505.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>因为 t 线程要频繁从主内存中读取 run 的值，JIT 编译器会将 run 的值<strong>缓存至自己工作内存</strong>中的高速缓存中， 减少对主存中 run 的访问，提高效率</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145517.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145517.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li>1 秒之后，main 线程修改了 run 的值，并同步至主存，而 t 是从自己工作内存中的高速缓存中读取这个变量 的值，结果永远是<strong>旧值</strong></li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145529.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145529.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>解决方法</strong></p>
 <ul>
 <li>使用<strong>volatile</strong>易变关键字</li>
@@ -1739,12 +1739,12 @@ ReentrantLock lock = <span class="hljs-keyword">new</span> ReentrantLock(<span c
 <h2 id="3、有序性"><a href="#3、有序性" class="headerlink" title="3、有序性"></a>3、有序性</h2><h3 id="指令重排"><a href="#指令重排" class="headerlink" title="指令重排"></a>指令重排</h3><ul>
 <li>JVM 会在<strong>不影响正确性</strong>的前提下，可以<strong>调整</strong>语句的执行<strong>顺序</strong></li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145546.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145546.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p>这种特性称之为『<strong>指令重排</strong>』，<strong>多线程下『指令重排』会影响正确性</strong>。</p>
 <h3 id="指令重排序优化"><a href="#指令重排序优化" class="headerlink" title="指令重排序优化"></a>指令重排序优化</h3><ul>
 <li>事实上，现代处理器会设计为一个时钟周期完成一条执行时间长的 CPU 指令。为什么这么做呢？可以想到指令还可以再划分成一个个更小的阶段，例如，每条指令都可以分为： <strong>取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回</strong> 这5 个阶段</li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145615.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145615.png" srcset="/blog/img/loading.gif" alt=""></p>
 <ul>
 <li><p>在不改变程序结果的前提下，这些指令的各个阶段可以通过<strong>重排序</strong>和<strong>组合</strong>来实现<strong>指令级并行</strong></p>
 </li>
@@ -1763,7 +1763,7 @@ System.out.println( a + b );
 </li>
 </ul>
 <h3 id="支持流水线的处理器"><a href="#支持流水线的处理器" class="headerlink" title="支持流水线的处理器"></a>支持流水线的处理器</h3><p>现代 CPU 支持多级<strong>指令流水线</strong>，例如支持<strong>同时</strong>执行 <strong>取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回</strong> 的处理器，就可以称之为五级指令流水线。这时 CPU 可以在一个时钟周期内，同时运行五条指令的不同阶段（相当于一 条执行时间长的复杂指令），IPC = 1，本质上，流水线技术并不能缩短单条指令的执行时间，但它变相地提高了指令地<strong>吞吐率</strong>。</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145602.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145602.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>在多线程环境下，指令重排序可能导致出现意料之外的结果</strong></p>
 <h3 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h3><p><strong>volatile</strong> 修饰的变量，可以<strong>禁用</strong>指令重排</p>
 <ul>
@@ -1788,21 +1788,21 @@ System.out.println( a + b );
 </ul>
 <h3 id="如何保证可见性"><a href="#如何保证可见性" class="headerlink" title="如何保证可见性"></a>如何保证可见性</h3><ul>
 <li><p>写屏障（sfence）保证在该屏障之前的，对共享变量的改动，都同步到主存当中</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145630.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145630.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 <li><p>而读屏障（lfence）保证在该屏障之后，对共享变量的读取，加载的是主存中新数据</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145713.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145713.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
 <h3 id="如何保证有序性"><a href="#如何保证有序性" class="headerlink" title="如何保证有序性"></a>如何保证有序性</h3><ul>
 <li><p>写屏障会确保指令重排序时，不会将写屏障之前的代码排在写屏障之后</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145723.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145723.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 <li><p>读屏障会确保指令重排序时，不会将读屏障之后的代码排在读屏障之前</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145729.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145729.png" srcset="/blog/img/loading.gif" alt=""></p>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145741.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145741.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>但是不能解决指令交错问题</strong></p>
 <ul>
 <li>写屏障仅仅是保证之后的读能够读到新的结果，但不能保证读跑到它前面去 </li>
@@ -1904,7 +1904,7 @@ System.out.println( a + b );
 
 <h2 id="2、CAS与volatile"><a href="#2、CAS与volatile" class="headerlink" title="2、CAS与volatile"></a>2、CAS与volatile</h2><p>前面看到的 AtomicInteger 的解决方法，内部并没有用锁来保护共享变量的线程安全。那么它是如何实现的呢？</p>
 <p>其中的<strong>关键是 compareAndSwap</strong>（比较并设置值），它的<strong>简称就是 CAS</strong> （也有 Compare And Swap 的说法），它必须是<strong>原子操作</strong>。</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145914.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145914.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a><strong>工作流程</strong></h3><ul>
 <li>当一个线程要去修改Account对象中的值时，先获取值pre（调用get方法），然后再将其设置为新的值next（调用cas方法）。在调用cas方法时，会将pre与Account中的余额进行比较。<ul>
 <li>如果<strong>两者相等</strong>，就说明该值还未被其他线程修改，此时便可以进行修改操作。</li>
@@ -1925,7 +1925,7 @@ System.out.println( a + b );
 
 <p><strong>CAS 必须借助 volatile</strong> 才能读取到共享变量的新值来实现【比较并交换】的效果 </p>
 <h3 id="效率问题"><a href="#效率问题" class="headerlink" title="效率问题"></a>效率问题</h3><p>一般情况下，使用无锁比使用加锁的<strong>效率更高。</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145931.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145931.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>原因</strong></p>
 <h3 id="CAS特点"><a href="#CAS特点" class="headerlink" title="CAS特点"></a>CAS特点</h3><p>结合 CAS 和 volatile 可以实现<strong>无锁并发</strong>，适用于<strong>线程数少、多核 CPU</strong> 的场景下。</p>
 <ul>
@@ -2072,7 +2072,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 	&#125;
 &#125;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145952.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145952.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p>主线程仅能判断出共享变量的值与初值 A <strong>是否相同</strong>，不能感知到这种从 A 改为 B 又 改回 A 的情况，如果主线程希望：<br>只要有其它线程【<strong>动过了</strong>】共享变量，那么自己的 <strong>cas 就算失败</strong>，这时，仅比较值是不够的，需要再加一个<strong>版本号</strong></p>
 <h3 id="AtomicStampedReference"><a href="#AtomicStampedReference" class="headerlink" title="AtomicStampedReference"></a><strong>AtomicStampedReference</strong></h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo3</span> </span>&#123;
 	<span class="hljs-comment">//指定版本号</span>
@@ -2111,7 +2111,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 	&#125;
 &#125;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150003.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150003.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h3 id="AtomicMarkableReference"><a href="#AtomicMarkableReference" class="headerlink" title="AtomicMarkableReference"></a>AtomicMarkableReference</h3><p>AtomicStampedReference 可以给原子引用加上版本号，追踪原子引用整个的变化过程，如： A -&gt; B -&gt; A -&gt; C ，通过AtomicStampedReference，我们可以知道，引用变量中途被更改了几次。<br>但是有时候，并不关心引用变量更改了几次，只是单纯的关心<strong>是否更改过</strong>，所以就有了 <strong>AtomicMarkableReference</strong></p>
 <pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo4</span> </span>&#123;
 	<span class="hljs-comment">//指定版本号</span>
@@ -2144,7 +2144,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150017.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150017.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h2 id="6、原子数组"><a href="#6、原子数组" class="headerlink" title="6、原子数组"></a>6、原子数组</h2><ul>
 <li>AtomicIntegerArray</li>
 <li>AtomicLongArray </li>
@@ -2178,12 +2178,12 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 
 
-<h2 id="8、原子累加器"><a href="#8、原子累加器" class="headerlink" title="8、原子累加器"></a>8、原子累加器</h2><h2 id="9、LongAdder原理"><a href="#9、LongAdder原理" class="headerlink" title="9、LongAdder原理"></a>9、LongAdder原理</h2><h3 id="原理之伪共享"><a href="#原理之伪共享" class="headerlink" title="原理之伪共享"></a>原理之伪共享</h3><p>​    <img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150037.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="8、原子累加器"><a href="#8、原子累加器" class="headerlink" title="8、原子累加器"></a>8、原子累加器</h2><h2 id="9、LongAdder原理"><a href="#9、LongAdder原理" class="headerlink" title="9、LongAdder原理"></a>9、LongAdder原理</h2><h3 id="原理之伪共享"><a href="#原理之伪共享" class="headerlink" title="原理之伪共享"></a>原理之伪共享</h3><p>​    <img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150037.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p>缓存行伪共享得从缓存说起<br>缓存与内存的速度比较</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150051.png" srcset="/img/loading.gif" alt=""></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150102.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150051.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150102.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p>因为 CPU 与 内存的速度差异很大，需要靠预读数据至<strong>缓存</strong>来提升效率。<br>而缓存以<strong>缓存行</strong>为单位，每个缓存行对应着一块内存，一般是 <strong>64 byte</strong>（8 个 long）<br>缓存的加入会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中<br>CPU 要保证数据的<strong>一致性</strong>，如果某个 CPU 核心<strong>更改</strong>了数据，其它 CPU 核心对应的整个缓存行必须<strong>失效</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150111.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150111.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p>因为 Cell 是数组形式，在内存中是连续存储的，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），因 此缓存行可以存下 2 个的 Cell 对象。这样问题来了：</p>
 <ul>
 <li>Core-0 要修改 Cell[0]</li>
@@ -2192,7 +2192,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 <p>无论谁修改成功，都会导致对方 Core 的缓存行失效，</p>
 <p>比如 Core-0 中 Cell[0]=6000, Cell[1]=8000 要累加 Cell[0]=6001, Cell[1]=8000 ，这时会让 Core-1 的缓存行失效</p>
 <p>@sun.misc.Contended 用来解决这个问题，它的原理是在使用此注解的对象或字段的<strong>前后各增加 128 字节大小的 padding</strong>（空白），从而让 CPU 将对象预读至缓存时<strong>占用不同的缓存行</strong>，这样，不会造成对方缓存行的失效</p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150119.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150119.png" srcset="/blog/img/loading.gif" alt=""></p>
 <p><strong>累加主要调用以下方法</strong></p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-keyword">long</span> x)</span> </span>&#123;
        Cell[] as; <span class="hljs-keyword">long</span> b, v; <span class="hljs-keyword">int</span> m; Cell a;
@@ -2206,7 +2206,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
    &#125;</code></pre>
 
 <p><strong>累加流程图</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150129.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608150129.png" srcset="/blog/img/loading.gif" alt=""></p>
 <h2 id="10、Unsafe"><a href="#10、Unsafe" class="headerlink" title="10、Unsafe"></a>10、Unsafe</h2><p>Unsafe 对象提供了非常底层的，操作内存、线程的方法，Unsafe 对象不能直接调用，只能通过<strong>反射</strong>获得</p>
 <pre><code class="hljs arduino"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo1</span> &#123;</span>
 	<span class="hljs-keyword">static</span> Unsafe unsafe;
@@ -2292,7 +2292,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/categories/JAVA/">JAVA</a>
+                      <a class="hover-with-bg" href="/blog/categories/JAVA/">JAVA</a>
                     
                   </div>
                 
@@ -2306,7 +2306,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
                   <div class="post-prev col-6">
                     
                     
-                      <a href="/2020/06/08/JVM%E5%AD%A6%E4%B9%A0/">
+                      <a href="/blog/2020/06/08/JVM%E5%AD%A6%E4%B9%A0/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">JVM</span>
                         <span class="visible-mobile">Previous</span>
@@ -2316,7 +2316,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
                   <div class="post-next col-6">
                     
                     
-                      <a href="/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/">
+                      <a href="/blog/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/">
                         <span class="hidden-mobile">Redis学习</span>
                         <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -2464,20 +2464,20 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 <!-- SCRIPTS -->
 <script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
 <script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
-<script  src="/js/debouncer.js" ></script>
-<script  src="/js/main.js" ></script>
+<script  src="/blog/js/debouncer.js" ></script>
+<script  src="/blog/js/main.js" ></script>
 
 <!-- Plugins -->
 
 
   
-    <script  src="/js/lazyload.js" ></script>
+    <script  src="/blog/js/lazyload.js" ></script>
   
 
 
 
   <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
-  <script  src="/js/clipboard-use.js" ></script>
+  <script  src="/blog/js/clipboard-use.js" ></script>
 
 
 
@@ -2551,9 +2551,9 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 
 
-  <script  src="/js/local-search.js" ></script>
+  <script  src="/blog/js/local-search.js" ></script>
   <script>
-    var path = "/local-search.xml";
+    var path = "/blog/local-search.xml";
     var inputArea = document.querySelector("#local-search-input");
     inputArea.onclick = function () {
       searchFunc(path, 'local-search-input', 'local-search-result');
