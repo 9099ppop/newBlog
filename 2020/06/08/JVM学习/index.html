@@ -763,7 +763,7 @@ ByteBuffer byteBuffer = ByteBuffer.allocateDirect(_1M);</code></pre>
 </li>
 </ul>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608151052.png" srcset="/blog/img/loading.gif" alt=""></p>
-<h5 id="CMS-收集器"><a href="#CMS-收集器" class="headerlink" title="CMS 收集器"></a>CMS 收集器</h5><p>一种以获取<strong>最短回收停顿时间</strong>为目标的收集器</p>
+<h5 id="CMS-收集器"><a href="#CMS-收集器" class="headerlink" title="CMS 收集器"></a>CMS 收集器</h5><p>Concurrent Mark Sweep，一种以获取<strong>最短回收停顿时间</strong>为目标的<strong>老年代</strong>收集器</p>
 <p><strong>特点</strong>：基于<strong>标记-清除算法</strong>实现。并发收集、低停顿，但是会产生内存碎片</p>
 <p><strong>应用场景</strong>：适用于注重服务的响应速度，希望系统停顿时间最短，给用户带来更好的体验等场景下。如web程序、b/s服务</p>
 <p><strong>CMS收集器的运行过程分为下列4步：</strong></p>
