@@ -7,8 +7,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/blog/img/favicon.jpg">
-  <link rel="icon" type="image/png" href="/blog/img/favicon.jpg">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.jpg">
+  <link rel="icon" type="image/png" href="/img/favicon.jpg">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -23,7 +23,7 @@
 
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/blog/lib/hint/hint.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
   
     <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
@@ -41,12 +41,12 @@
 <link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
 
 
-<link  rel="stylesheet" href="/blog/css/main.css" />
+<link  rel="stylesheet" href="/css/main.css" />
 
 <!-- 自定义样式保持在最底部 -->
 
 
-  <script  src="/blog/js/utils.js" ></script>
+  <script  src="/js/utils.js" ></script>
 <meta name="generator" content="Hexo 4.2.1"></head>
 
 
@@ -55,7 +55,7 @@
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
-       href="/blog/">&nbsp;<strong>Nyima</strong>&nbsp;</a>
+       href="/">&nbsp;<strong>Nyima</strong>&nbsp;</a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent"
@@ -72,7 +72,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/">
+              <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
                 Home
               </a>
@@ -84,7 +84,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/archives/">
+              <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
                 Archives
               </a>
@@ -96,7 +96,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/categories/">
+              <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
                 Categories
               </a>
@@ -108,7 +108,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/tags/">
+              <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
                 Tags
               </a>
@@ -120,7 +120,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/links/">
+              <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
                 Links
               </a>
@@ -132,7 +132,7 @@
           
           
             <li class="nav-item">
-              <a class="nav-link" href="/blog/about/">
+              <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
                 About
               </a>
@@ -151,7 +151,7 @@
 </nav>
 
     <div class="view intro-2" id="background" parallax=true
-         style="background: url('/blog/img/3.jpg') no-repeat center center;
+         style="background: url('/img/3.jpg') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
@@ -239,7 +239,7 @@
 <p>展示表</p>
 <pre><code class="hljs sql"><span class="hljs-keyword">DESCRIBE</span> <span class="hljs-keyword">table</span>;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200807154719.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200807154719.png" srcset="/img/loading.gif" alt=""></p>
 <h2 id="2、对表的操作"><a href="#2、对表的操作" class="headerlink" title="2、对表的操作"></a>2、对表的操作</h2><h3 id="查看操作"><a href="#查看操作" class="headerlink" title="查看操作"></a>查看操作</h3><p>查看表中的记录</p>
 <pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> *<span class="hljs-keyword">FROM</span> <span class="hljs-keyword">table</span>;</code></pre>
 
@@ -835,7 +835,7 @@
 <p>举例：</p>
 <pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> person <span class="hljs-keyword">AS</span> p <span class="hljs-keyword">INNER</span> <span class="hljs-keyword">JOIN</span> card  <span class="hljs-keyword">AS</span> c <span class="hljs-keyword">ON</span> p.card_id = c.id;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195054.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195054.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>内联查询：两张表通过某个字段合并起来，查询出相关数据</strong></p>
 <h2 id="2、外连接"><a href="#2、外连接" class="headerlink" title="2、外连接"></a>2、外连接</h2><h3 id="左外连接"><a href="#左外连接" class="headerlink" title="左外连接"></a>左外连接</h3><pre><code class="hljs sql">LEFT JOIN ... ON ...
 或
@@ -846,7 +846,7 @@ LEFT OUTER JOIN ... ON ...</code></pre>
 或者
 <span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> person <span class="hljs-keyword">AS</span> p <span class="hljs-keyword">LEFT</span> <span class="hljs-keyword">OUTER</span> <span class="hljs-keyword">JOIN</span> card <span class="hljs-keyword">AS</span> c <span class="hljs-keyword">ON</span> p.card_id = c.id;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195219.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195219.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>左外连接：</strong></p>
 <ul>
 <li><p>会把左表里的所有数据都取出来</p>
@@ -863,18 +863,18 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 或
 <span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> person <span class="hljs-keyword">AS</span> p <span class="hljs-keyword">RIGHT</span> <span class="hljs-keyword">OUTER</span> <span class="hljs-keyword">JOIN</span> card <span class="hljs-keyword">AS</span> c <span class="hljs-keyword">ON</span> p.card_id = c.id;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195526.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810195526.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>右外连接</strong></p>
 <ul>
 <li>会把右表中的所有数据都取出来</li>
 <li>对于左表，如果有数据就取出，如果没有就为空</li>
 </ul>
 <h2 id="3、三种连接的图解"><a href="#3、三种连接的图解" class="headerlink" title="3、三种连接的图解"></a>3、三种连接的图解</h2><p><strong>内连接</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200025.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200025.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>左连接</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200040.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200040.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>右连接</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200104.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810200104.png" srcset="/img/loading.gif" alt=""></p>
 <h1 id="六、事务"><a href="#六、事务" class="headerlink" title="六、事务"></a>六、事务</h1><p>事务是一个最小的不可分割的单元，事务能够保证一个业务的完整性</p>
 <p>多条sql语句<strong>要么同时成功，要么同时失败</strong>，这时就要用到事务</p>
 <h2 id="1、自动提交、手动提交和回滚"><a href="#1、自动提交、手动提交和回滚" class="headerlink" title="1、自动提交、手动提交和回滚"></a>1、自动提交、手动提交和回滚</h2><p>通过</p>
@@ -898,7 +898,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 
 <p>可以手动开启事务</p>
 <p><strong>插入数据前</strong></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204606.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204606.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>插入数据后</strong></p>
 <pre><code class="hljs sql"><span class="hljs-keyword">BEGIN</span>;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> person <span class="hljs-keyword">VALUES</span> (<span class="hljs-number">4</span>, <span class="hljs-string">'老六'</span>, <span class="hljs-number">7</span>);
@@ -908,11 +908,11 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> person <span class="hljs-keyword">VALUES</span> (<span class="hljs-number">4</span>, <span class="hljs-string">'老六'</span>, <span class="hljs-number">7</span>);
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> person <span class="hljs-keyword">VALUES</span> (<span class="hljs-number">5</span>, <span class="hljs-string">'老七'</span>, <span class="hljs-number">9</span>);</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204849.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204849.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>回滚后</strong></p>
 <pre><code class="hljs sql"><span class="hljs-keyword">ROLLBACK</span>;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204930.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200810204930.png" srcset="/img/loading.gif" alt=""></p>
 <h2 id="3、四大特征-ACID"><a href="#3、四大特征-ACID" class="headerlink" title="3、四大特征 ACID"></a>3、四大特征 ACID</h2><ul>
 <li>原子性：事务是最小的单位，<strong>不可再分</strong></li>
 <li>一致性：同一事务中的sql语句<strong>要么同时成功，要么同时失败</strong></li>
@@ -928,7 +928,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 </ul>
 </li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200811132934.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200811132934.png" srcset="/img/loading.gif" alt=""></p>
 <ul>
 <li>事务的并发问题<ul>
 <li>脏读：事务A读取了事务B更新的数据，然后<strong>B回滚操作</strong>，那么<strong>A读取到的数据是脏数据</strong></li>
@@ -948,7 +948,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 版本 8.0
 <span class="hljs-keyword">SELECT</span> @@global.transaction_isolation;</code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200811132716.png" srcset="/blog/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200811132716.png" srcset="/img/loading.gif" alt=""></p>
 <ul>
 <li>修改数据库的隔离级别</li>
 </ul>
@@ -963,7 +963,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
                   <div class="post-meta mr-3">
                     <i class="iconfont icon-category"></i>
                     
-                      <a class="hover-with-bg" href="/blog/categories/MySQL/">MySQL</a>
+                      <a class="hover-with-bg" href="/categories/MySQL/">MySQL</a>
                     
                   </div>
                 
@@ -977,7 +977,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
                   <div class="post-prev col-6">
                     
                     
-                      <a href="/blog/2020/08/16/MySQL%E9%AB%98%E7%BA%A7/">
+                      <a href="/2020/08/16/MySQL%E9%AB%98%E7%BA%A7/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">MySQL高级</span>
                         <span class="visible-mobile">Previous</span>
@@ -987,7 +987,7 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
                   <div class="post-next col-6">
                     
                     
-                      <a href="/blog/2020/06/17/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">
+                      <a href="/2020/06/17/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">
                         <span class="hidden-mobile">JAVA数据结构与算法</span>
                         <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -1135,20 +1135,20 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 <!-- SCRIPTS -->
 <script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
 <script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
-<script  src="/blog/js/debouncer.js" ></script>
-<script  src="/blog/js/main.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
 
 <!-- Plugins -->
 
 
   
-    <script  src="/blog/js/lazyload.js" ></script>
+    <script  src="/js/lazyload.js" ></script>
   
 
 
 
   <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
-  <script  src="/blog/js/clipboard-use.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
 
 
 
@@ -1222,9 +1222,9 @@ RIGHT OUTER <span class="hljs-keyword">JOIN</span> <span class="hljs-params">...
 
 
 
-  <script  src="/blog/js/local-search.js" ></script>
+  <script  src="/js/local-search.js" ></script>
   <script>
-    var path = "/blog/local-search.xml";
+    var path = "/local-search.xml";
     var inputArea = document.querySelector("#local-search-input");
     inputArea.onclick = function () {
       searchFunc(path, 'local-search-input', 'local-search-result');
