@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      11.3k 字
+      11.4k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      126
+      127
        分钟
     </span>
   
@@ -1577,7 +1577,12 @@ config <span class="hljs-builtin-name">get</span> requirepass</code></pre>
 <li><p>加锁 分布式锁，防止被击穿，但是要注意也是性能瓶颈，<strong>慎重！</strong> </p>
 </li>
 </ol>
-<h4 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a>总结</h4><p>缓存击穿就是<strong>单个高热数据过期的瞬间</strong>，数据访问量较大，未命中redis后，发起了大量对同一数据的数据库问，导致对数据库服务器造成压力。应对策略应该在业务数据分析与预防方面进行，配合运行监控测试与即时调整策略，毕竟单个key的过期监控难度较高，配合雪崩处理策略即可。 </p>
+<h4 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a>总结</h4><p>缓存击穿就是<strong>单个高热数据过期的瞬间</strong>，数据访问量较大，未命中redis后，发起了大量对同一数据的数据库问，导致对数据库服务器造成压力。应对策略应该在业务数据分析与预防方面进行，配合运行监控测试与即时调整策略，毕竟单个key的过期监控难度较高，配合雪崩处理策略即可 </p>
+<h3 id="4、缓存穿透"><a href="#4、缓存穿透" class="headerlink" title="4、缓存穿透"></a>4、缓存穿透</h3><h4 id="恶意请求"><a href="#恶意请求" class="headerlink" title="恶意请求"></a>恶意请求</h4><p>我们的数据库中的主键都是从0开始的，即使我们将数据库中的所有数据都放到了缓存中。当有人用id=-1来发生<strong>恶意请求</strong>时，<strong>因为redis中没有这个数据，就会直接访问数据库，这就称谓缓存穿透</strong></p>
+<h4 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h4><ul>
+<li>在程序中进行数据的合法性检验，如果不合法直接返回</li>
+<li>使用<a href="https://www.bilibili.com/video/BV19i4y1u7rV?from=search&seid=8200619784088161214" target="_blank" rel="noopener"><strong>布隆过滤器</strong></a></li>
+</ul>
 
             </article>
             <hr>
@@ -1610,7 +1615,7 @@ config <span class="hljs-builtin-name">get</span> requirepass</code></pre>
                     
                       <a href="/2020/06/08/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">JAVA并发</span>
+                        <span class="hidden-mobile">Java并发</span>
                         <span class="visible-mobile">Previous</span>
                       </a>
                     
