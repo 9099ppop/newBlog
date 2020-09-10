@@ -774,6 +774,7 @@ ByteBuffer byteBuffer = ByteBuffer.allocateDirect(_1M);</code></pre>
 <p> CMS收集器的内存回收过程是与用户线程一起<strong>并发执行</strong>的</p>
 <h4 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h4><h5 id="定义："><a href="#定义：" class="headerlink" title="定义："></a><strong>定义</strong>：</h5><p>Garbage First</p>
 <p>JDK 9以后默认使用，而且替代了CMS 收集器</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200909201212.png" srcset="/img/loading.gif" alt=""></p>
 <h5 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h5><ul>
 <li>同时注重吞吐量和低延迟（响应时间）</li>
 <li>超大堆内存（内存大的），会将堆内存划分为多个<strong>大小相等</strong>的区域</li>
@@ -939,8 +940,9 @@ ByteBuffer byteBuffer = ByteBuffer.allocateDirect(_1M);</code></pre>
 <p>方法：</p>
 <ul>
 <li>在文本文档里写入java代码（文件名与类名一致），将文件类型改为.java</li>
-<li>在文件对应目录下运行cmd，执行javac XXX.java</li>
+<li>java终端中，执行javac X:...\XXX.java</li>
 </ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200910155135.png" srcset="/img/loading.gif" alt=""></p>
 <p>以下是字节码文件</p>
 <pre><code class="hljs angelscript"><span class="hljs-number">0000000</span> ca fe ba be <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">34</span> <span class="hljs-number">00</span> <span class="hljs-number">23</span> <span class="hljs-number">0</span>a <span class="hljs-number">00</span> <span class="hljs-number">06</span> <span class="hljs-number">00</span> <span class="hljs-number">15</span> <span class="hljs-number">09</span> 
 <span class="hljs-number">0000020</span> <span class="hljs-number">00</span> <span class="hljs-number">16</span> <span class="hljs-number">00</span> <span class="hljs-number">17</span> <span class="hljs-number">08</span> <span class="hljs-number">00</span> <span class="hljs-number">18</span> <span class="hljs-number">0</span>a <span class="hljs-number">00</span> <span class="hljs-number">19</span> <span class="hljs-number">00</span> <span class="hljs-number">1</span>a <span class="hljs-number">07</span> <span class="hljs-number">00</span> <span class="hljs-number">1</span>b <span class="hljs-number">07</span> 
