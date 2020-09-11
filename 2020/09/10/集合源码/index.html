@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      7.4k 字
+      8.4k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      102
+      115
        分钟
     </span>
   
@@ -222,7 +222,8 @@
 <h3 id="2、数组"><a href="#2、数组" class="headerlink" title="2、数组"></a>2、数组</h3><p>数组大小一旦确定，就无法改变</p>
 <p><strong>增删慢</strong>：每次添加或删除元素，都需要更改数组长度、拷贝以及移动元素位置</p>
 <p><strong>查询快</strong>：由于数组在内存中是一块连续空间，因此可以根据地址+索引的方式快速获取对应位置上的元素</p>
-<h2 id="二、ArrayList继承关系"><a href="#二、ArrayList继承关系" class="headerlink" title="二、ArrayList继承关系"></a>二、ArrayList继承关系</h2><h3 id="1、Serializable标记性接口"><a href="#1、Serializable标记性接口" class="headerlink" title="1、Serializable标记性接口"></a>1、Serializable标记性接口</h3><p>此处可以查看<a href="https://www.bilibili.com/read/cv6257046" target="_blank" rel="noopener"><strong>CodeSheep——《序列化/反序列化，我忍你很久了！》</strong></a></p>
+<h2 id="二、ArrayList继承关系"><a href="#二、ArrayList继承关系" class="headerlink" title="二、ArrayList继承关系"></a>二、ArrayList继承关系</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911202214.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="1、Serializable标记性接口"><a href="#1、Serializable标记性接口" class="headerlink" title="1、Serializable标记性接口"></a>1、Serializable标记性接口</h3><p>此处可以查看<a href="https://www.bilibili.com/read/cv6257046" target="_blank" rel="noopener"><strong>CodeSheep——《序列化/反序列化，我忍你很久了！》</strong></a></p>
 <h4 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h4><ul>
 <li>类的序列化由实现<strong>java.io.Serializable</strong>接口的类启用</li>
 <li>不实现此接口的类将不会使任何状态序列化或反序列化</li>
@@ -793,6 +794,11 @@
 
 
 <h3 id="4、AbstractList抽象类"><a href="#4、AbstractList抽象类" class="headerlink" title="4、AbstractList抽象类"></a>4、AbstractList抽象类</h3><p>该抽象类含有一个空构造方法，以及一些需要子类去实现的抽象方法</p>
+<pre><code class="hljs plain">
+</code></pre>
+
+
+
 <h2 id="三、ArrayList源码分析"><a href="#三、ArrayList源码分析" class="headerlink" title="三、ArrayList源码分析"></a>三、ArrayList源码分析</h2><h3 id="1、构造方法"><a href="#1、构造方法" class="headerlink" title="1、构造方法"></a>1、构造方法</h3><h4 id="无参构造器"><a href="#无参构造器" class="headerlink" title="无参构造器"></a>无参构造器</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ArrayList</span> </span>&#123;
     <span class="hljs-comment">//默认的初始化容量</span>
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_CAPACITY = <span class="hljs-number">10</span>;
@@ -1467,6 +1473,181 @@
 <h1 id="LinkedList-1"><a href="#LinkedList-1" class="headerlink" title="LinkedList"></a>LinkedList</h1><h2 id="一、LinkedList底层数据结构"><a href="#一、LinkedList底层数据结构" class="headerlink" title="一、LinkedList底层数据结构"></a>一、LinkedList底层数据结构</h2><h3 id="1、LinkedList集合介绍"><a href="#1、LinkedList集合介绍" class="headerlink" title="1、LinkedList集合介绍"></a>1、LinkedList集合介绍</h3><p>LinkedList底层由一个<strong>拥有头、尾指针的双向链表构成</strong></p>
 <h3 id="2、链表"><a href="#2、链表" class="headerlink" title="2、链表"></a>2、链表</h3><p>链表的<strong>增删插入效率高</strong>，但是<strong>查找效率较低</strong></p>
 <p>详细可见<a href="https://nyimac.gitee.io/2020/06/17/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/#%E4%BA%8C%E3%80%81%E9%93%BE%E8%A1%A8">Java数据结构与算法——链表</a></p>
+<h2 id="二、LinkedList继承关系"><a href="#二、LinkedList继承关系" class="headerlink" title="二、LinkedList继承关系"></a>二、LinkedList继承关系</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911202302.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="三、LinkedList源码分析"><a href="#三、LinkedList源码分析" class="headerlink" title="三、LinkedList源码分析"></a>三、LinkedList源码分析</h2><h3 id="1、构造方法-1"><a href="#1、构造方法-1" class="headerlink" title="1、构造方法"></a>1、构造方法</h3><h4 id="无参构造函数"><a href="#无参构造函数" class="headerlink" title="无参构造函数"></a>无参构造函数</h4><pre><code class="hljs java"><span class="hljs-comment">// 链表的容量</span>
+<span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> size = <span class="hljs-number">0</span>;
+
+<span class="hljs-comment">// 链表的头指针</span>
+<span class="hljs-keyword">transient</span> Node&lt;E&gt; first;
+
+<span class="hljs-comment">// 链表的尾指针</span>
+<span class="hljs-keyword">transient</span> Node&lt;E&gt; last;
+
+<span class="hljs-comment">// 创建了一个空链表</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedList</span><span class="hljs-params">()</span> </span>&#123;
+&#125;</code></pre>
+
+
+
+<h4 id="Collection构造函数"><a href="#Collection构造函数" class="headerlink" title="Collection构造函数"></a>Collection构造函数</h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LinkedList</span><span class="hljs-params">(Collection&lt;? extends E&gt; c)</span> </span>&#123;
+    <span class="hljs-comment">// 先调用无参构造函数， 初始化集合容积 size = 0， 并创建头尾指针</span>
+    <span class="hljs-keyword">this</span>();
+    
+    <span class="hljs-comment">// 调用方法，将传入的集合c添加到集合尾部</span>
+    addAll(c);
+&#125;
+
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addAll</span><span class="hljs-params">(Collection&lt;? extends E&gt; c)</span> </span>&#123;
+    	<span class="hljs-comment">// 调用重载后的addAll()方法，并返回其结果</span>
+    	<span class="hljs-keyword">return</span> addAll(size, c);
+&#125;
+
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addAll</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, Collection&lt;? extends E&gt; c)</span> </span>&#123;
+    	<span class="hljs-comment">// 检查索引是否越界， 通过0和size来判断</span>
+        checkPositionIndex(index);
+		
+    	<span class="hljs-comment">// 将传入的集合转成Object类型的数组</span>
+        Object[] a = c.toArray();
+    
+    	<span class="hljs-comment">// 获得传入集合的长度，也就是需要插入的集合中元素的个数</span>
+        <span class="hljs-keyword">int</span> numNew = a.length;
+    
+    	<span class="hljs-comment">// 如果其长度为0，则返回添加失败</span>
+        <span class="hljs-keyword">if</span> (numNew == <span class="hljs-number">0</span>)
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+
+    	<span class="hljs-comment">// 创建两个节点</span>
+    	<span class="hljs-comment">// pred保存插入位置的前驱节点， succ保存插入位置的节点</span>
+        Node&lt;E&gt; pred, succ;
+    
+    	<span class="hljs-comment">// 如果是在集合的末尾进行插入</span>
+        <span class="hljs-keyword">if</span> (index == size) &#123;
+            <span class="hljs-comment">// succ为空，pred为尾节点</span>
+            succ = <span class="hljs-keyword">null</span>;
+            pred = last;
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// 如果不是在末尾进行插入, succ保存插入位置的节点，pred保存插入位置节点的前驱结点</span>
+            succ = node(index);
+            pred = succ.prev;
+        &#125;
+
+    	<span class="hljs-comment">// 使用增加for，通过迭代器顺序访问插入集合</span>
+        <span class="hljs-keyword">for</span> (Object o : a) &#123;
+            <span class="hljs-comment">// 将遍历的元素o赋值给变量e</span>
+            <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>) E e = (E) o;
+            
+            <span class="hljs-comment">// 创建Node对象，Node为LinkedList的内部类。</span>
+            <span class="hljs-comment">// 传入的值依次为：插入节点的前驱节点，该节点存储的数据，后继节点为null</span>
+            Node&lt;E&gt; newNode = <span class="hljs-keyword">new</span> Node&lt;&gt;(pred, e, <span class="hljs-keyword">null</span>);
+            
+            <span class="hljs-comment">// 如果没有前驱节点，也就是在链表头部进行插入</span>
+            <span class="hljs-keyword">if</span> (pred == <span class="hljs-keyword">null</span>)
+                <span class="hljs-comment">// 该节点就是头结点</span>
+                first = newNode;
+            <span class="hljs-keyword">else</span>
+                <span class="hljs-comment">// 如果有前驱结点，前驱结点就指向该节点</span>
+                pred.next = newNode;
+            <span class="hljs-comment">// 前驱节点后移，指向该节点</span>
+            pred = newNode;
+        &#125;
+		
+    	<span class="hljs-comment">// 如果是在尾部进行插入</span>
+        <span class="hljs-keyword">if</span> (succ == <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-comment">// pred节点就是尾节点</span>
+            last = pred;
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// 否则 pred 与 succ 互相指向对方</span>
+            pred.next = succ;
+            succ.prev = pred;
+        &#125;
+		
+    	<span class="hljs-comment">// size扩大</span>
+        size += numNew;
+    
+    	<span class="hljs-comment">// 修改次数+1</span>
+        modCount++;
+    
+    	<span class="hljs-comment">// 返回修改成功</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+&#125;
+
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span>&lt;<span class="hljs-title">E</span>&gt; </span>&#123;
+        E item;
+        Node&lt;E&gt; next;
+        Node&lt;E&gt; prev;
+	
+        Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;
+            <span class="hljs-keyword">this</span>.item = element;
+            <span class="hljs-keyword">this</span>.next = next;
+            <span class="hljs-keyword">this</span>.prev = prev;
+        &#125;
+&#125;</code></pre>
+
+<p><strong>图解插入过程：addAll()方法</strong></p>
+<p><strong>情况一：在尾部插入</strong></p>
+<ul>
+<li>pred指向尾部的节点，succ指向null</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911214210.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>遍历待插入数组，取出第一个元素<ul>
+<li>调用Node&lt;&gt;的构造方法，在初始化节点时，将其前驱结点赋值为pred节点</li>
+<li>放在pred节点的后面，pred.next指向newNode。<strong>此时succ依然指向null</strong></li>
+</ul>
+</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911214251.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>pred后移，指向刚插入的节点</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911214321.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>重复上面的步骤，直到待插入集合中所有元素都插入到链表当中</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911214841.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>插入完毕后，因为succ为null，所以尾指针last变为pred</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911214948.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>情况二：在中间进行插入</strong></p>
+<ul>
+<li>在index=2处（第三个节点）处进行插入，succ保存了插入位置的节点，pred为其前驱节点</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911215148.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>在pred后面插入元素</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911215615.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>一直插入元素，直到插入完成</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911215732.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>如果succ不为空（指向了插入位置处的节点），pred的后继节点为succ，succ的前驱为pred</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911215943.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>可见，在LinkedList中间进行插入，是在index处节点之前进行插入操作的</strong></p>
+<p><strong>情况三：在头部进行插入</strong></p>
+<p>先使用头插法插入<strong>第一个元素</strong></p>
+<ul>
+<li>succ指向了头结点，pred指向其前驱，此时为null</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911220714.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>如果pred为空，则头指针 first 指向 newNode。<strong>让pred指向newNode</strong></li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911221015.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>然后<strong>在头结点之后插入剩余元素，因为此时的pred已经不为空了</strong></li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911221252.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>pred指向新插入的节点，此时待插入集合为空。pred 与 succ 互相指向对方。插入完毕</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911221350.png" srcset="/img/loading.gif" alt=""></p>
 
             </article>
             <hr>
