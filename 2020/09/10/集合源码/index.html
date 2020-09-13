@@ -2765,50 +2765,48 @@ Node&lt;E&gt; node(<span class="hljs-keyword">int</span> <span class="hljs-keywo
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155253.png" srcset="/img/loading.gif" alt=""></p>
 <ul>
 <li><p>然后开始了扩容操作。将元素<strong>哈希值按位与旧容量（不是旧容量-1）</strong>为0的放在lo链表中，不为0的放在hi链表中</p>
-<ul>
-<li><pre><code>do {
+<pre><code class="hljs java"><span class="hljs-keyword">do</span> &#123;
     next = e.next;
-    if ((e.hash &amp; oldCap) == 0) {
-        if (loTail == null)
+    <span class="hljs-comment">// 当前元素的hash值和容量进行按位与，决定被分配到哪个链表中</span>
+    <span class="hljs-keyword">if</span> ((e.hash &amp; oldCap) == <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-keyword">if</span> (loTail == <span class="hljs-keyword">null</span>)
             loHead = e;
-        else
+        <span class="hljs-keyword">else</span>
             loTail.next = e;
         loTail = e;
-    }
-    else {
-        if (hiTail == null)
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">if</span> (hiTail == <span class="hljs-keyword">null</span>)
             hiHead = e;
-        else
+        <span class="hljs-keyword">else</span>
             hiTail.next = e;
         hiTail = e;
-    }
-} while ((e = next) != null);
-<pre><code class="hljs groovy">
-![](<span class="hljs-string">https:</span><span class="hljs-comment">//nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155409.png)</span>
-
-![](<span class="hljs-string">https:</span><span class="hljs-comment">//nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155424.png)</span>
-
-![](<span class="hljs-string">https:</span><span class="hljs-comment">//nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155454.png)</span>
-
-![](<span class="hljs-string">https:</span><span class="hljs-comment">//nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155514.png)</span>
+    &#125;
+&#125; <span class="hljs-keyword">while</span> ((e = next) != <span class="hljs-keyword">null</span>);</code></pre>
 
 
 
-- 遍历链表，将lo中的放在原来的桶中，hi中的放在增加的桶中
 
-```java
-<span class="hljs-keyword">if</span> (loTail != <span class="hljs-literal">null</span>) &#123;
-    loTail.next = <span class="hljs-literal">null</span>;
-    newTab[j] = loHead;
-&#125;
-<span class="hljs-keyword">if</span> (hiTail != <span class="hljs-literal">null</span>) &#123;
-    hiTail.next = <span class="hljs-literal">null</span>;
-    newTab[j + oldCap] = hiHead;
-&#125;</code></pre>
-</code></pre></li>
-</ul>
+
 </li>
 </ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155409.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155424.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155454.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155514.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>遍历链表，将lo中的放在原来的桶中，hi中的放在增加的桶中</li>
+</ul>
+<pre><code class="hljs java"><span class="hljs-comment">// 通过头指针直接将链表放入桶中</span>
+<span class="hljs-keyword">if</span> (loTail != <span class="hljs-keyword">null</span>) &#123;
+    loTail.next = <span class="hljs-keyword">null</span>;
+    newTab[j] = loHead;
+&#125;
+<span class="hljs-keyword">if</span> (hiTail != <span class="hljs-keyword">null</span>) &#123;
+    hiTail.next = <span class="hljs-keyword">null</span>;
+    newTab[j + oldCap] = hiHead;
+&#125;</code></pre>
+
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200913155710.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>总结</strong>：</p>
 <ul>
