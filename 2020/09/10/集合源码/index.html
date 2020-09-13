@@ -2958,9 +2958,11 @@ Node&lt;E&gt; node(<span class="hljs-keyword">int</span> <span class="hljs-keywo
 <h3 id="8、树化方法"><a href="#8、树化方法" class="headerlink" title="8、树化方法"></a>8、树化方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">treeifyBin</span><span class="hljs-params">(Node&lt;K,V&gt;[] tab, <span class="hljs-keyword">int</span> hash)</span> </span>&#123;
     <span class="hljs-keyword">int</span> n, index; Node&lt;K,V&gt; e;
     
-    <span class="hljs-comment">// 如果当前哈希表中桶的数目，小于最小树化容量，就扩容</span>
+    <span class="hljs-comment">// 如果当前哈希表中桶的数目，小于最小树化容量，就调用resize()方法进行扩容</span>
     <span class="hljs-keyword">if</span> (tab == <span class="hljs-keyword">null</span> || (n = tab.length) &lt; MIN_TREEIFY_CAPACITY)
         resize();
+    
+    <span class="hljs-comment">// 当桶中元素个数大于8，且桶的个数大于64时，进行树化</span>
     <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((e = tab[index = (n - <span class="hljs-number">1</span>) &amp; hash]) != <span class="hljs-keyword">null</span>) &#123;
         TreeNode&lt;K,V&gt; hd = <span class="hljs-keyword">null</span>, tl = <span class="hljs-keyword">null</span>;
         <span class="hljs-keyword">do</span> &#123;
@@ -2980,7 +2982,7 @@ Node&lt;E&gt; node(<span class="hljs-keyword">int</span> <span class="hljs-keywo
 
 <p><strong>链表变为红黑树的条件</strong>：元素个数大于8同时桶的个数大于64</p>
 <ul>
-<li>当某个桶中的<strong>元素个数大于8</strong>时，会调用treeifyBin()方法，但并一定就会变为红黑树</li>
+<li>当某个桶中的<strong>元素个数大于8</strong>时，会调用treeifyBin()方法，但并不一定就会变为红黑树</li>
 <li>当哈希表中<strong>桶的个数大于64</strong>时，才会真正进行让其转化为红黑树</li>
 </ul>
 <p><strong>为什么</strong>桶中元素多于了8个，桶的个数小于64，<strong>调用resize()方法就可以进行调整</strong>？</p>
