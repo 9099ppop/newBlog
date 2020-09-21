@@ -374,7 +374,7 @@ PC+<span class="hljs-number">1</span>-&gt;PC</code></pre>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200921145635.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="寄存器直接寻址-R-1"><a href="#寄存器直接寻址-R-1" class="headerlink" title="寄存器直接寻址 R"></a>寄存器直接寻址 R</h3><p>直接放入寄存器中，无需目的操作数地址</p>
 <h3 id="寄存器间接寻址-R-1"><a href="#寄存器间接寻址-R-1" class="headerlink" title="寄存器间接寻址 (R)"></a>寄存器间接寻址 (R)</h3><p>取出寄存器中存放的目的地址，将该地址放入MAR中 <strong>Rj -&gt; MAR</strong></p>
-<h3 id="自增-自减型寄存器间接寻址-R-R-1"><a href="#自增-自减型寄存器间接寻址-R-R-1" class="headerlink" title="*自增/自减型寄存器间接寻址 (R)+/-(R) *"></a>*<em>自增/自减型寄存器间接寻址 (R)+/-(R) *</em></h3><p>和寄存器间接寻址类似，将地址放入了MAR中，只不过多了自增/自减的步骤</p>
+<h3 id="自增-自减型寄存器间接寻址-R-R-1"><a href="#自增-自减型寄存器间接寻址-R-R-1" class="headerlink" title="自增/自减型寄存器间接寻址 (R)+/-(R)"></a>自增/自减型寄存器间接寻址 (R)+/-(R)</h3><p>和寄存器间接寻址类似，将地址放入了MAR中，只不过多了自增/自减的步骤</p>
 <h3 id="自增型寄存器双间接寻址-R-1"><a href="#自增型寄存器双间接寻址-R-1" class="headerlink" title="自增型寄存器双间接寻址 @(R)+"></a>自增型寄存器双间接寻址 @(R)+</h3><ul>
 <li>通过寄存器中存放的地址，访问主存单元 <strong>Rj -&gt; MAR</strong></li>
 <li>访问后Rj寄存器中的值+1 <strong>Rj +1 -&gt; Rj</strong></li>

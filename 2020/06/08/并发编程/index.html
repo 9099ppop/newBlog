@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      15.3k 字
+      15.4k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      192
+      194
        分钟
     </span>
   
@@ -1027,10 +1027,10 @@ LockSupport.unpark(thread);</code></pre>
 </ul>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145313.png" srcset="/img/loading.gif" alt=""></p>
 <h2 id="9、线程中的状态转换"><a href="#9、线程中的状态转换" class="headerlink" title="9、线程中的状态转换"></a>9、线程中的状态转换</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608145330.png" srcset="/img/loading.gif" alt=""></p>
-<h4 id="情况一：NEW-–-gt-RUNNABLE"><a href="#情况一：NEW-–-gt-RUNNABLE" class="headerlink" title="情况一：NEW –&gt; RUNNABLE"></a>情况一：NEW –&gt; RUNNABLE</h4><ul>
+<h3 id="情况一：NEW-–-gt-RUNNABLE"><a href="#情况一：NEW-–-gt-RUNNABLE" class="headerlink" title="情况一：NEW –&gt; RUNNABLE"></a>情况一：NEW –&gt; RUNNABLE</h3><ul>
 <li>当调用了t.start()方法时，由 NEW –&gt; RUNNABLE </li>
 </ul>
-<h4 id="情况二：-RUNNABLE-lt-–-gt-WAITING"><a href="#情况二：-RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况二： RUNNABLE &lt;–&gt; WAITING"></a>情况二： RUNNABLE &lt;–&gt; WAITING</h4><ul>
+<h3 id="情况二：-RUNNABLE-lt-–-gt-WAITING"><a href="#情况二：-RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况二： RUNNABLE &lt;–&gt; WAITING"></a>情况二： RUNNABLE &lt;–&gt; WAITING</h3><ul>
 <li>当调用了t 线程用 synchronized(obj) 获取了对象锁后<ul>
 <li>调用 obj.wait() 方法时，t 线程从 RUNNABLE –&gt; WAITING</li>
 <li>调用 obj.notify() ， obj.notifyAll() ， t.interrupt() 时 <ul>
@@ -1041,18 +1041,18 @@ LockSupport.unpark(thread);</code></pre>
 </ul>
 </li>
 </ul>
-<h4 id="情况三：RUNNABLE-lt-–-gt-WAITING"><a href="#情况三：RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况三：RUNNABLE &lt;–&gt; WAITING"></a>情况三：RUNNABLE &lt;–&gt; WAITING</h4><ul>
+<h3 id="情况三：RUNNABLE-lt-–-gt-WAITING"><a href="#情况三：RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况三：RUNNABLE &lt;–&gt; WAITING"></a>情况三：RUNNABLE &lt;–&gt; WAITING</h3><ul>
 <li><strong>当前线程</strong>调用 t.join() 方法时，当前线程从 RUNNABLE –&gt; WAITING<ul>
 <li>注意是<strong>当前线程</strong>在t 线程对象的监视器上等待</li>
 </ul>
 </li>
 <li>t 线程<strong>运行结束</strong>，或调用了<strong>当前线程</strong>的 interrupt() 时，当前线程从 WAITING –&gt; RUNNABLE</li>
 </ul>
-<h4 id="情况四：-RUNNABLE-lt-–-gt-WAITING"><a href="#情况四：-RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况四： RUNNABLE &lt;–&gt; WAITING"></a>情况四： RUNNABLE &lt;–&gt; WAITING</h4><ul>
+<h3 id="情况四：-RUNNABLE-lt-–-gt-WAITING"><a href="#情况四：-RUNNABLE-lt-–-gt-WAITING" class="headerlink" title="情况四： RUNNABLE &lt;–&gt; WAITING"></a>情况四： RUNNABLE &lt;–&gt; WAITING</h3><ul>
 <li>当前线程调用 LockSupport.park() 方法会让当前线程从 RUNNABLE –&gt; WAITING</li>
 <li>调用 LockSupport.unpark(目标线程) 或调用了线程 的 interrupt() ，会让目标线程从 WAITING –&gt; RUNNABLE</li>
 </ul>
-<h4 id="情况五：-RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况五：-RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况五： RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况五： RUNNABLE &lt;–&gt; TIMED_WAITING</h4><p>t 线程用 synchronized(obj) 获取了对象锁后</p>
+<h3 id="情况五：-RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况五：-RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况五： RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况五： RUNNABLE &lt;–&gt; TIMED_WAITING</h3><p>t 线程用 synchronized(obj) 获取了对象锁后</p>
 <ul>
 <li>调用 obj.wait(<strong>long n</strong>) 方法时，t 线程从 RUNNABLE –&gt; TIMED_WAITING</li>
 <li>t 线程等待时间超过了 n 毫秒，或调用 obj.notify() ， obj.notifyAll() ， t.interrupt() 时<ul>
@@ -1061,26 +1061,26 @@ LockSupport.unpark(thread);</code></pre>
 </ul>
 </li>
 </ul>
-<h4 id="情况六：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况六：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况六：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况六：RUNNABLE &lt;–&gt; TIMED_WAITING</h4><ul>
+<h3 id="情况六：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况六：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况六：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况六：RUNNABLE &lt;–&gt; TIMED_WAITING</h3><ul>
 <li>当前线程调用 t.join<strong>(long n</strong>) 方法时，当前线程从 RUNNABLE –&gt; TIMED_WAITING <ul>
 <li>注意是当前线程在t 线程对象的监视器上等待 </li>
 </ul>
 </li>
 <li>当前线程等待时间超过了 n 毫秒，或t 线程运行结束，或调用了当前线程的 interrupt() 时，当前线程从 TIMED_WAITING –&gt; RUNNABLE</li>
 </ul>
-<h4 id="情况七：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况七：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况七：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况七：RUNNABLE &lt;–&gt; TIMED_WAITING</h4><ul>
+<h3 id="情况七：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况七：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况七：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况七：RUNNABLE &lt;–&gt; TIMED_WAITING</h3><ul>
 <li>当前线程调用 Thread.sleep(long n) ，当前线程从 RUNNABLE –&gt; TIMED_WAITING </li>
 <li>当前线程等待时间超过了 n 毫秒，当前线程从  TIMED_WAITING –&gt; RUNNABLE</li>
 </ul>
-<h4 id="情况八：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况八：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况八：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况八：RUNNABLE &lt;–&gt; TIMED_WAITING</h4><ul>
+<h3 id="情况八：RUNNABLE-lt-–-gt-TIMED-WAITING"><a href="#情况八：RUNNABLE-lt-–-gt-TIMED-WAITING" class="headerlink" title="情况八：RUNNABLE &lt;–&gt; TIMED_WAITING"></a>情况八：RUNNABLE &lt;–&gt; TIMED_WAITING</h3><ul>
 <li>当前线程调用 LockSupport.parkNanos(long nanos) 或 LockSupport.parkUntil(long millis) 时，当前线 程从 RUNNABLE –&gt; TIMED_WAITING </li>
 <li>调用 LockSupport.unpark(目标线程) 或调用了线程 的 interrupt() ，或是等待超时，会让目标线程从 TIMED_WAITING–&gt; RUNNABLE</li>
 </ul>
-<h4 id="情况九：RUNNABLE-lt-–-gt-BLOCKED"><a href="#情况九：RUNNABLE-lt-–-gt-BLOCKED" class="headerlink" title="情况九：RUNNABLE &lt;–&gt; BLOCKED"></a>情况九：RUNNABLE &lt;–&gt; BLOCKED</h4><ul>
+<h3 id="情况九：RUNNABLE-lt-–-gt-BLOCKED"><a href="#情况九：RUNNABLE-lt-–-gt-BLOCKED" class="headerlink" title="情况九：RUNNABLE &lt;–&gt; BLOCKED"></a>情况九：RUNNABLE &lt;–&gt; BLOCKED</h3><ul>
 <li>t 线程用  synchronized(obj) 获取了对象锁时如果<strong>竞争失败</strong>，从  RUNNABLE –&gt; BLOCKED </li>
 <li>持 obj 锁线程的同步代码块执行完毕，会唤醒该对象上所有 BLOCKED  的线程重新竞争，如果其中 t 线程竞争 成功，从 BLOCKED –&gt; RUNNABLE ，其它<strong>失败</strong>的线程仍然  BLOCKED </li>
 </ul>
-<h4 id="情况十：-RUNNABLE-lt-–-gt-TERMINATED"><a href="#情况十：-RUNNABLE-lt-–-gt-TERMINATED" class="headerlink" title="情况十： RUNNABLE &lt;–&gt; TERMINATED"></a>情况十： RUNNABLE &lt;–&gt; TERMINATED</h4><p>当前线<strong>程所有代码运行完毕</strong>，进入 TERMINATED</p>
+<h3 id="情况十：-RUNNABLE-lt-–-gt-TERMINATED"><a href="#情况十：-RUNNABLE-lt-–-gt-TERMINATED" class="headerlink" title="情况十： RUNNABLE &lt;–&gt; TERMINATED"></a>情况十： RUNNABLE &lt;–&gt; TERMINATED</h3><p>当前线<strong>程所有代码运行完毕</strong>，进入 TERMINATED</p>
 <h2 id="10、多把锁"><a href="#10、多把锁" class="headerlink" title="10、多把锁"></a>10、多把锁</h2><p><strong>将锁的粒度细分</strong></p>
 <pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BigRoom</span> </span>&#123;
     <span class="hljs-comment">//额外创建对象来作为锁</span>
@@ -1125,6 +1125,24 @@ LockSupport.unpark(thread);</code></pre>
 
 
 
+<h4 id="发生死锁的必要条件"><a href="#发生死锁的必要条件" class="headerlink" title="发生死锁的必要条件"></a>发生死锁的必要条件</h4><ul>
+<li>互斥条件<ul>
+<li>在一段时间内，一种资源只能被一个进程所使用</li>
+</ul>
+</li>
+<li>请求和保持条件<ul>
+<li>进程已经拥有了至少一种资源，同时又去申请其他资源。因为其他资源被别的进程所使用，该进程进入阻塞状态，并且不释放自己已有的资源</li>
+</ul>
+</li>
+<li>不可抢占条件<ul>
+<li>进程对已获得的资源在未使用完成前不能被强占，只能在进程使用完后自己释放</li>
+</ul>
+</li>
+<li>循环等待条件<ul>
+<li>发生死锁时，必然存在一个进程——资源的循环链。</li>
+</ul>
+</li>
+</ul>
 <h4 id="定位死锁的方法"><a href="#定位死锁的方法" class="headerlink" title="定位死锁的方法"></a>定位死锁的方法</h4><ul>
 <li><p>jps+jstack ThreadID</p>
 <ul>
