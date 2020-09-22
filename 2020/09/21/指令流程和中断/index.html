@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.9k 字
+      3.3k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      31
+      35
        分钟
     </span>
   
@@ -407,6 +407,22 @@ PC+<span class="hljs-number">1</span>-&gt;PC</code></pre>
 <h3 id="中断处理"><a href="#中断处理" class="headerlink" title="中断处理"></a>中断处理</h3><p>执行中断服务程序</p>
 <h3 id="恢复现场"><a href="#恢复现场" class="headerlink" title="恢复现场"></a>恢复现场</h3><p>恢复到中断前的样子</p>
 <h3 id="中断返回"><a href="#中断返回" class="headerlink" title="中断返回"></a>中断返回</h3><p>继续执行中断前正在执行的程序</p>
+<h2 id="3、中断流程"><a href="#3、中断流程" class="headerlink" title="3、中断流程"></a>3、中断流程</h2><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200922093045.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li><p><strong>关中断</strong><br> 进入不可再次响应中断的状态，由硬件自动实现。因为接下去要保存断点，保存现场。<strong>在保存现场过程中，即使有更高级的中断源申请中断，CPU也不应该响应</strong>；否则如果现场保存不完整，在中断服务程序结束之后，也就不能正确地恢复现场并执行现行程序</p>
+</li>
+<li><p><strong>保存断点，保存现场</strong><br> 为了在中断处理结束后能正确地返回到中断点，在响应中断时，必须把当前的程序计数器PC中的内容（即断点）保存起来</p>
+</li>
+<li><p><strong>判别中断源，转入中断服务程序</strong><br> 在多个中断源同时请求中断的情况下，本次实际响应的只能是优先权最高的那个中断源。所以需要进一步判别中断源，并转入相应的中断服务程序入口</p>
+</li>
+<li><p><strong>开中断</strong><br> 因为接下去就要执行中断服务程序，开中断将允许更高级中断请求得到相应，实现中断嵌套</p>
+</li>
+<li><p><strong>执行中断服务程序</strong><br> 不同中断源的中断服务程序是不同的，实际有效的中断处理工作是在此程序段中实现的</p>
+</li>
+<li><p><strong>退出中断</strong><br> 在退出时，又应该进入不可中断状态，即关中断，恢复现场，恢复断点，然后开中断，返回原程序执行</p>
+</li>
+</ul>
+<p>进入中断时执行的关中断，保存断点等操作一般是<strong>由硬件实现</strong>的，它类似于一条指令，但它与一般的指令不同，不能被编写在程序中。因此，常常称为“<strong>中断隐指令</strong>”</p>
 
             </article>
             <hr>
