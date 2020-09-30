@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      18.6k 字
+      21.4k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      253
+      291
        分钟
     </span>
   
@@ -2993,6 +2993,481 @@ Node&lt;E&gt; node(<span class="hljs-keyword">int</span> <span class="hljs-keywo
 <li>因为调用resize()方法进行扩容时，会让同一个桶中的<strong>元素进行桶的重新分配</strong>。一部分会被放新哈希表中在原来的位置上，一部分会被放在扩容后的位置上</li>
 </ul>
 <p>详见上面<a href="https://nyimac.gitee.io/2020/09/10/%E9%9B%86%E5%90%88%E6%BA%90%E7%A0%81/#resize-%E6%89%A9%E5%AE%B9%E6%96%B9%E6%B3%95"><strong>resize()方法的分析和图解</strong></a></p>
+<h1 id="PriorityQueue"><a href="#PriorityQueue" class="headerlink" title="PriorityQueue"></a>PriorityQueue</h1><h2 id="一、优先队列简介"><a href="#一、优先队列简介" class="headerlink" title="一、优先队列简介"></a>一、优先队列简介</h2><h3 id="1、概念"><a href="#1、概念" class="headerlink" title="1、概念"></a>1、概念</h3><p>平时我们了解到的队列，是一种满足<strong>先进先出</strong>的线性数据结构。优先队列与其有相似之处，但是也有所不同。</p>
+<p>当我们向优先队列中插入元素的时候，<strong>优先队列会根据一定的条件将该元素插入到合适的位置</strong></p>
+<h3 id="2、演示"><a href="#2、演示" class="headerlink" title="2、演示"></a>2、演示</h3><p>创建一个一般队列Queue和优先队列PriorityQueue，分别向队列中以 2、1、3的顺序放入元素，观察他们的遍历结果</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo3</span> </span>&#123;
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+      Queue&lt;Integer&gt; normalQueue = <span class="hljs-keyword">new</span> LinkedList&lt;&gt;();
+      normalQueue.add(<span class="hljs-number">2</span>);
+      normalQueue.add(<span class="hljs-number">1</span>);
+      normalQueue.add(<span class="hljs-number">3</span>);
+      System.out.println(<span class="hljs-string">"一般队列元素顺序"</span>);
+      <span class="hljs-keyword">for</span> (Integer num : normalQueue) &#123;
+         System.out.print(num + <span class="hljs-string">" "</span>);
+      &#125;
+      System.out.println();
+
+      PriorityQueue&lt;Integer&gt; priorityQueue = <span class="hljs-keyword">new</span> PriorityQueue&lt;&gt;();
+      priorityQueue.add(<span class="hljs-number">2</span>);
+      priorityQueue.add(<span class="hljs-number">1</span>);
+      priorityQueue.add(<span class="hljs-number">3</span>);
+      System.out.println(<span class="hljs-string">"优先队列元素顺序"</span>);
+      <span class="hljs-keyword">for</span> (Integer num : priorityQueue) &#123;
+         System.out.print(num + <span class="hljs-string">" "</span>);
+      &#125;
+   &#125;
+&#125;</code></pre>
+
+<p><strong>运行结果</strong></p>
+<pre><code class="hljs angelscript">一般队列元素顺序
+<span class="hljs-number">2</span> <span class="hljs-number">1</span> <span class="hljs-number">3</span> 
+优先队列元素顺序
+<span class="hljs-number">1</span> <span class="hljs-number">2</span> <span class="hljs-number">3</span></code></pre>
+
+
+
+<h3 id="3、Comparator接口"><a href="#3、Comparator接口" class="headerlink" title="3、Comparator接口"></a>3、Comparator接口</h3><p>当我们想根据对象中的某些特定属性，来对对象进行排序的话，需要实现Comparator中的compare方法</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(Object o1, Object o2)</span> </span>&#123;
+    <span class="hljs-comment">// o1为待插入元素，o2为被比较元素</span>
+    <span class="hljs-keyword">return</span> o1.val - o2.val;
+&#125;</code></pre>
+
+
+
+<h3 id="4、-Comparable接口"><a href="#4、-Comparable接口" class="headerlink" title="4、 Comparable接口"></a>4、 Comparable接口</h3><p>基本类型的包装类、集合类与接口几乎都实现了这个接口</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930152042.png" srcset="/img/loading.gif" alt=""></p>
+<p>该接口中的compareTo(T o)一般<strong>用于比较包装类型的大小</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compareTo</span><span class="hljs-params">(T o)</span></span>;</code></pre>
+
+
+
+<p>如Integer类中的该方法</p>
+<p>如果该值大于被比较的值，则返回1</p>
+<p>相等则返回0，小于则返回-1</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compareTo</span><span class="hljs-params">(Integer anotherInteger)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> compare(<span class="hljs-keyword">this</span>.value, anotherInteger.value);
+&#125;</code></pre>
+
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(<span class="hljs-keyword">int</span> x, <span class="hljs-keyword">int</span> y)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> (x &lt; y) ? -<span class="hljs-number">1</span> : ((x == y) ? <span class="hljs-number">0</span> : <span class="hljs-number">1</span>);
+&#125;</code></pre>
+
+
+
+
+
+<h3 id="5、按对象中的特定值进行插入"><a href="#5、按对象中的特定值进行插入" class="headerlink" title="5、按对象中的特定值进行插入"></a>5、按对象中的特定值进行插入</h3><p>如果我们想将<strong>对象</strong>放入PriorityQueue中，并<strong>按照指定的方式进行排序</strong>，可以这样做</p>
+<p>创建优先队列是，传入Comparator对象，并重写其compare方法，则会按照我们设定的规定进行比较</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo4</span> </span>&#123;
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+      <span class="hljs-comment">// 创建优先队列，传入Comparator对象，并重写其compare方法</span>
+      PriorityQueue&lt;Student&gt; priorityQueue = <span class="hljs-keyword">new</span> PriorityQueue&lt;&gt;(<span class="hljs-keyword">new</span> Comparator&lt;Student&gt;() &#123;
+         <span class="hljs-meta">@Override</span>
+         <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(Student o1, Student o2)</span> </span>&#123;
+            <span class="hljs-comment">// 其中o1为要插入的值，o2为比较的目标值</span>
+            <span class="hljs-keyword">return</span> o1.getAge() - o2.getAge();
+         &#125;
+      &#125;);
+
+      Student st1 = <span class="hljs-keyword">new</span> Student(<span class="hljs-string">"A"</span>, <span class="hljs-number">3</span>);
+      Student st2 = <span class="hljs-keyword">new</span> Student(<span class="hljs-string">"B"</span>, <span class="hljs-number">1</span>);
+      Student st3 = <span class="hljs-keyword">new</span> Student(<span class="hljs-string">"C"</span>, <span class="hljs-number">2</span>);
+
+      priorityQueue.add(st1);
+      priorityQueue.add(st2);
+      priorityQueue.add(st3);
+
+      <span class="hljs-keyword">while</span> (!priorityQueue.isEmpty()) &#123;
+         System.out.println(priorityQueue.remove());
+      &#125;
+   &#125;
+&#125;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span> </span>&#123;
+   <span class="hljs-keyword">private</span> String name;
+   <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> age;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Student</span><span class="hljs-params">(String name, <span class="hljs-keyword">int</span> age)</span> </span>&#123;
+      <span class="hljs-keyword">this</span>.name = name;
+      <span class="hljs-keyword">this</span>.age = age;
+   &#125;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getName</span><span class="hljs-params">()</span> </span>&#123;
+      <span class="hljs-keyword">return</span> name;
+   &#125;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setName</span><span class="hljs-params">(String name)</span> </span>&#123;
+      <span class="hljs-keyword">this</span>.name = name;
+   &#125;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getAge</span><span class="hljs-params">()</span> </span>&#123;
+      <span class="hljs-keyword">return</span> age;
+   &#125;
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAge</span><span class="hljs-params">(<span class="hljs-keyword">int</span> age)</span> </span>&#123;
+      <span class="hljs-keyword">this</span>.age = age;
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">toString</span><span class="hljs-params">()</span> </span>&#123;
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"Student&#123;"</span> +
+            <span class="hljs-string">"name='"</span> + name + <span class="hljs-string">'\''</span> +
+            <span class="hljs-string">", age="</span> + age +
+            <span class="hljs-string">'&#125;'</span>;
+   &#125;
+&#125;</code></pre>
+
+
+
+<h2 id="二、大顶堆和小顶堆"><a href="#二、大顶堆和小顶堆" class="headerlink" title="二、大顶堆和小顶堆"></a>二、大顶堆和小顶堆</h2><h3 id="1、基本介绍"><a href="#1、基本介绍" class="headerlink" title="1、基本介绍"></a>1、基本介绍</h3><p>大顶堆和小顶堆都是完全二叉树，并且具有以下性质</p>
+<p><strong>大顶堆</strong></p>
+<ul>
+<li>根节点的值都大于其所有孩子的值</li>
+</ul>
+<p><strong>小顶堆</strong></p>
+<ul>
+<li>根节点的值都小于其所有孩子的值</li>
+</ul>
+<p>因为大顶堆小顶堆都是完全二叉树，所以大顶堆和小顶堆都<strong>可以用数组加以表示</strong></p>
+<p>如果一个数组，根节点的下标为index</p>
+<ul>
+<li>那么它左孩子的下标为2*index+1，</li>
+<li>右孩子的值为2(index+1)</li>
+</ul>
+<p><strong>以小顶堆为例</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930140529.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="2、如何构造"><a href="#2、如何构造" class="headerlink" title="2、如何构造"></a>2、如何构造</h3><p>若我们要构建小顶堆，当叶子节点的值小于其父节点的值时，将其于其父节点的值进行交换，知道换在了合适的位置上。我们称这个过程为<strong>上浮</strong></p>
+<p>详见：<a href="https://nyimac.gitee.io/2020/06/17/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/#11%E3%80%81%E5%A0%86%E6%8E%92%E5%BA%8F"><strong>Java数据结构与算法——堆排序</strong></a></p>
+<h2 id="三、属性和存储结构"><a href="#三、属性和存储结构" class="headerlink" title="三、属性和存储结构"></a>三、属性和存储结构</h2><pre><code class="hljs java"><span class="hljs-comment">// 默认容量大小</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_INITIAL_CAPACITY = <span class="hljs-number">11</span>;
+
+<span class="hljs-comment">// Object数组，用于存放我们的元素,在操作过程中体现为堆</span>
+<span class="hljs-keyword">transient</span> Object[] queue; <span class="hljs-comment">// non-private to simplify nested class access</span>
+
+<span class="hljs-comment">// 数组中元素的个数</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> size = <span class="hljs-number">0</span>;
+
+<span class="hljs-comment">// 比较器，其中的compare方法可用于比较插入元素的值</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Comparator&lt;? <span class="hljs-keyword">super</span> E&gt; comparator;
+
+<span class="hljs-comment">// 操作次数计数器</span>
+<span class="hljs-keyword">transient</span> <span class="hljs-keyword">int</span> modCount = <span class="hljs-number">0</span></code></pre>
+
+
+
+
+
+<h2 id="四、构造方法"><a href="#四、构造方法" class="headerlink" title="四、构造方法"></a>四、构造方法</h2><h3 id="1、默认构造方法"><a href="#1、默认构造方法" class="headerlink" title="1、默认构造方法"></a>1、默认构造方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriorityQueue</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">this</span>(DEFAULT_INITIAL_CAPACITY, <span class="hljs-keyword">null</span>);
+&#125;</code></pre>
+
+
+
+
+
+<h3 id="2、带初始容量构造方法"><a href="#2、带初始容量构造方法" class="headerlink" title="2、带初始容量构造方法"></a>2、带初始容量构造方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriorityQueue</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>(initialCapacity, <span class="hljs-keyword">null</span>);
+&#125;</code></pre>
+
+
+
+<h3 id="3、带比较器的构造方法"><a href="#3、带比较器的构造方法" class="headerlink" title="3、带比较器的构造方法"></a>3、带比较器的构造方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriorityQueue</span><span class="hljs-params">(Comparator&lt;? <span class="hljs-keyword">super</span> E&gt; comparator)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>(DEFAULT_INITIAL_CAPACITY, comparator);
+&#125;</code></pre>
+
+
+
+<h3 id="4、带容量和比较器的构造方法"><a href="#4、带容量和比较器的构造方法" class="headerlink" title="4、带容量和比较器的构造方法"></a>4、带容量和比较器的构造方法</h3><p>从上面的三个构造函数可以看出，<strong>最终调用的都是这个构造函数</strong>。如果没有指定容量，就是用默认容量，如果没有指定比较器，就是用默认比较器</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PriorityQueue</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity,</span></span>
+<span class="hljs-function"><span class="hljs-params">                     Comparator&lt;? <span class="hljs-keyword">super</span> E&gt; comparator)</span> </span>&#123;
+    <span class="hljs-comment">// Note: This restriction of at least one is not actually needed,</span>
+    <span class="hljs-comment">// but continues for 1.5 compatibility</span>
+    <span class="hljs-keyword">if</span> (initialCapacity &lt; <span class="hljs-number">1</span>)
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+    <span class="hljs-comment">// 初始化数组</span>
+    <span class="hljs-keyword">this</span>.queue = <span class="hljs-keyword">new</span> Object[initialCapacity];
+    <span class="hljs-comment">// 给比较器赋值</span>
+    <span class="hljs-keyword">this</span>.comparator = comparator;
+&#125;</code></pre>
+
+
+
+<h2 id="五、添加方法"><a href="#五、添加方法" class="headerlink" title="五、添加方法"></a>五、添加方法</h2><h3 id="1、add-E-e-方法"><a href="#1、add-E-e-方法" class="headerlink" title="1、add(E e)方法"></a>1、add(E e)方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">add</span><span class="hljs-params">(E e)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> offer(e);
+&#125;</code></pre>
+
+
+
+<h3 id="2、offer-E-e-方法"><a href="#2、offer-E-e-方法" class="headerlink" title="2、offer(E e)方法"></a>2、offer(E e)方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">offer</span><span class="hljs-params">(E e)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (e == <span class="hljs-keyword">null</span>)
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
+    modCount++;
+    <span class="hljs-comment">// 保存当前元素的个数</span>
+    <span class="hljs-keyword">int</span> i = size;
+    <span class="hljs-comment">// 如果元素大于了Object数组的长度，就进行扩容</span>
+    <span class="hljs-keyword">if</span> (i &gt;= queue.length)
+        grow(i + <span class="hljs-number">1</span>);
+    <span class="hljs-comment">// 否则元素个数+1</span>
+    size = i + <span class="hljs-number">1</span>;
+    <span class="hljs-comment">// 如果数组中还没有元素，就直接放入</span>
+    <span class="hljs-keyword">if</span> (i == <span class="hljs-number">0</span>)
+        queue[<span class="hljs-number">0</span>] = e;
+    <span class="hljs-comment">// 否则，进行调整操作</span>
+    <span class="hljs-comment">// 其中i为队列最后一个元素的下一个位置，e为待插入元素</span>
+    <span class="hljs-keyword">else</span>
+        siftUp(i, e);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+&#125;</code></pre>
+
+
+
+<h4 id="grow-int-minCapacity-方法"><a href="#grow-int-minCapacity-方法" class="headerlink" title="grow(int minCapacity)方法"></a>grow(int minCapacity)方法</h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">grow</span><span class="hljs-params">(<span class="hljs-keyword">int</span> minCapacity)</span> </span>&#123;
+    <span class="hljs-keyword">int</span> oldCapacity = queue.length;
+    <span class="hljs-comment">// Double size if small; else grow by 50%</span>
+    <span class="hljs-comment">// 如果队列容量小于64，就按照两倍扩容，否则就扩容50%</span>
+    <span class="hljs-comment">// 如 20 -&gt; 42    100 -&gt; 150</span>
+    <span class="hljs-keyword">int</span> newCapacity = oldCapacity + ((oldCapacity &lt; <span class="hljs-number">64</span>) ?
+                                     (oldCapacity + <span class="hljs-number">2</span>) :
+                                     (oldCapacity &gt;&gt; <span class="hljs-number">1</span>));
+    <span class="hljs-comment">// overflow-conscious code</span>
+    <span class="hljs-keyword">if</span> (newCapacity - MAX_ARRAY_SIZE &gt; <span class="hljs-number">0</span>)
+        newCapacity = hugeCapacity(minCapacity);
+    
+    <span class="hljs-comment">// 扩容后的复制操作</span>
+    queue = Arrays.copyOf(queue, newCapacity);
+&#125;</code></pre>
+
+
+
+<h4 id="siftUp-int-k-E-x-函数"><a href="#siftUp-int-k-E-x-函数" class="headerlink" title="siftUp(int k, E x)函数"></a>siftUp(int k, E x)函数</h4><p>其中k为队列最后一个元素的<strong>下一个位置</strong>，x为<strong>待插入元素</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">siftUp</span><span class="hljs-params">(<span class="hljs-keyword">int</span> k, E x)</span> </span>&#123;
+    <span class="hljs-comment">// 如果指定了比较器，就使用指定比较器的比较方法</span>
+    <span class="hljs-keyword">if</span> (comparator != <span class="hljs-keyword">null</span>)
+        siftUpUsingComparator(k, x);
+    <span class="hljs-comment">// 否则就使用默认的比较方法</span>
+    <span class="hljs-keyword">else</span>
+        siftUpComparable(k, x);
+&#125;</code></pre>
+
+
+
+<h4 id="指定了比较器的比较方法siftUpUsingComparator-int-k-E-x"><a href="#指定了比较器的比较方法siftUpUsingComparator-int-k-E-x" class="headerlink" title="指定了比较器的比较方法siftUpUsingComparator(int k, E x)"></a>指定了比较器的比较方法siftUpUsingComparator(int k, E x)</h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">siftUpUsingComparator</span><span class="hljs-params">(<span class="hljs-keyword">int</span> k, E x)</span> </span>&#123;
+    <span class="hljs-comment">// 如果要放入的位置不是根节点，就继续</span>
+    <span class="hljs-keyword">while</span> (k &gt; <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-comment">// 得到该元素的父节点</span>
+        <span class="hljs-keyword">int</span> parent = (k - <span class="hljs-number">1</span>) &gt;&gt;&gt; <span class="hljs-number">1</span>;
+        
+        <span class="hljs-comment">// 保存其父节点</span>
+        Object e = queue[parent];
+        
+        <span class="hljs-comment">// 如果父节点的值小于插入节点的值，就停止循环</span>
+        <span class="hljs-keyword">if</span> (comparator.compare(x, (E) e) &gt;= <span class="hljs-number">0</span>)
+            <span class="hljs-keyword">break</span>;
+        
+        <span class="hljs-comment">// 否则父节点下沉(插入元素上浮)</span>
+        queue[k] = e;
+        
+        <span class="hljs-comment">// k保存其父节点的位置</span>
+        k = parent;
+    &#125;
+    <span class="hljs-comment">// 将待插入元素放到对应的位置</span>
+    queue[k] = x;
+&#125;</code></pre>
+
+
+
+<p><strong>图解</strong></p>
+<p>如果小顶堆中要插入元素3</p>
+<p><strong>此时k = 4</strong>，我们通过 <strong>parent = (k-1)/2</strong>，可以得到父节点的下标为1，也是就元素4所在的位置</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930144311.png" srcset="/img/loading.gif" alt=""></p>
+<p>3和4通过compare函数进行比较，结果小于0，待插入元素需要上浮，父节点元素需要下沉<strong>queue[k] = e</strong></p>
+<p>然后令 <strong>k = parrent</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930144459.png" srcset="/img/loading.gif" alt=""></p>
+<p>再次计算父节点的下标 <strong>parent = (k-1)/2 = 0</strong>，也就是元素1</p>
+<p>1与3比较，3&gt;1，结束循环</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> (comparator.compare(x, (E) e) &gt;= <span class="hljs-number">0</span>)
+      <span class="hljs-keyword">break</span>;</code></pre>
+
+<p>将待插入元素放到对应位置<strong>queue[k] = x</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930144649.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>总结</strong>：可以看到，待插入元素一直在与其父节点进行比较，如果待插入元素的值小于父节点，则待父节点下沉，待插入元素上浮</p>
+<h4 id="默认比较方法siftUpComparable-int-k-E-x"><a href="#默认比较方法siftUpComparable-int-k-E-x" class="headerlink" title="默认比较方法siftUpComparable(int k, E x)"></a>默认比较方法siftUpComparable(int k, E x)</h4><p>和指定了比较器的比较方法类似，只不过是通过Comparable来实现的</p>
+<h2 id="六、移除元素"><a href="#六、移除元素" class="headerlink" title="六、移除元素"></a>六、移除元素</h2><h3 id="1、remove-函数"><a href="#1、remove-函数" class="headerlink" title="1、remove()函数"></a>1、remove()函数</h3><p>调用父类AbstractQueue的remove()函数</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> E <span class="hljs-title">remove</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 调用改类的poll函数</span>
+    E x = poll();
+    <span class="hljs-keyword">if</span> (x != <span class="hljs-keyword">null</span>)
+        <span class="hljs-keyword">return</span> x;
+    <span class="hljs-keyword">else</span>
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoSuchElementException();
+&#125;</code></pre>
+
+
+
+<h4 id="poll-函数"><a href="#poll-函数" class="headerlink" title="poll()函数"></a>poll()函数</h4><p>移除队首元素</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> E <span class="hljs-title">poll</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// s为新的元素个数</span>
+    <span class="hljs-keyword">int</span> s = --size;
+    modCount++;
+    <span class="hljs-comment">// 队首元素</span>
+    E result = (E) queue[<span class="hljs-number">0</span>];
+    
+    <span class="hljs-comment">// 保存最后一个元素</span>
+    E x = (E) queue[s];
+    queue[s] = <span class="hljs-keyword">null</span>;
+    
+    <span class="hljs-comment">// 如果队列中还有元素</span>
+    <span class="hljs-keyword">if</span> (s != <span class="hljs-number">0</span>)
+        <span class="hljs-comment">// 下沉</span>
+        siftDown(<span class="hljs-number">0</span>, x);
+    <span class="hljs-keyword">return</span> result;
+&#125;</code></pre>
+
+
+
+<h4 id="siftDown-int-k-E-x-函数"><a href="#siftDown-int-k-E-x-函数" class="headerlink" title="siftDown(int k, E x)函数"></a>siftDown(int k, E x)函数</h4><p>k为移除元素的位置，x为队尾元素</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">siftDown</span><span class="hljs-params">(<span class="hljs-keyword">int</span> k, E x)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (comparator != <span class="hljs-keyword">null</span>)
+        siftDownUsingComparator(k, x);
+    <span class="hljs-keyword">else</span>
+        siftDownComparable(k, x);
+&#125;</code></pre>
+
+
+
+<h4 id="指定了比较器的siftDownUsingComparator-int-k-E-x-函数"><a href="#指定了比较器的siftDownUsingComparator-int-k-E-x-函数" class="headerlink" title="指定了比较器的siftDownUsingComparator(int k, E x)函数"></a>指定了比较器的siftDownUsingComparator(int k, E x)函数</h4><p>调整小顶堆，让其保持其特性</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">siftDownUsingComparator</span><span class="hljs-params">(<span class="hljs-keyword">int</span> k, E x)</span> </span>&#123;
+    <span class="hljs-keyword">int</span> half = size &gt;&gt;&gt; <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">while</span> (k &lt; half) &#123;
+        <span class="hljs-comment">// 删除节点的左孩子的下标</span>
+        <span class="hljs-keyword">int</span> child = (k &lt;&lt; <span class="hljs-number">1</span>) + <span class="hljs-number">1</span>;
+        
+        <span class="hljs-comment">// c保存了左孩子的值</span>
+        Object c = queue[child];
+        
+        <span class="hljs-comment">// 删除节点的右孩子的下标</span>
+        <span class="hljs-keyword">int</span> right = child + <span class="hljs-number">1</span>;
+        
+        <span class="hljs-comment">// 如果右孩子小标小于size 并且 右孩子的值小于左孩子</span>
+        <span class="hljs-keyword">if</span> (right &lt; size &amp;&amp;
+            comparator.compare((E) c, (E) queue[right]) &gt; <span class="hljs-number">0</span>)
+            
+            <span class="hljs-comment">// child保存右孩子小标，c保存右孩子</span>
+            c = queue[child = right];
+        
+        <span class="hljs-comment">// 如果队尾元素小于c的值，就停止</span>
+        <span class="hljs-keyword">if</span> (comparator.compare(x, (E) c) &lt;= <span class="hljs-number">0</span>)
+            <span class="hljs-keyword">break</span>;
+        
+        <span class="hljs-comment">// 下沉</span>
+        queue[k] = c;
+        k = child;
+    &#125;
+    <span class="hljs-comment">// 赋值</span>
+    queue[k] = x;
+&#125;</code></pre>
+
+
+
+<h4 id="siftDownComparable-int-k-E-x"><a href="#siftDownComparable-int-k-E-x" class="headerlink" title="siftDownComparable(int k, E x)"></a>siftDownComparable(int k, E x)</h4><p>和指定了比较器的比较方法类似，只不过是通过Comparable来实现的</p>
+<h3 id="2、remove-Object-o-方法"><a href="#2、remove-Object-o-方法" class="headerlink" title="2、remove(Object o)方法"></a>2、remove(Object o)方法</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">remove</span><span class="hljs-params">(Object o)</span> </span>&#123;
+    <span class="hljs-comment">// 找到移除元素的下标</span>
+    <span class="hljs-keyword">int</span> i = indexOf(o);
+    <span class="hljs-keyword">if</span> (i == -<span class="hljs-number">1</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// 移除该元素</span>
+        removeAt(i);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    &#125;
+&#125;</code></pre>
+
+
+
+<h4 id="indexOf-方法"><a href="#indexOf-方法" class="headerlink" title="indexOf()方法"></a>indexOf()方法</h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">indexOf</span><span class="hljs-params">(Object o)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (o != <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; size; i++)
+            <span class="hljs-comment">// 找到该对象并返回</span>
+            <span class="hljs-keyword">if</span> (o.equals(queue[i]))
+                <span class="hljs-keyword">return</span> i;
+    &#125;
+    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+&#125;</code></pre>
+
+
+
+<h4 id="removeAt-int-i-方法"><a href="#removeAt-int-i-方法" class="headerlink" title="removeAt(int i)方法"></a>removeAt(int i)方法</h4><p>移除指定元素，保证移除后仍为小顶堆</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> E <span class="hljs-title">removeAt</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i)</span> </span>&#123;
+    <span class="hljs-comment">// assert i &gt;= 0 &amp;&amp; i &lt; size;</span>
+    modCount++;
+    <span class="hljs-keyword">int</span> s = --size;
+    <span class="hljs-keyword">if</span> (s == i) <span class="hljs-comment">// removed last element</span>
+        queue[i] = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">else</span> &#123;
+        E moved = (E) queue[s];
+        queue[s] = <span class="hljs-keyword">null</span>;
+        siftDown(i, moved);
+        <span class="hljs-keyword">if</span> (queue[i] == moved) &#123;
+            siftUp(i, moved);
+            <span class="hljs-keyword">if</span> (queue[i] != moved)
+                <span class="hljs-keyword">return</span> moved;
+        &#125;
+    &#125;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+&#125;</code></pre>
+
+
+
+<h2 id="六、优先队列的应用"><a href="#六、优先队列的应用" class="headerlink" title="六、优先队列的应用"></a>六、优先队列的应用</h2><h4 id="LeetCode–347-前-K-个高频元素"><a href="#LeetCode–347-前-K-个高频元素" class="headerlink" title="LeetCode–347. 前 K 个高频元素"></a><a href="https://leetcode-cn.com/problems/top-k-frequent-elements/" target="_blank" rel="noopener">LeetCode–347. 前 K 个高频元素</a></h4><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200930152616.png" srcset="/img/loading.gif" alt=""></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span>[] topKFrequent(<span class="hljs-keyword">int</span>[] nums, <span class="hljs-keyword">int</span> k) &#123;
+   <span class="hljs-comment">// 哈希表，用于存放数字出现的次数</span>
+   <span class="hljs-comment">// key：数字 value：出现次数</span>
+   <span class="hljs-keyword">int</span> length = nums.length;
+   HashMap&lt;Integer, Integer&gt; map = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(length);
+
+   <span class="hljs-comment">// 遍历数组</span>
+   <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; length; i++) &#123;
+      <span class="hljs-keyword">if</span> (!map.containsKey(nums[i])) &#123;
+         <span class="hljs-comment">// 如果该数字是第一次出现，直接放入哈希表中</span>
+         map.put(nums[i], <span class="hljs-number">1</span>);
+      &#125; <span class="hljs-keyword">else</span> &#123;
+         <span class="hljs-comment">// 否则，将其出现次数+1</span>
+         map.put(nums[i], map.get(nums[i]) + <span class="hljs-number">1</span>);
+      &#125;
+   &#125;
+
+   <span class="hljs-comment">// 创建优先队列，小顶堆</span>
+   PriorityQueue&lt;Integer&gt; priorityQueue = <span class="hljs-keyword">new</span> PriorityQueue&lt;&gt;(k, <span class="hljs-keyword">new</span> Comparator&lt;Integer&gt;() &#123;
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(Integer o1, Integer o2)</span> </span>&#123;
+         <span class="hljs-comment">// 插入元素与队尾元素的插值</span>
+         <span class="hljs-keyword">return</span> map.get(o1) - map.get(o2);
+      &#125;
+   &#125;);
+
+   <span class="hljs-keyword">for</span> (Integer key : map.keySet()) &#123;
+      <span class="hljs-keyword">if</span> (priorityQueue.size() &lt; k) &#123;
+         priorityQueue.add(key);
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (map.get(key) &gt; map.get(priorityQueue.peek())) &#123;
+         <span class="hljs-comment">// 次数最少的元素在队首</span>
+         priorityQueue.remove();
+         <span class="hljs-comment">// 放入该数字</span>
+         priorityQueue.add(key);
+      &#125;
+   &#125;
+
+   <span class="hljs-keyword">int</span> size = priorityQueue.size();
+   <span class="hljs-keyword">int</span>[] result = <span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[size];
+   <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = size-<span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span> ; i--) &#123;
+      result[i] = priorityQueue.remove();
+   &#125;
+   <span class="hljs-keyword">return</span> result;
+&#125;</code></pre>
+
 
             </article>
             <hr>

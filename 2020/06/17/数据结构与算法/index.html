@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      32.3k 字
+      33k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      440
+      450
        分钟
     </span>
   
@@ -3221,8 +3221,6 @@ i++;</code></pre>
    &#125;
 &#125;</code></pre>
 
-
-
 <p><strong>运行结果</strong></p>
 <pre><code class="hljs routeros">前序遍历
 StuNode&#123;<span class="hljs-attribute">id</span>=1, <span class="hljs-attribute">name</span>=<span class="hljs-string">'A'</span>&#125;
@@ -3241,6 +3239,157 @@ StuNode&#123;<span class="hljs-attribute">id</span>=2, <span class="hljs-attribu
 StuNode&#123;<span class="hljs-attribute">id</span>=4, <span class="hljs-attribute">name</span>=<span class="hljs-string">'D'</span>&#125;
 StuNode&#123;<span class="hljs-attribute">id</span>=3, <span class="hljs-attribute">name</span>=<span class="hljs-string">'C'</span>&#125;
 StuNode&#123;<span class="hljs-attribute">id</span>=1, <span class="hljs-attribute">name</span>=<span class="hljs-string">'A'</span>&#125;</code></pre>
+
+
+
+<h4 id="迭代实现"><a href="#迭代实现" class="headerlink" title="迭代实现"></a>迭代实现</h4><p>使用迭代对二叉树进行遍历与递归类似，不过需要自己维护一个<strong>栈</strong>用于存放节点</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo5</span> </span>&#123;
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+      TreeNode node1 = <span class="hljs-keyword">new</span> TreeNode(<span class="hljs-number">1</span>);
+      TreeNode node2 = <span class="hljs-keyword">new</span> TreeNode(<span class="hljs-number">2</span>);
+      TreeNode node3 = <span class="hljs-keyword">new</span> TreeNode(<span class="hljs-number">3</span>);
+
+      node1.left = node2;
+      node1.right = node3;
+
+      List&lt;Integer&gt; integers = preTraverse(node1);
+      System.out.println(<span class="hljs-string">"前序遍历结果"</span>);
+      <span class="hljs-keyword">for</span> (Integer integer : integers) &#123;
+         System.out.print(integer);
+         System.out.print(<span class="hljs-string">" "</span>);
+      &#125;
+      System.out.println();
+
+      List&lt;Integer&gt; integers2 = midTraverse(node1);
+      System.out.println(<span class="hljs-string">"中遍历结果"</span>);
+      <span class="hljs-keyword">for</span> (Integer integer : integers2) &#123;
+         System.out.print(integer);
+         System.out.print(<span class="hljs-string">" "</span>);
+      &#125;
+      System.out.println();
+
+      List&lt;Integer&gt; integers3 = lastTraverse(node1);
+      System.out.println(<span class="hljs-string">"后遍历结果"</span>);
+      <span class="hljs-keyword">for</span> (Integer integer : integers3) &#123;
+         System.out.print(integer);
+         System.out.print(<span class="hljs-string">" "</span>);
+      &#125;
+      System.out.println();
+   &#125;
+
+   <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 使用迭代法对二叉树进行前序遍历</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@param</span> root 二叉树根节点</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@return</span> 遍历后的集合</span>
+<span class="hljs-comment">    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Integer&gt; <span class="hljs-title">preTraverse</span><span class="hljs-params">(TreeNode root)</span> </span>&#123;
+      <span class="hljs-comment">// 用于存放结果的集合</span>
+      List&lt;Integer&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+
+      <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) &#123;
+         <span class="hljs-keyword">return</span> result;
+      &#125;
+
+      <span class="hljs-comment">// 栈，用于存放遍历的节点</span>
+      Stack&lt;TreeNode&gt; stack = <span class="hljs-keyword">new</span> Stack&lt;&gt;();
+      stack.push(root);
+      <span class="hljs-comment">// 遍历二叉树</span>
+      <span class="hljs-keyword">while</span> (!stack.isEmpty()) &#123;
+         <span class="hljs-comment">// 栈顶元素出栈，并放入集合中</span>
+         root = stack.pop();
+         result.add(root.val);
+         <span class="hljs-comment">// 先遍历右子树，将其压栈</span>
+         <span class="hljs-keyword">if</span> (root.right != <span class="hljs-keyword">null</span>) &#123;
+            stack.push(root.right);
+         &#125;
+         <span class="hljs-comment">// 遍历左子树,压栈</span>
+         <span class="hljs-keyword">if</span> (root.left != <span class="hljs-keyword">null</span>) &#123;
+            stack.push(root.left);
+         &#125;
+      &#125;
+      <span class="hljs-keyword">return</span> result;
+   &#125;
+
+   <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 使用迭代法对二叉树进行中序遍历</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@param</span> root 二叉树根节点</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@return</span> 中序遍历结果集合</span>
+<span class="hljs-comment">    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Integer&gt; <span class="hljs-title">midTraverse</span><span class="hljs-params">(TreeNode root)</span> </span>&#123;
+      List&lt;Integer&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+
+      <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) &#123;
+         <span class="hljs-keyword">return</span> result;
+      &#125;
+
+      Stack&lt;TreeNode&gt; stack = <span class="hljs-keyword">new</span> Stack&lt;&gt;();
+
+      <span class="hljs-keyword">while</span> (root != <span class="hljs-keyword">null</span> || !stack.isEmpty()) &#123;
+         <span class="hljs-comment">// 节点压栈，并遍历其左子树</span>
+         <span class="hljs-keyword">while</span> (root != <span class="hljs-keyword">null</span>) &#123;
+            stack.push(root);
+            root = root.left;
+         &#125;
+
+         <span class="hljs-comment">// 栈顶元素出栈，放入结果集合</span>
+         root = stack.pop();
+         result.add(root.val);
+
+         <span class="hljs-comment">// 遍历该节点的右子树</span>
+         root = root.right;
+      &#125;
+      <span class="hljs-keyword">return</span> result;
+   &#125;
+
+   <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 使用迭代法的后序遍历</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@param</span> root 二叉树根节点</span>
+<span class="hljs-comment">    * <span class="hljs-doctag">@return</span> 后序遍历集合</span>
+<span class="hljs-comment">    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Integer&gt; <span class="hljs-title">lastTraverse</span><span class="hljs-params">(TreeNode root)</span> </span>&#123;
+      List&lt;Integer&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+
+      <span class="hljs-keyword">if</span> (root == <span class="hljs-keyword">null</span>) &#123;
+         <span class="hljs-keyword">return</span> result;
+      &#125;
+
+      Stack&lt;TreeNode&gt; stack = <span class="hljs-keyword">new</span> Stack&lt;&gt;();
+      <span class="hljs-comment">// 保存放入集合的右子树，避免重复放入</span>
+      TreeNode pre = <span class="hljs-keyword">null</span>;
+
+      <span class="hljs-keyword">while</span> (root != <span class="hljs-keyword">null</span> || !stack.isEmpty()) &#123;
+         <span class="hljs-keyword">while</span> (root != <span class="hljs-keyword">null</span>) &#123;
+            stack.push(root);
+            root = root.left;
+         &#125;
+
+         <span class="hljs-comment">// 获取栈顶元素</span>
+         root = stack.pop();
+
+         <span class="hljs-comment">// 如果该元素没有右子树，或者右子树已近被遍历过了，就放入集合</span>
+         <span class="hljs-keyword">if</span> (root.right == <span class="hljs-keyword">null</span> || root.right == pre) &#123;
+            result.add(root.val);
+            pre = root;
+            root = <span class="hljs-keyword">null</span>;
+         &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// 否则就继续遍历该节点的右子树</span>
+            stack.push(root);
+            root = root.right;
+         &#125;
+      &#125;
+      <span class="hljs-keyword">return</span> result;
+   &#125;
+&#125;</code></pre>
+
+<p><strong>运行结果</strong></p>
+<pre><code class="hljs java">前序遍历结果
+<span class="hljs-number">1</span> <span class="hljs-number">2</span> <span class="hljs-number">3</span> 
+    
+中遍历结果
+<span class="hljs-number">2</span> <span class="hljs-number">1</span> <span class="hljs-number">3</span> 
+    
+后遍历结果
+<span class="hljs-number">2</span> <span class="hljs-number">3</span> <span class="hljs-number">1</span></code></pre>
 
 
 

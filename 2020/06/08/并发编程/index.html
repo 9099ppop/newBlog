@@ -1540,7 +1540,7 @@ ReentrantLock lock = <span class="hljs-keyword">new</span> ReentrantLock(<span c
 
 
 
-<h1 id="四、共享模型之内存"><a href="#四、共享模型之内存" class="headerlink" title="四、共享模型之内存"></a>四、共享模型之内存</h1><h2 id="1、JAVA内存模型（JMM）"><a href="#1、JAVA内存模型（JMM）" class="headerlink" title="1、JAVA内存模型（JMM）"></a>1、JAVA内存模型（JMM）</h2><p>JMM 即 Java Memory Model，它定义了<strong>主存（共享共享）、工作内存（线程私有）</strong>抽象概念，底层对应着 CPU 寄存器、缓存、硬件内存、 CPU 指令优化等。 </p>
+<h1 id="四、共享模型之内存"><a href="#四、共享模型之内存" class="headerlink" title="四、共享模型之内存"></a>四、共享模型之内存</h1><h2 id="1、JAVA内存模型（JMM）"><a href="#1、JAVA内存模型（JMM）" class="headerlink" title="1、JAVA内存模型（JMM）"></a>1、JAVA内存模型（JMM）</h2><p>JMM 即 Java Memory Model，它定义了<strong>主存（共享内存）、工作内存（线程私有）</strong>抽象概念，底层对应着 CPU 寄存器、缓存、硬件内存、 CPU 指令优化等。 </p>
 <p><strong>JMM体现在以下几个方面</strong></p>
 <ul>
 <li>原子性 - 保证指令不会受到线程上下文切换的影响</li>
