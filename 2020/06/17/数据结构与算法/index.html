@@ -2334,7 +2334,7 @@ i++;</code></pre>
 <span class="hljs-comment">    */</span>
    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">quickSort</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right)</span> </span>&#123;
       <span class="hljs-comment">//如果分区元素小于等于一个，就返回</span>
-      <span class="hljs-keyword">if</span>(right-left &lt;= <span class="hljs-number">1</span>) &#123;
+      <span class="hljs-keyword">if</span>(right &lt;= left) &#123;
          <span class="hljs-keyword">return</span>;
       &#125;
 
