@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      20.6k 字
+      22.4k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      265
+      290
        分钟
     </span>
   
@@ -3023,7 +3023,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 </ul>
 </li>
 </ul>
-<h2 id="2、ThreadPoolExecutor"><a href="#2、ThreadPoolExecutor" class="headerlink" title="2、ThreadPoolExecutor"></a>2、ThreadPoolExecutor</h2><h3 id="继承关系"><a href="#继承关系" class="headerlink" title="继承关系"></a>继承关系</h3><p><img src="D:%5Cmyblog%5Cblog%5Csource_posts%5C%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B.assets%5Cimage-20201022162416001.png" srcset="/img/loading.gif" alt="image-20201022162416001"></p>
+<h2 id="2、ThreadPoolExecutor"><a href="#2、ThreadPoolExecutor" class="headerlink" title="2、ThreadPoolExecutor"></a>2、ThreadPoolExecutor</h2><h3 id="继承关系"><a href="#继承关系" class="headerlink" title="继承关系"></a>继承关系</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201022212832.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="线程池状态"><a href="#线程池状态" class="headerlink" title="线程池状态"></a>线程池状态</h3><pre><code class="hljs java"><span class="hljs-comment">// 线程池状态</span>
 <span class="hljs-comment">// runState is stored in the high-order bits</span>
 <span class="hljs-comment">// RUNNING 高3位为111</span>
@@ -3084,6 +3084,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 <span class="hljs-comment">// 并不是所有平台的int都是32位。</span>
 <span class="hljs-comment">// 去掉前三位保存线程状态的位数，剩下的用于保存线程数量</span>
+<span class="hljs-comment">// 高3位为0，剩余位数全为1</span>
 <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="hljs-number">3</span>;
 
 <span class="hljs-comment">// 2^COUNT_BITS次方，表示可以保存的最大线程数</span>
@@ -3105,7 +3106,26 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 
 
+<h3 id="线程池属性"><a href="#线程池属性" class="headerlink" title="线程池属性"></a>线程池属性</h3><pre><code class="hljs java"><span class="hljs-comment">// 工作线程，内部封装了Thread</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Worker</span></span>
+<span class="hljs-class">        <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractQueuedSynchronizer</span></span>
+<span class="hljs-class">        <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;
+    ...
+&#125;
+
+<span class="hljs-comment">// 阻塞队列，用于存放来不及被核心线程执行的任务</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> BlockingQueue&lt;Runnable&gt; workQueue;
+
+<span class="hljs-comment">// 锁</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">new</span> ReentrantLock();
+
+<span class="hljs-comment">//  用于存放核心线程的容器，只有当持有锁时才能够获取其中的元素（核心线程）</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> HashSet&lt;Worker&gt; workers = <span class="hljs-keyword">new</span> HashSet&lt;Worker&gt;();</code></pre>
+
+
+
 <h3 id="构造方法极其参数"><a href="#构造方法极其参数" class="headerlink" title="构造方法极其参数"></a>构造方法极其参数</h3><p><strong>ThreadPoolExecutor最全面的构造方法</strong></p>
+<p>也是构造自定义线程池的方法</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ThreadPoolExecutor</span><span class="hljs-params">(<span class="hljs-keyword">int</span> corePoolSize,</span></span>
 <span class="hljs-function"><span class="hljs-params">                          <span class="hljs-keyword">int</span> maximumPoolSize,</span></span>
 <span class="hljs-function"><span class="hljs-params">                          <span class="hljs-keyword">long</span> keepAliveTime,</span></span>
@@ -3122,8 +3142,14 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 </li>
 <li>keepAliveTime：救急线程空闲时的最大生存时间</li>
 <li>unit：时间单位</li>
-<li>workQueue：阻塞队列（存放任务）</li>
-<li>threadFactory：线程工厂</li>
+<li>workQueue：阻塞队列（存放任务）<ul>
+<li>有界阻塞队列 ArrayBlockingQueue</li>
+<li>无界阻塞队列 LinkedBlockingQueue</li>
+<li>最多只有一个同步元素的 SynchronousQueue</li>
+<li>优先队列 PriorityBlockingQueue</li>
+</ul>
+</li>
+<li>threadFactory：线程工厂（给线程取名字）</li>
 <li>handler：拒绝策略</li>
 </ul>
 <h4 id="工作方式"><a href="#工作方式" class="headerlink" title="工作方式"></a>工作方式</h4><ul>
@@ -3146,6 +3172,46 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 <li>DiscardPolicy：放弃本次任务</li>
 <li>DiscardOldestPolicy：放弃队列中最早的任务，本任务取而代之</li>
 </ul>
+<h4 id="使用-2"><a href="#使用-2" class="headerlink" title="使用"></a>使用</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo1</span> </span>&#123;
+   <span class="hljs-keyword">static</span> AtomicInteger threadId = <span class="hljs-keyword">new</span> AtomicInteger(<span class="hljs-number">0</span>);
+
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+      <span class="hljs-comment">// 手动创建线程池</span>
+      <span class="hljs-comment">// 创建有界阻塞队列</span>
+      ArrayBlockingQueue&lt;Runnable&gt; runnable = <span class="hljs-keyword">new</span> ArrayBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">10</span>);
+      <span class="hljs-comment">// 创建线程工厂</span>
+      ThreadFactory threadFactory = <span class="hljs-keyword">new</span> ThreadFactory() &#123;
+         <span class="hljs-meta">@Override</span>
+         <span class="hljs-function"><span class="hljs-keyword">public</span> Thread <span class="hljs-title">newThread</span><span class="hljs-params">(Runnable r)</span> </span>&#123;
+            Thread thread = <span class="hljs-keyword">new</span> Thread(r, <span class="hljs-string">"working_thread_"</span>+threadId.getAndIncrement());
+            <span class="hljs-keyword">return</span> thread;
+         &#125;
+      &#125;;
+
+      <span class="hljs-comment">// 手动创建线程池</span>
+      <span class="hljs-comment">// 拒绝策略采用默认策略</span>
+      ThreadPoolExecutor executor = <span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">10</span>, TimeUnit.SECONDS, runnable, threadFactory);
+
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">20</span>; i++) &#123;
+         executor.execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+               System.out.println(Thread.currentThread());
+               <span class="hljs-keyword">try</span> &#123;
+                  Thread.sleep(<span class="hljs-number">100000</span>);
+               &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+                  e.printStackTrace();
+               &#125;
+            &#125;
+         &#125;);
+      &#125;
+   &#125;
+&#125;</code></pre>
+
+
+
+
+
 <h3 id="FixedThreadPool"><a href="#FixedThreadPool" class="headerlink" title="FixedThreadPool"></a>FixedThreadPool</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TestFixedThreadPool</span> </span>&#123;
    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
       <span class="hljs-comment">// 自定义线程工厂</span>
@@ -3189,7 +3255,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 
 
 
-<h3 id="缓冲线程池"><a href="#缓冲线程池" class="headerlink" title="缓冲线程池"></a>缓冲线程池</h3><pre><code class="hljs java">ExecutorService executorService = Executors.newCachedThreadPool();</code></pre>
+<h3 id="CachedThreadPool"><a href="#CachedThreadPool" class="headerlink" title="CachedThreadPool"></a>CachedThreadPool</h3><pre><code class="hljs java">ExecutorService executorService = Executors.newCachedThreadPool();</code></pre>
 
 <p><strong>内部构造方法</strong></p>
 <pre><code class="hljs java">ThreadPoolExecutor(<span class="hljs-number">0</span>, Integer.MAX_VALUE,
@@ -3201,7 +3267,7 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 </li>
 <li><p>阻塞队列使用的是SynchronousQueue</p>
 <ul>
-<li>SynchronousQueue是一种特殊的队列<ul>
+<li><strong>SynchronousQueue</strong>是一种特殊的队列<ul>
 <li><strong>没有容量</strong>，没有线程来取是放不进去的</li>
 <li>只有当线程取任务时，才会将任务放入该阻塞队列中</li>
 </ul>
@@ -3209,6 +3275,289 @@ System.out.println(i.accumulateAndGet(-<span class="hljs-number">10</span>, (p, 
 </ul>
 </li>
 </ul>
+<h3 id="SingleThread"><a href="#SingleThread" class="headerlink" title="SingleThread"></a>SingleThread</h3><pre><code class="hljs java">ExecutorService service = Executors.newSingleThreadExecutor();</code></pre>
+
+<p><strong>内部构造方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">new</span> FinalizableDelegatedExecutorService
+    (<span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>,
+                            <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,
+                            <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));</code></pre>
+
+<p>内部调用了<strong>new ThreadPoolExecutor</strong>的构造方法，传入的corePoolSize和maximumPoolSize都为1。然后将该对象传给了FinalizableDelegatedExecutorService。该类修饰了ThreadPoolExecutor，让外部无法调用ThreadPoolExecutor内部的某些方法来修改所创建的线程池的大小。</p>
+<h4 id="几个注意"><a href="#几个注意" class="headerlink" title="几个注意"></a>几个注意</h4><ul>
+<li><p>SingleThread和自己创建一个线程来运行多个任务的区别</p>
+<ul>
+<li>当线程正在执行的任务发生错误时，如果是自己创建的线程，该任务和剩余的任务就无法再继续运行下去。而SingleThread会创建一个新线程，继续执行任务队列中剩余的任务。</li>
+</ul>
+</li>
+<li><p>SingleThread和newFixedThreadPool(1)的区别</p>
+<ul>
+<li>newFixedThreadPool(1)传值为1，可以将FixedThreadPool强转为ThreadPoolExecutor，然后通过setCorePoolSize改变核心线程数</li>
+</ul>
+<pre><code class="hljs java"><span class="hljs-comment">// 强转为ThreadPoolExecutor</span>
+ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(<span class="hljs-number">1</span>);
+<span class="hljs-comment">// 改变核心线程数</span>
+threadPool.setCorePoolSize(<span class="hljs-number">2</span>);</code></pre>
+<ul>
+<li>而SingleThread无法修改核心线程数</li>
+</ul>
+</li>
+</ul>
+<h3 id="执行任务"><a href="#执行任务" class="headerlink" title="执行任务"></a>执行任务</h3><h4 id="execute-方法"><a href="#execute-方法" class="headerlink" title="execute()方法"></a>execute()方法</h4><pre><code class="hljs java">execute(Runnable command)</code></pre>
+
+<p>传入一个Runnable对象，执行其中的run方法</p>
+<p><strong>源码解析</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable command)</span> </span>&#123;
+    <span class="hljs-keyword">if</span> (command == <span class="hljs-keyword">null</span>)
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
+
+    <span class="hljs-comment">// 获取ctl</span>
+    <span class="hljs-keyword">int</span> c = ctl.get();
+    
+    <span class="hljs-comment">// 判断当前启用的线程数是否小于核心线程数</span>
+    <span class="hljs-keyword">if</span> (workerCountOf(c) &lt; corePoolSize) &#123;
+        <span class="hljs-comment">// 为该任务分配线程</span>
+        <span class="hljs-keyword">if</span> (addWorker(command, <span class="hljs-keyword">true</span>))
+            <span class="hljs-comment">// 分配成功就返回</span>
+            <span class="hljs-keyword">return</span>;
+        
+        <span class="hljs-comment">// 分配失败再次获取ctl</span>
+        c = ctl.get();
+    &#125;
+    
+    <span class="hljs-comment">// 分配和信息线程失败以后</span>
+    <span class="hljs-comment">// 如果池状态为RUNNING并且插入到任务队列成功</span>
+    <span class="hljs-keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;
+        
+        <span class="hljs-comment">// 双重检测，可能在添加后线程池状态变为了非RUNNING</span>
+        <span class="hljs-keyword">int</span> recheck = ctl.get();
+        
+        <span class="hljs-comment">// 如果池状态为非RUNNING，则不会执行新来的任务</span>
+        <span class="hljs-comment">// 将该任务从阻塞队列中移除</span>
+        <span class="hljs-keyword">if</span> (! isRunning(recheck) &amp;&amp; remove(command))
+            <span class="hljs-comment">// 调用拒绝策略，拒绝该任务的执行</span>
+            reject(command);
+        
+        <span class="hljs-comment">// 如果没有正在运行的线程</span>
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (workerCountOf(recheck) == <span class="hljs-number">0</span>)
+            <span class="hljs-comment">// 就创建新线程来执行该任务</span>
+            addWorker(<span class="hljs-keyword">null</span>, <span class="hljs-keyword">false</span>);
+    &#125;
+    
+    <span class="hljs-comment">// 如果添加失败了（任务队列已满），就调用拒绝策略</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!addWorker(command, <span class="hljs-keyword">false</span>))
+        reject(command);
+&#125;</code></pre>
+
+<p>其中调用了<strong>addWoker()</strong>方法，再看看看这个方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">addWorker</span><span class="hljs-params">(Runnable firstTask, <span class="hljs-keyword">boolean</span> core)</span> </span>&#123;
+    retry:
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-keyword">int</span> c = ctl.get();
+        <span class="hljs-keyword">int</span> rs = runStateOf(c);
+
+        <span class="hljs-comment">// Check if queue empty only if necessary.</span>
+        <span class="hljs-comment">// 如果池状态为非RUNNING状态、线程池为SHUTDOWN且该任务为空 或者阻塞队列中已经有任务</span>
+        <span class="hljs-keyword">if</span> (rs &gt;= SHUTDOWN &amp;&amp;
+            ! (rs == SHUTDOWN &amp;&amp;
+               firstTask == <span class="hljs-keyword">null</span> &amp;&amp;
+               ! workQueue.isEmpty()))
+            <span class="hljs-comment">// 创建新线程失败</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+
+        <span class="hljs-keyword">for</span> (;;) &#123;
+            <span class="hljs-comment">// 获得当前工作线程数</span>
+            <span class="hljs-keyword">int</span> wc = workerCountOf(c);
+
+            <span class="hljs-comment">// 参数中 core 为true</span>
+            <span class="hljs-comment">// CAPACITY 为 1 &lt;&lt; COUNT_BITS-1，一般不会超过</span>
+            <span class="hljs-comment">// 如果工作线程数大于了核心线程数，则创建失败</span>
+            <span class="hljs-keyword">if</span> (wc &gt;= CAPACITY ||
+                wc &gt;= (core ? corePoolSize : maximumPoolSize))
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+            <span class="hljs-comment">// 通过CAS操作改变c的值</span>
+            <span class="hljs-keyword">if</span> (compareAndIncrementWorkerCount(c))
+                <span class="hljs-comment">// 更改成功就跳出多重循环，且不再运行循环</span>
+                <span class="hljs-keyword">break</span> retry;
+            <span class="hljs-comment">// 更改失败，重新获取ctl的值</span>
+            c = ctl.get();  <span class="hljs-comment">// Re-read ctl</span>
+            <span class="hljs-keyword">if</span> (runStateOf(c) != rs)
+                <span class="hljs-comment">// 跳出多重循环，且重新进入循环</span>
+                <span class="hljs-keyword">continue</span> retry;
+            <span class="hljs-comment">// else CAS failed due to workerCount change; retry inner loop</span>
+        &#125;
+    &#125;
+
+    <span class="hljs-comment">// 用于标记work中的任务是否成功执行</span>
+    <span class="hljs-keyword">boolean</span> workerStarted = <span class="hljs-keyword">false</span>;
+    <span class="hljs-comment">// 用于标记worker是否成功加入了线程池中</span>
+    <span class="hljs-keyword">boolean</span> workerAdded = <span class="hljs-keyword">false</span>;
+    Worker w = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 创建新线程来执行任务</span>
+        w = <span class="hljs-keyword">new</span> Worker(firstTask);
+        <span class="hljs-keyword">final</span> Thread t = w.thread;
+        <span class="hljs-keyword">if</span> (t != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
+            <span class="hljs-comment">// 加锁</span>
+            mainLock.lock();
+            <span class="hljs-keyword">try</span> &#123;
+                <span class="hljs-comment">// Recheck while holding lock.</span>
+                <span class="hljs-comment">// Back out on ThreadFactory failure or if</span>
+                <span class="hljs-comment">// shut down before lock acquired.</span>
+                <span class="hljs-comment">// 加锁的同时再次检测</span>
+                <span class="hljs-comment">// 避免在释放锁之前调用了shut down</span>
+                <span class="hljs-keyword">int</span> rs = runStateOf(ctl.get());
+
+                <span class="hljs-keyword">if</span> (rs &lt; SHUTDOWN ||
+                    (rs == SHUTDOWN &amp;&amp; firstTask == <span class="hljs-keyword">null</span>)) &#123;
+                    <span class="hljs-keyword">if</span> (t.isAlive()) <span class="hljs-comment">// precheck that t is startable</span>
+                        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalThreadStateException();
+                    <span class="hljs-comment">// 将线程添加到线程池中</span>
+                    workers.add(w);
+                    <span class="hljs-keyword">int</span> s = workers.size();
+                    <span class="hljs-keyword">if</span> (s &gt; largestPoolSize)
+                        largestPoolSize = s;
+                    <span class="hljs-comment">// 添加成功标志位变为true</span>
+                    workerAdded = <span class="hljs-keyword">true</span>;
+                &#125;
+            &#125; <span class="hljs-keyword">finally</span> &#123;
+                mainLock.unlock();
+            &#125;
+            <span class="hljs-comment">// 如果worker成功加入了线程池，就执行其中的任务</span>
+            <span class="hljs-keyword">if</span> (workerAdded) &#123;
+                t.start();
+                <span class="hljs-comment">// 启动成功</span>
+                workerStarted = <span class="hljs-keyword">true</span>;
+            &#125;
+        &#125;
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        <span class="hljs-comment">// 如果执行失败</span>
+        <span class="hljs-keyword">if</span> (! workerStarted)
+            <span class="hljs-comment">// 调用添加失败的函数</span>
+            addWorkerFailed(w);
+    &#125;
+    <span class="hljs-keyword">return</span> workerStarted;
+&#125;</code></pre>
+
+
+
+
+
+<h4 id="submit-方法"><a href="#submit-方法" class="headerlink" title="submit()方法"></a>submit()方法</h4><pre><code class="hljs java"><span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span></span></code></pre>
+
+<p>传入一个Callable对象，用Future来<strong>捕获返回值</strong></p>
+<p><strong>使用</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 通过submit执行Callable中的call方法</span>
+<span class="hljs-comment">// 通过Future来捕获返回值</span>
+Future&lt;String&gt; future = threadPool.submit(<span class="hljs-keyword">new</span> Callable&lt;String&gt;() &#123;
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">call</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+      <span class="hljs-keyword">return</span> <span class="hljs-string">"hello submit"</span>;
+   &#125;
+&#125;);
+
+<span class="hljs-comment">// 查看捕获的返回值</span>
+System.out.println(future.get());</code></pre>
+
+
+
+<h3 id="停止"><a href="#停止" class="headerlink" title="停止"></a>停止</h3><h4 id="shutdown"><a href="#shutdown" class="headerlink" title="shutdown()"></a>shutdown()</h4><pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment">* 将线程池的状态改为 SHUTDOWN</span>
+<span class="hljs-comment">* 不再接受新任务，但是会将阻塞队列中的任务执行完</span>
+<span class="hljs-comment">*/</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">shutdown</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
+    mainLock.lock();
+    <span class="hljs-keyword">try</span> &#123;
+        checkShutdownAccess();
+        
+        <span class="hljs-comment">// 修改线程池状态为 SHUTDOWN</span>
+        advanceRunState(SHUTDOWN);
+        
+  		<span class="hljs-comment">// 中断空闲线程（没有执行任务的线程）</span>
+        <span class="hljs-comment">// Idle：空闲的</span>
+        interruptIdleWorkers();
+        onShutdown(); <span class="hljs-comment">// hook for ScheduledThreadPoolExecutor</span>
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        mainLock.unlock();
+    &#125;
+    <span class="hljs-comment">// 尝试终结，不一定成功</span>
+    <span class="hljs-comment">// </span>
+    tryTerminate();
+&#125;</code></pre>
+
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">tryTerminate</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-keyword">int</span> c = ctl.get();
+        <span class="hljs-comment">// 终结失败的条件</span>
+        <span class="hljs-comment">// 线程池状态为RUNNING</span>
+        <span class="hljs-comment">// 线程池状态为 RUNNING SHUTDOWN STOP （状态值大于TIDYING）</span>
+        <span class="hljs-comment">// 线程池状态为SHUTDOWN，但阻塞队列中还有任务等待执行</span>
+        <span class="hljs-keyword">if</span> (isRunning(c) ||
+            runStateAtLeast(c, TIDYING) ||
+            (runStateOf(c) == SHUTDOWN &amp;&amp; ! workQueue.isEmpty()))
+            <span class="hljs-keyword">return</span>;
+        
+        <span class="hljs-comment">// 如果活跃线程数不为0</span>
+        <span class="hljs-keyword">if</span> (workerCountOf(c) != <span class="hljs-number">0</span>) &#123; <span class="hljs-comment">// Eligible to terminate</span>
+            <span class="hljs-comment">// 中断空闲线程</span>
+            interruptIdleWorkers(ONLY_ONE);
+            <span class="hljs-keyword">return</span>;
+        &#125;
+
+        <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
+        mainLock.lock();
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// 处于可以终结的状态</span>
+            <span class="hljs-comment">// 通过CAS将线程池状态改为TIDYING</span>
+            <span class="hljs-keyword">if</span> (ctl.compareAndSet(c, ctlOf(TIDYING, <span class="hljs-number">0</span>))) &#123;
+                <span class="hljs-keyword">try</span> &#123;
+                    terminated();
+                &#125; <span class="hljs-keyword">finally</span> &#123;
+                    <span class="hljs-comment">// 通过CAS将线程池状态改为TERMINATED</span>
+                    ctl.set(ctlOf(TERMINATED, <span class="hljs-number">0</span>));
+                    termination.signalAll();
+                &#125;
+                <span class="hljs-keyword">return</span>;
+            &#125;
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            mainLock.unlock();
+        &#125;
+        <span class="hljs-comment">// else retry on failed CAS</span>
+    &#125;
+&#125;</code></pre>
+
+
+
+<h4 id="shutdownNow"><a href="#shutdownNow" class="headerlink" title="shutdownNow()"></a>shutdownNow()</h4><pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment">* 将线程池的状态改为 STOP</span>
+<span class="hljs-comment">* 不再接受新任务，也不会在执行阻塞队列中的任务</span>
+<span class="hljs-comment">* 会将阻塞队列中未执行的任务返回给调用者</span>
+<span class="hljs-comment">*/</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Runnable&gt; <span class="hljs-title">shutdownNow</span><span class="hljs-params">()</span> </span>&#123;
+    List&lt;Runnable&gt; tasks;
+    <span class="hljs-keyword">final</span> ReentrantLock mainLock = <span class="hljs-keyword">this</span>.mainLock;
+    mainLock.lock();
+    <span class="hljs-keyword">try</span> &#123;
+        checkShutdownAccess();
+        
+        <span class="hljs-comment">// 修改状态为STOP，不执行任何任务</span>
+        advanceRunState(STOP);
+        
+        <span class="hljs-comment">// 中断所有线程</span>
+        interruptWorkers();
+        
+        <span class="hljs-comment">// 将未执行的任务从队列中移除，然后返回给调用者</span>
+        tasks = drainQueue();
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        mainLock.unlock();
+    &#125;
+    <span class="hljs-comment">// 尝试终结，一定会成功，因为阻塞队列为空了</span>
+    tryTerminate();
+    <span class="hljs-keyword">return</span> tasks;
+&#125;</code></pre>
+
 
             </article>
             <hr>
