@@ -180,6 +180,59 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/11/08/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_self">
+          <img src="/img/redis2.png" srcset="/img/loading.gif" alt="Redis设计与实现">
+        </a>
+      </div>
+    
+    <div class="col-12 col-md-8 mx-auto index-info">
+      <a class="index-header" href="/2020/11/08/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/">Redis设计与实现</a>
+
+      <a href="/2020/11/08/Redis%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" class="index-excerpt">
+        
+        
+          
+        
+        <div>Redis设计与实现Redis中的数据结构一、简单动态字符串1、SDS的定义SDS又称为简单动态字符串（Simple Dynamic String），SDS的定义如下图所示
+
+如果将一个值为“Redis”的字符串放入SDS中，它的状态如下图所示
+
+
+buf相当于C中的字符串，一般被称为字节数组，为一个char类型的数组
+len记录了buf的长度（未记录最后一个’\0’字符）
+该值使得获取字符串的长</div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>&nbsp;2020-11-08
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/">后端开发</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%8E%9F%E7%90%86/">原理</a>
+            
+          </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2020/10/13/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/" target="_self">
           <img src="/img/java2.jpg" srcset="/img/loading.gif" alt="代理模式">
         </a>
@@ -578,65 +631,19 @@ CREATE TABLE student(
     </div>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/" target="_self">
-          <img src="/img/redis2.png" srcset="/img/loading.gif" alt="Redis学习">
-        </a>
-      </div>
-    
-    <div class="col-12 col-md-8 mx-auto index-info">
-      <a class="index-header" href="/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/">Redis学习</a>
-
-      <a href="/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/" class="index-excerpt">
-        
-        
-          
-        
-        <div>Redis学习本博客根据黑马Redis教程学习而做的笔记，链接如下
-一、Redis常用指令//启动容器
-docker run -d -p 6379:6379 -it   --name="myredis"  redis
-输入密码：
-auth 密码
-//进入redis容器
-docker exec -it myredis  redis-cli
-//退出
-quit
-exit
-//清屏
-clear
-//获取</div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>&nbsp;2020-06-07
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/">后端开发</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%BC%93%E5%AD%98/">缓存</a>
-            
-          </div>
-        
-      </div>
-    </div>
-  </div>
 
 
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+  
+  <script>
+    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
+      ele.href += '#board';
+    }
+  </script>
 
 
 
