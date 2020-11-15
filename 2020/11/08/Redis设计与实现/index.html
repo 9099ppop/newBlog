@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.1k 字
+      7.7k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      70
+      87
        分钟
     </span>
   
@@ -732,8 +732,127 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <li>从node1的L3开始访问，为node3，返回node1</li>
 <li>从node1的L2开始访问，为node2，score = 2.0，即为所要的节点</li>
 </ul>
-<h4 id="插入过程"><a href="#插入过程" class="headerlink" title="插入过程"></a>插入过程</h4><p>插入节点时，需要找到节点的插入位置。并给节点的各个属性赋值。插入后判断是否需要拓展上层。</p>
-<h2 id="五、整数集合"><a href="#五、整数集合" class="headerlink" title="五、整数集合"></a>五、整数集合</h2>
+<h4 id="插入过程"><a href="#插入过程" class="headerlink" title="插入过程"></a>插入过程</h4><p>插入节点时，需要找到节点的插入位置。并给节点的各个属性赋值。插入后判断是否需要拓展上层</p>
+<h2 id="五、整数集合"><a href="#五、整数集合" class="headerlink" title="五、整数集合"></a>五、整数集合</h2><h3 id="1、简介"><a href="#1、简介" class="headerlink" title="1、简介"></a>1、简介</h3><p>整数集合（intset）是集合键的底层实现之一，<strong>当一个集合只包含整数值元素，并且这个集合的元素数量不多时</strong>，Redis就会使用整数集合作为集合键的底层实现，例如</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113112602.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="2、整数集合的实现"><a href="#2、整数集合的实现" class="headerlink" title="2、整数集合的实现"></a>2、整数集合的实现</h3><p>整数集合（intset）是Redis用于保存整数值的集合抽象数据结构，它可以保存类型为int16_t、int32_t或者int64_t的整数值，并且<strong>保证集合中不会出现重复元素且按照从小到大的顺序排列</strong></p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">intset</span> &#123;</span>
+    <span class="hljs-comment">// 编码方式</span>
+    <span class="hljs-keyword">uint32_t</span> encoding;
+    <span class="hljs-comment">// contents数组的长度</span>
+    <span class="hljs-keyword">uint32_t</span> length;
+    <span class="hljs-comment">// 保存元素的数组，也就是set集合</span>
+    <span class="hljs-keyword">int8_t</span> contents[];
+&#125; intset;</code></pre>
+
+<ul>
+<li><p>length：记录了contents数组中元素的个数</p>
+</li>
+<li><p>contents：为intset的底层实现，用于存放不重复的元素，且<strong>元素按照从小到大的顺序排列。数组类型由encoding决定，与int8_t无关</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113113802.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>如果encoding属性的值为INTSET_ENC_INT16，那么contents就是一个int16_t类型的数组，数组里的每个项都是一个int16_t类型的整数值</li>
+<li>如果encoding属性的值为INTSET_ENC_INT32，那么contents就是一个int32_t类型的数组，数组里的每个项都是一个int32_t类型的整数值</li>
+<li>如果encoding属性的值为INTSET_ENC_INT64，那么contents就是一个int64_t类型的数组，数组里的每个项都是一个int64_t类型的整数值</li>
+</ul>
+</li>
+</ul>
+<p><strong>图解</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113113502.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>该整数解中有5个元素，contents的类型为int16_t</li>
+</ul>
+<h3 id="3、升级"><a href="#3、升级" class="headerlink" title="3、升级"></a>3、升级</h3><p>每当我们要将一个新元素添加到整数集合里面，并且<strong>新元素的类型比整数集合现有所有元素的类型都要长时</strong>，整数集合需要先进行<strong>升级</strong>（upgrade），然后才能将新元素添加到整数集合里面</p>
+<h4 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h4><ul>
+<li>根据新元素的类型，<strong>扩展</strong>整数集合底层数组的空间大小，并为新元素<strong>分配空间</strong></li>
+<li>将底层数组(contents[])现有的所有元素都<strong>转换</strong>成与新元素相同的类型，并将类型转换后的元素放置到正确的位上，而且在放置元素的过程中，需要继续维持底层数组的<strong>有序性质不变</strong></li>
+<li>将新元素添加到底层数组里面<ul>
+<li>因为新元素的长度大于数组中所有其他元素的长度，所以<strong>该元素要么是最小的，要么是最大的</strong><ul>
+<li>若为最小值，放在数组开头</li>
+<li>若为最大值，放在数组末尾</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>图解</strong></p>
+<ul>
+<li><p>假设现在有一个INTSET_ENC_INT16编码的整数集合，<strong>集合中包含三个int16_t类型的元素</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113114715.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>因为contents中的元素都是16位的，3个数组共占用空间48位，如下</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113114838.png" srcset="/img/loading.gif" alt=""></p>
+</li>
+</ul>
+<ul>
+<li><p>这时，需要将65535添加到整数集合里面，因为int16_t能够表示的范围为(-32768~32767)，无法容纳该数字，所以<strong>需要升级</strong>。升级过程如下</p>
+<ul>
+<li>扩展content的分配的内存空间，由3x16 扩展为 3x32</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115436.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>将数组中的元素<strong>类型改为int32_t</strong>，并放入扩展后的contents中。最后添加新插入的元素。<img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115536.png" srcset="/img/loading.gif" alt="">)<img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115550.png" srcset="/img/loading.gif" alt="">)<img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115604.png" srcset="/img/loading.gif" alt="">)<img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115811.png" srcset="/img/loading.gif" alt=""></li>
+<li>改变intset中，encoding和length的值<ul>
+<li>encoding由INTSET_ENC_INT16改为INTSET_ENC_INT32</li>
+<li>lentg由3改为4</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>插入完成后，intset的结构如下</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113115909.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="4、升级的好处"><a href="#4、升级的好处" class="headerlink" title="4、升级的好处"></a>4、升级的好处</h3><ul>
+<li><p><strong>自适应</strong>：会根据contents中的元素位数选择最合适的类型，来进行内存的分配</p>
+</li>
+<li><p><strong>节约内存</strong>：基于自适应，不会为一个位数较少的整数分配较大的空间</p>
+</li>
+</ul>
+<h2 id="六、压缩列表"><a href="#六、压缩列表" class="headerlink" title="六、压缩列表"></a>六、压缩列表</h2><h3 id="1、简介-1"><a href="#1、简介-1" class="headerlink" title="1、简介"></a>1、简介</h3><p>压缩列表（ziplist）是列表键(list)和哈希键(hash)的底层实现之一</p>
+<ul>
+<li><p>当<strong>一个列表键（list）只包含少量列表项，并且每个列表项要么就是小整数值，要么就是长度比较短的字符串</strong>，那么Redis就会使用压缩列表来做列表键的底层实现</p>
+<ul>
+<li>注意：这一点没有验证出来。根据书上的例子，底层使用的是quicklist</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113162812.png" srcset="/img/loading.gif" alt=""></p>
+</li>
+<li><p>当<strong>一个哈希键只包含少量键值对，比且每个键值对的键和值要么就是小整数值，要么就是长度比较短的字符串</strong>，那么Redis就会使用压缩列表来做哈希键的底层实现</p>
+</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113162843.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="2、压缩列表的组成"><a href="#2、压缩列表的组成" class="headerlink" title="2、压缩列表的组成"></a>2、压缩列表的组成</h3><p>压缩列表是Redis为了<strong>节约内存</strong>而开发的，是由一系列特殊编码的连续内存块组成的顺序型（sequential）数据结构。一个压缩列表可以包含任意多个节点（entry），每个节点可以保存<strong>一个字节数组</strong>或者<strong>一个整数值</strong>。具体组成如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113163516.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="属性介绍"><a href="#属性介绍" class="headerlink" title="属性介绍"></a>属性介绍</h4><ul>
+<li>zlbytes：表示压缩列表占用的内存（单位：字节）</li>
+<li>zltail：压缩列表其实指针到尾节点的偏移量<ul>
+<li>如果我们有一个指向压缩列表起始地址的指针pp+zltail就能直接访问压缩列表的最后一个节点</li>
+</ul>
+</li>
+<li>zllen：压缩列表中的<strong>节点数</strong></li>
+<li>entry：压缩列表中的节点</li>
+</ul>
+<h3 id="3、压缩列表中的节点"><a href="#3、压缩列表中的节点" class="headerlink" title="3、压缩列表中的节点"></a>3、压缩列表中的节点</h3><p>每个压缩列表节点都由<strong>previous_entry_length、encoding、content</strong>三个部分组成，如下图</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113164801.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h4 id="previous-entry-length"><a href="#previous-entry-length" class="headerlink" title="previous_entry_length"></a>previous_entry_length</h4><p>节点的previous_entry_length属性以<strong>字节为单位，记录了压缩列表中前一个节点的长度</strong>，其值长度为1个字节<strong>或者</strong>5个字节</p>
+<ul>
+<li>如果前一节点的长度<strong>小于254字节</strong>，那么previous_entry_length属性的<strong>长度为1字节</strong><ul>
+<li>前一节点的长度就保存在这一个字节里面</li>
+</ul>
+</li>
+<li>如果前一节点的长度<strong>大于等于254字节</strong>，那么previous_entry_length属性的<strong>长度为5字节</strong><ul>
+<li>其中属性的第一字节会被设置为0xFE（十进制值254），而之后的四个字节则用于保存前一节点的长度</li>
+</ul>
+</li>
+</ul>
+<p>若前一个节点的长度为5个字节，那么压缩列表的previous_entry_length属性为0x05（1个字节保存长度）</p>
+<p>若前一个节点的长度为10086(0x2766)，那么压缩列表中previous_entry_length属性为0xFE00002766（后4个字节保存长度）</p>
+<p>通过previous_entry_length属性，可以方便地访问当前节点的前一个节点</p>
+<h4 id="encoding"><a href="#encoding" class="headerlink" title="encoding"></a>encoding</h4><p>节点的encoding属性记录了<strong>节点的content属性所保存数据的类型以及长度</strong></p>
+<h4 id="content"><a href="#content" class="headerlink" title="content"></a>content</h4><p>节点的content属性负责保存节点的值，<strong>节点值可以是一个字节数组或者整数，值的类型和长度由节点的encoding属性决定</strong></p>
+
             </article>
             <hr>
             <div>
