@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      7.7k 字
+      17.6k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      87
+      196
        分钟
     </span>
   
@@ -268,7 +268,7 @@
 <td align="center">SDS中的buf相当于字符串</td>
 </tr>
 </tbody></table>
-<h2 id="二、链表"><a href="#二、链表" class="headerlink" title="二、链表"></a>二、链表</h2><h3 id="1、Redis中的链表"><a href="#1、Redis中的链表" class="headerlink" title="1、Redis中的链表"></a>1、Redis中的链表</h3><p>Redis中的<strong>链表节点</strong>定义如下</p>
+<h2 id="二、链表（Redis-3-2以后已经不再使用）"><a href="#二、链表（Redis-3-2以后已经不再使用）" class="headerlink" title="二、链表（Redis 3.2以后已经不再使用）"></a>二、链表（Redis 3.2以后已经不再使用）</h2><h3 id="1、Redis中的链表"><a href="#1、Redis中的链表" class="headerlink" title="1、Redis中的链表"></a>1、Redis中的链表</h3><p>Redis中的<strong>链表节点</strong>定义如下</p>
 <pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> &#123;</span>
     <span class="hljs-comment">// 保存前驱节点</span>
     <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> *<span class="hljs-title">prev</span>;</span>
@@ -828,7 +828,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <h4 id="属性介绍"><a href="#属性介绍" class="headerlink" title="属性介绍"></a>属性介绍</h4><ul>
 <li>zlbytes：表示压缩列表占用的内存（单位：字节）</li>
 <li>zltail：压缩列表其实指针到尾节点的偏移量<ul>
-<li>如果我们有一个指向压缩列表起始地址的指针pp+zltail就能直接访问压缩列表的最后一个节点</li>
+<li>如果我们有一个指向压缩列表起始地址的指针p，通过p+zltail就能直接访问压缩列表的最后一个节点</li>
 </ul>
 </li>
 <li>zllen：压缩列表中的<strong>节点数</strong></li>
@@ -836,7 +836,19 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 </ul>
 <h3 id="3、压缩列表中的节点"><a href="#3、压缩列表中的节点" class="headerlink" title="3、压缩列表中的节点"></a>3、压缩列表中的节点</h3><p>每个压缩列表节点都由<strong>previous_entry_length、encoding、content</strong>三个部分组成，如下图</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201113164801.png" srcset="/img/loading.gif" alt=""></p>
-<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h4 id="previous-entry-length"><a href="#previous-entry-length" class="headerlink" title="previous_entry_length"></a>previous_entry_length</h4><p>节点的previous_entry_length属性以<strong>字节为单位，记录了压缩列表中前一个节点的长度</strong>，其值长度为1个字节<strong>或者</strong>5个字节</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zlentry</span> &#123;</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> prevrawlensize; 
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> prevrawlen;     
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> lensize;        
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> len;           
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> headersize;     
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> encoding;      
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *p;          
+&#125; zlentry;</code></pre>
+
+
+
+<h4 id="previous-entry-length"><a href="#previous-entry-length" class="headerlink" title="previous_entry_length"></a>previous_entry_length</h4><p>节点的previous_entry_length属性以<strong>字节为单位，记录了压缩列表中前一个节点的长度</strong>，其值长度为1个字节<strong>或者</strong>5个字节</p>
 <ul>
 <li>如果前一节点的长度<strong>小于254字节</strong>，那么previous_entry_length属性的<strong>长度为1字节</strong><ul>
 <li>前一节点的长度就保存在这一个字节里面</li>
@@ -852,6 +864,685 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <p>通过previous_entry_length属性，可以方便地访问当前节点的前一个节点</p>
 <h4 id="encoding"><a href="#encoding" class="headerlink" title="encoding"></a>encoding</h4><p>节点的encoding属性记录了<strong>节点的content属性所保存数据的类型以及长度</strong></p>
 <h4 id="content"><a href="#content" class="headerlink" title="content"></a>content</h4><p>节点的content属性负责保存节点的值，<strong>节点值可以是一个字节数组或者整数，值的类型和长度由节点的encoding属性决定</strong></p>
+<h2 id="七、快表"><a href="#七、快表" class="headerlink" title="七、快表"></a>七、快表</h2><h3 id="1、简介-2"><a href="#1、简介-2" class="headerlink" title="1、简介"></a>1、简介</h3><p>quicklist是Redis 3.2中新引入的数据结构，<strong>能够在时间效率和空间效率间实现较好的折中</strong>。Redis中对quciklist的注释为A doubly linked list of ziplists。顾名思义，quicklist是一个双向链表，链表中的每个节点是一个ziplist结构。quicklist可以看成是用双向链表将若干小型的ziplist连接到一起组成的一种数据结构。当ziplist节点个数过多，quicklist退化为双向链表，一个极端的情况就是每个ziplist节点只包含一个entry，即只有一个元素。当ziplist元素个数过少时，quicklist可退化为ziplist，一种极端的情况就是quicklist中只有一个ziplist节点</p>
+<h3 id="2、快表的结构"><a href="#2、快表的结构" class="headerlink" title="2、快表的结构"></a>2、快表的结构</h3><p>quicklist是由quicklist node组成的双向链表，quicklist node中又由ziplist充当节点。quicklist的存储结构如图</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116193058.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="quicklist"><a href="#quicklist" class="headerlink" title="quicklist"></a><strong>quicklist</strong></h4><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklist</span> &#123;</span>
+    quicklistNode *head;
+    quicklistNode *tail;
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> count;        <span class="hljs-comment">/* total count of all entries in all ziplists */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> len;          <span class="hljs-comment">/* number of quicklistNodes */</span>
+    <span class="hljs-keyword">int</span> <span class="hljs-built_in">fill</span> : QL_FILL_BITS;              <span class="hljs-comment">/* fill factor for individual nodes */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> compress : QL_COMP_BITS; <span class="hljs-comment">/* depth of end nodes not to compress;0=off */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> bookmark_count: QL_BM_BITS;
+    quicklistBookmark bookmarks[];
+&#125; quicklist;</code></pre>
+
+
+
+<p><strong>head和tail</strong></p>
+<ul>
+<li>head和tail分别指向快表的首位节点</li>
+</ul>
+<p><strong>count</strong></p>
+<ul>
+<li>count为quicklist中元素总数</li>
+</ul>
+<p><strong>len</strong></p>
+<ul>
+<li>len为quicklist Node（节点）个数</li>
+</ul>
+<p><strong>fill</strong></p>
+<p>fill用来指明每个quicklistNode中ziplist长度</p>
+<h4 id="quicklistNode"><a href="#quicklistNode" class="headerlink" title="quicklistNode"></a><strong>quicklistNode</strong></h4><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklistNode</span> &#123;</span>
+    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklistNode</span> *<span class="hljs-title">prev</span>;</span>
+    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklistNode</span> *<span class="hljs-title">next</span>;</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *zl;  		 <span class="hljs-comment">/* 指向压缩列表的指针 */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> sz;             <span class="hljs-comment">/* ziplist size in bytes */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> count : <span class="hljs-number">16</span>;     <span class="hljs-comment">/* count of items in ziplist */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> encoding : <span class="hljs-number">2</span>;   <span class="hljs-comment">/* RAW==1 or LZF==2 */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> container : <span class="hljs-number">2</span>;  <span class="hljs-comment">/* NONE==1 or ZIPLIST==2 */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> recompress : <span class="hljs-number">1</span>; <span class="hljs-comment">/* was this node previous compressed? */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> attempted_compress : <span class="hljs-number">1</span>; <span class="hljs-comment">/* node can't compress; too small */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> extra : <span class="hljs-number">10</span>; <span class="hljs-comment">/* more bits to steal for future usage */</span>
+&#125; quicklistNode;</code></pre>
+
+
+
+<p><strong>prev和next</strong></p>
+<ul>
+<li>因为quicklist为双向链表，所以有prev和next指针，分别指向前驱节点和后继节点</li>
+</ul>
+<p><strong>zl</strong></p>
+<ul>
+<li>zl指向该节点对应的<strong>ziplist结构</strong></li>
+</ul>
+<p><strong>encoding</strong></p>
+<ul>
+<li>encoding代表采用的编码方式<ul>
+<li>1代表是原生的ziplist（未进行再次压缩）</li>
+<li>2代表使用LZF进行压缩</li>
+</ul>
+</li>
+</ul>
+<p><strong>container</strong></p>
+<ul>
+<li>container为quicklistNode节点zl指向的容器类型<ul>
+<li>1代表none</li>
+<li>2代表使用ziplist存储数据</li>
+</ul>
+</li>
+</ul>
+<p><strong>recompress</strong></p>
+<ul>
+<li>recompress代表这个节点之前是否是压缩节点，若是，则在使用压缩节点前先进行解压缩，使用后需要重新压缩，此外为1，代表是压缩节点</li>
+</ul>
+<p><strong>attempted_compress</strong></p>
+<ul>
+<li>attempted_compress测试时使用</li>
+</ul>
+<p><strong>extra</strong></p>
+<ul>
+<li>extra为预留</li>
+</ul>
+<h4 id="quickLZF"><a href="#quickLZF" class="headerlink" title="quickLZF"></a>quickLZF</h4><p><strong>quicklist允许ziplist进行再次压缩</strong>。当我们对ziplist利用LZF算法进行压缩时，quicklistNode节点指向的结构为<strong>quicklistLZF</strong>。其中sz表示compressed所占字节大小，quicklistLZF结构如下所示</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklistLZF</span> &#123;</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> sz; <span class="hljs-comment">/* LZF size in bytes*/</span>
+    <span class="hljs-keyword">char</span> compressed[];
+&#125; quicklistLZF;</code></pre>
+
+
+
+<h4 id="quicklistEntry"><a href="#quicklistEntry" class="headerlink" title="quicklistEntry"></a><strong>quicklistEntry</strong></h4><p>当我们使用quicklistNode中<strong>ziplist中的一个节点</strong>时，Redis提供了quicklistEntry结构以便于使用，该结构如下</p>
+<p>可以理解为其为<strong>ziplist中的一个节点</strong>，只不过记录了更详细的信息</p>
+<pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">quicklistEntry</span> &#123;</span>
+    <span class="hljs-comment">// 指向当前元素所在的quicklist</span>
+    <span class="hljs-keyword">const</span> quicklist *quicklist;
+    
+    <span class="hljs-comment">// 指向当前元素所在的quicklistNode结构</span>
+    quicklistNode *node;
+    
+    <span class="hljs-comment">// 指向当前元素所在的ziplist</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *zi;
+    
+    <span class="hljs-comment">// 指向该节点的字符串内容</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> *value;
+    
+    <span class="hljs-comment">// 该节点的整型值</span>
+    <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> longval;
+    
+    <span class="hljs-comment">// 该节点的大小</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> sz;
+    
+    <span class="hljs-comment">// 该节点相对于整个ziplist的偏移量，即该节点是ziplist第多少个entry</span>
+    <span class="hljs-keyword">int</span> offset;
+&#125; quicklistEntry;</code></pre>
+
+
+
+<h3 id="3、基本操作"><a href="#3、基本操作" class="headerlink" title="3、基本操作"></a>3、基本操作</h3><h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p>初始化是构建quicklist结构的第一步，由quicklistCreate函数完成，该函数的主要功能就是初始化quicklist结构。初始化后的quicklist如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117210043.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h4><p>插入操作有</p>
+<ul>
+<li>插入quicklist node</li>
+<li>插入ziplist中的节点</li>
+</ul>
+<p>插入时可以选择头插和尾插，对应list的lpush和rpush，底层调用的是quicklistPushHead与quicklistPushTail方法</p>
+<ul>
+<li>quicklistPushHead的<strong>基本思路</strong>是：查看quicklist原有的head节点是否可以插入，如果可以就直接利用ziplist的接口进行插入，否则新建quicklistNode节点进行插入。函数的入参为待插入的quicklist，需要插入的数据value及其大小sz；函数返回值代表是否新建了head节点，0代表没有新建，1代表新建了head</li>
+</ul>
+<p>当quicklist中只有一个节点时，其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117210218.png" srcset="/img/loading.gif" alt=""></p>
+<p>具体的插入（zlentry）情况如下</p>
+<ul>
+<li>当前插入位置所在的quicklistNode仍然<strong>可以继续插入</strong>，此时可以直接插入</li>
+<li>当前插入位置所在的quicklistNode<strong>不能继续插入</strong>，此时可以分为如下几种情况<ul>
+<li>需要向当前quicklistNode第一个元素（entry1）前面插入元素，当前ziplist所在的quicklistNode的<strong>前一个</strong>quicklistNode可以插入，则将数据插入到前一个quicklistNode。如果<strong>前一个quicklistNode不能插入</strong>（不包含前一个节点为空的情况），则<strong>新建</strong>一个quicklistNode插入到当前quicklistNode<strong>前面</strong></li>
+<li>需要向当前quicklistNode的最后一个元素（entryN）后面插入元素，当前ziplist所在的quicklistNode的<strong>后一个</strong>quicklistNode可以插入，则直接将数据插入到后一个quicklistNode。如果<strong>后一个quicklistNode不能插入</strong>（不包含为后一个节点为空的情况），则<strong>新建</strong>一个quicklistNode插入到当前quicklistNode的<strong>后面</strong></li>
+<li><strong>不满足前面2个条件的所有其他种情况</strong>，将当前所在的quicklistNode以当前待插入位置为基准，拆分成左右两个quicklistNode，之后将需要插入的数据插入到其中一个拆分出来的quicklistNode中</li>
+</ul>
+</li>
+</ul>
+<h4 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h4><p>quicklist查找元素主要是针对index，即通过元素在链表中的下标查找对应元素。基本思路是，<strong>首先找到index对应的数据所在的quicklistNode节点，之后调用ziplist的接口函数ziplistGet得到index对应的数据</strong>。简而言之就是：定位quicklistNode，再在quicklistNode中的ziplist中寻找目标节点。具体过程如下</p>
+<h2 id="八、对象"><a href="#八、对象" class="headerlink" title="八、对象"></a>八、对象</h2><h3 id="1、简介-3"><a href="#1、简介-3" class="headerlink" title="1、简介"></a>1、简介</h3><h4 id="基本数据结构与对象的关系"><a href="#基本数据结构与对象的关系" class="headerlink" title="基本数据结构与对象的关系"></a>基本数据结构与对象的关系</h4><p>Redis<strong>并没有直接使用</strong>简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合等等这些数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，这个系统包含<strong>字符串对象、列表对象、哈希对象、集合对象和有序集合对象</strong>这五种类型的对象</p>
+<h4 id="使用对象的好处"><a href="#使用对象的好处" class="headerlink" title="使用对象的好处"></a>使用对象的好处</h4><ul>
+<li>通过这五种不同类型的对象，Redis可以在执行命令之前，根据对象的类型来判断一个对象是否可以执行给定的命令</li>
+<li>我们可以针对不同的使用场景，为对象设置多种不同的数据结构实现，从而<strong>优化对象在不同场景下的使用效率</strong></li>
+</ul>
+<h4 id="对象的回收——引用计数法"><a href="#对象的回收——引用计数法" class="headerlink" title="对象的回收——引用计数法"></a>对象的回收——引用计数法</h4><p>Redis的对象系统还实现了基于<strong>引用计数</strong>技术的内存回收机制</p>
+<p>Redis还<strong>通过引用计数技术实现了对象共享机制</strong>，这一机制可以在适当的条件下，通过让多个数据库键共享同一个对象来节约内存</p>
+<h3 id="2、对象的类型与编码"><a href="#2、对象的类型与编码" class="headerlink" title="2、对象的类型与编码"></a>2、对象的类型与编码</h3><p>Redis使用对象来表示数据库中的键和值，每次当我们在Redis的数据库中新创建一个键值对时，我们<strong>至少会创建两个对象</strong>，一个对象用作键值对的键（键对象），另一个对象用作键值对的值（值对象），如</p>
+<pre><code class="hljs gams"><span class="hljs-keyword">set</span> hello <span class="hljs-comment">"hello world"</span></code></pre>
+
+<p>其中键值对的<strong>键</strong>是一个包含了字符串值”hello”的对象，而键值对的<strong>值</strong>则是一个包含了字符串值”hello world”的对象</p>
+<p>Redis中的每个对象都由一个<strong>redisObject</strong>结构表示，该结构中和保存数据有关的三个属性分别是type属性、encoding属性和ptr属性</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisObject</span> &#123;</span>
+    <span class="hljs-comment">// 类型(对象类型)</span>
+    <span class="hljs-keyword">unsigned</span> type:<span class="hljs-number">4</span>;
+    <span class="hljs-comment">// 编码(对象底层使用的数据结构)</span>
+    <span class="hljs-keyword">unsigned</span> encoding:<span class="hljs-number">4</span>;
+    <span class="hljs-comment">// 指向底层数据结构的指针</span>
+    <span class="hljs-keyword">void</span> *ptr;
+    
+    ....
+        
+&#125; robj;</code></pre>
+
+
+
+<h4 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h4><p>对象的type属性记录了对象的类型，这个属性的值可以是下标所示的值</p>
+<table>
+<thead>
+<tr>
+<th align="center">类型常量</th>
+<th align="center">对象名称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">REDIS_STRING</td>
+<td align="center">字符串对象</td>
+</tr>
+<tr>
+<td align="center">REDIS_LIST</td>
+<td align="center">列表对象</td>
+</tr>
+<tr>
+<td align="center">REDIS_HASH</td>
+<td align="center">哈希对象</td>
+</tr>
+<tr>
+<td align="center">REDIS_SET</td>
+<td align="center">集合对象</td>
+</tr>
+<tr>
+<td align="center">REDIS_ZSET</td>
+<td align="center">有序集合对象</td>
+</tr>
+</tbody></table>
+<p>对于Redis数据库保存的键值对来说，<strong>键总是一个字符串对象</strong>，而值<strong>则可以是字符串对象、列表对象、哈希对象、集合对象或者有序集合对象的其中一种</strong>，因此</p>
+<ul>
+<li>当我们称呼一个数据库键为<strong>字符串</strong>键时，我们指的是“这个数据库键所对应的<strong>值为字符串对象</strong></li>
+<li>当我们称呼一个键为<strong>列表键</strong>时，我们指的是这个数据库键所对应的值为<strong>列表对象</strong></li>
+</ul>
+<p>TYPE命令的实现方式也与此类似，当我们对一个数据库键执行TYPE命令时，<strong>命令返回的结果为数据库键对应的值对象的类型</strong>，而不是键对象的类型，如</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116090708.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h4><p>对象的ptr指针指向对象的底层实现数据结构，而这些数据结构由对象的encoding属性决定</p>
+<p><strong>encoding属性记录了对象所使用的编码</strong>，也即是说这个对象使用了什么数据结构作为对象的底层实现</p>
+<table>
+<thead>
+<tr>
+<th align="center">编码常量</th>
+<th align="center">编码所对应的底层数据结构</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">OBJ_ENCODING_INT</td>
+<td align="center">long类型的整数</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_EMBSTR</td>
+<td align="center">embstr编码的简单动态字符串</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_RAW</td>
+<td align="center">简单动态字符串</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_HT</td>
+<td align="center">字典</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_LINKEDLIST</td>
+<td align="center">双向链表</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_ZIPLIST</td>
+<td align="center">压缩列表</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_INTSET</td>
+<td align="center">整数集合</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_SKIPLIST</td>
+<td align="center">跳跃表</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_QUICKLIST</td>
+<td align="center">快表</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_ZIPMAP</td>
+<td align="center">压缩哈希表</td>
+</tr>
+<tr>
+<td align="center">OBJ_ENCODING_STREAM</td>
+<td align="center">消息流（用于消息队列）</td>
+</tr>
+</tbody></table>
+<pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_RAW 0     <span class="hljs-comment">/* Raw representation */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_INT 1     <span class="hljs-comment">/* Encoded as integer */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_HT 2      <span class="hljs-comment">/* Encoded as hash table */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_ZIPMAP 3  <span class="hljs-comment">/* Encoded as zipmap */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_LINKEDLIST 4 <span class="hljs-comment">/* No longer used: old list encoding. */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_ZIPLIST 5 <span class="hljs-comment">/* Encoded as ziplist */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_INTSET 6  <span class="hljs-comment">/* Encoded as intset */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_SKIPLIST 7  <span class="hljs-comment">/* Encoded as skiplist */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_EMBSTR 8  <span class="hljs-comment">/* Embedded sds string encoding */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_QUICKLIST 9 <span class="hljs-comment">/* Encoded as linked list of ziplists */</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> OBJ_ENCODING_STREAM 10 <span class="hljs-comment">/* Encoded as a radix tree of listpacks */</span></span></code></pre>
+
+
+
+<p>每种类型的对象都<strong>至少使用了两种</strong>不同的编码，可以通过</p>
+<pre><code class="hljs pgsql"><span class="hljs-keyword">OBJECT</span> <span class="hljs-keyword">ENCODING</span> key</code></pre>
+
+<p>指令来查看</p>
+<p><strong>使用不同编码带来的好处</strong></p>
+<p>通过encoding属性来设定对象所使用的编码，而不是为特定类型的对象关联一种固定的编码，<strong>极大地提升了Redis的灵活性和效率</strong>，因为Redis可以根据不同的使用场景来为一个对象设置不同的编码，从而优化对象在某一场景下的效率</p>
+<h3 id="3、字符串对象"><a href="#3、字符串对象" class="headerlink" title="3、字符串对象"></a>3、字符串对象</h3><p>字符串对象的编码可以是<strong>int、raw或者embstr</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116154658.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="int"><a href="#int" class="headerlink" title="int"></a>int</h4><p>如果一个字符串对象保存的是<strong>整数值</strong>，并且这个整数值<strong>可以用long类型来表示</strong>，那么字符串对象会将整数值保存在字符串对象结构的ptr属性里面（将void*转换成long），并将字符串对象的编码设置为int</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116153722.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="raw"><a href="#raw" class="headerlink" title="raw"></a>raw</h4><p>如果字符串对象保存的是一个<strong>字符串值</strong>，并且这个字符串值的<strong>长度大于32字节</strong>，那么字符串对象将使用一个简单动态字符串（SDS）来保存这个字符串值，并将对象的编码设置为raw</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116153707.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="embstr"><a href="#embstr" class="headerlink" title="embstr"></a>embstr</h4><p>embstr编码是专门用于保存<strong>短字符串</strong>的一种优化编码方式。这种编码和raw编码一样，都使用redisObject结构和sdshdr结构来表示字符串对象，但raw编码会调用两次内存分配函数来分别创建redisObject结构和sdshdr结构，而<strong>embstr编码则通过调用一次内存分配函数来分配一块连续的空间</strong>，空间中依次包含redisObject和sdshdr两个结构</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116154107.png" srcset="/img/loading.gif" alt=""></p>
+<p>简单来说，raw和embstr都是用来保存字符串的。字符串长度较短时使用embstr，较长时使用raw</p>
+<ul>
+<li>raw的redisObject和sdshdr是分别分配空间的，通过redisObject的ptr指针联系起来</li>
+<li>embstr的redisObject和sdshdr则是一起分配空间的，在内存中是一段连续的区域</li>
+</ul>
+<h4 id="浮点数的编码"><a href="#浮点数的编码" class="headerlink" title="浮点数的编码"></a>浮点数的编码</h4><p>浮点数在Redis中使用embstr或者raw进行编码</p>
+<h4 id="编码的转换"><a href="#编码的转换" class="headerlink" title="编码的转换"></a>编码的转换</h4><p>int编码的字符串对象和embstr编码的字符串对象在条件满足的情况下，会被转换为raw编码的字符串对象（<strong>int/embstr -&gt; raw</strong>）</p>
+<p><strong>int转raw</strong></p>
+<p>编码为int的字符串，在<strong>进行append操作后</strong>，编码会转换为raw</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116155237.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>embstr转raw</strong></p>
+<p>编码为embstr的字符串，<strong>进行append操作后</strong>，编码会转换为raw</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201116155653.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="4、列表对象"><a href="#4、列表对象" class="headerlink" title="4、列表对象"></a>4、列表对象</h3><p>列表对象的编码是quicklist，quicklist在上面部分已经介绍过了，在此不再赘述</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117214036.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="5、哈希对象"><a href="#5、哈希对象" class="headerlink" title="5、哈希对象"></a>5、哈希对象</h3><p>哈希对象的编码可以是ziplist或者hashtable</p>
+<h4 id="ziplist"><a href="#ziplist" class="headerlink" title="ziplist"></a>ziplist</h4><p><strong>ziplist编码</strong>的哈希对象使用压缩列表作为底层实现，每当有新的键值对要加入到哈希对象时，程序会先将保存了<strong>键</strong>的压缩列表节点推入到压缩列表表尾，然后再将保存了<strong>值</strong>的压缩列表节点推入到压缩列表表尾，因此</p>
+<ul>
+<li>保存了同一键值对的两个节点总是紧挨在一起，保存<strong>键的节点在前</strong>，保存<strong>值的节点在后</strong></li>
+<li><strong>先</strong>添加到哈希对象中的键值对会被放在压缩列表的表头方向，而<strong>后</strong>来添加到哈希对象中的键值对会被放在压缩列表的表尾方向</li>
+</ul>
+<p>如果我们依次向哈希表中添加一下元素，那么哈希对象中的压缩列表结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215013.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215302.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="hashtable"><a href="#hashtable" class="headerlink" title="hashtable"></a>hashtable</h4><p>hashtable编码的哈希对象使用字典作为底层实现，哈希对象中的每个键值对都使用一个字典键值对来保存</p>
+<ul>
+<li>字典的每个键都是一个<strong>字符串对象</strong>，对象中保存了键值对的键</li>
+<li>字典的每个值都是一个<strong>字符串对象</strong>，对象中保存了键值对的值</li>
+</ul>
+<p>如果前面profile键创建的不是ziplist编码的哈希对象，而是<strong>hashtable编码</strong>的哈希对象，结构则如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215430.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="编码转换"><a href="#编码转换" class="headerlink" title="编码转换"></a>编码转换</h4><p>当哈希对象可以<strong>同时满足</strong>以下两个条件时，哈希对象使用<strong>ziplist编码</strong></p>
+<ul>
+<li>希对象保存的所有键值对的<strong>键和值的字符串长度都小于64字节</strong></li>
+<li>哈希对象保存的键值对<strong>数量小于512个</strong></li>
+</ul>
+<p>不能满足这两个条件的哈希对象需要使用hashtable编码</p>
+<p><strong>使用ziplist</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215556.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>使用hashtable</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215637.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="6、集合-set-对象"><a href="#6、集合-set-对象" class="headerlink" title="6、集合(set)对象"></a>6、集合(set)对象</h3><p>集合对象的编码可以是intset或者hashtable</p>
+<h4 id="intset"><a href="#intset" class="headerlink" title="intset"></a>intset</h4><p>intset编码的集合对象使用整数集合作为底层实现，集合对象包含的所有元素都被保存在整数集合里面</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118192800.png" srcset="/img/loading.gif" alt=""></p>
+<p>其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118192819.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="hashtable-1"><a href="#hashtable-1" class="headerlink" title="hashtable"></a>hashtable</h4><p>hashtable编码的集合对象使用字典作为底层实现，字典的每个<strong>键都是一个字符串对象</strong>，每个字符串对象包含了一个集合元素，而字典的值则全部被设置为NULL</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118192946.png" srcset="/img/loading.gif" alt=""></p>
+<p>其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118193015.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="编码转换-1"><a href="#编码转换-1" class="headerlink" title="编码转换"></a>编码转换</h4><p>当集合对象可以<strong>同时满足</strong>以下两个条件时，对象使用intset编码</p>
+<ul>
+<li>集合对象保存的<strong>所有元素都是整数值</strong></li>
+<li>集合对象保存的元素数量不超过512个</li>
+</ul>
+<p>不能满足这两个条件的集合对象需要使用hashtable编码</p>
+<h3 id="7、有序-sorted-set-集合"><a href="#7、有序-sorted-set-集合" class="headerlink" title="7、有序(sorted_set)集合"></a>7、有序(sorted_set)集合</h3><p>有序集合的编码可以是ziplist或者skiplist</p>
+<h4 id="ziplist-1"><a href="#ziplist-1" class="headerlink" title="ziplist"></a>ziplist</h4><p>ziplist编码的压缩列表对象使用压缩列表作为底层实现，每个集合元素<strong>使用两个紧挨在一起的压缩列表节点来保存</strong>，第一个节点保存元素的成员（member），而第二个元素则保存元素的分值（score）</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118194654.png" srcset="/img/loading.gif" alt=""></p>
+<p>其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118194930.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h4 id="skiplist"><a href="#skiplist" class="headerlink" title="skiplist"></a>skiplist</h4><p>skiplist编码的有序集合对象使用zset结构作为底层实现，一个zset结构同时包含一个跳跃表和一个字典</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">zset</span> &#123;</span>
+    <span class="hljs-comment">// 跳跃表</span>
+    zskiplist *zsl;
+    
+    <span class="hljs-comment">// 字典</span>
+    dict *dict
+&#125; zset;</code></pre>
+
+<p>其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118201719.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>字典和跳表中的数据</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118201736.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>注意</strong>：上图在字典和跳跃表中重复展示了各个元素的成员和分值，但在实际中，<strong>字典和跳跃表会共享元素的成员和分值</strong>，所以并不会造成任何数据重复，也不会因此而浪费任何内存</p>
+<p>zset结构中的zsl跳跃表按分值(score)<strong>从小到大保存了所有集合元素</strong>，每个跳跃表节点都保存了一个集合元素：跳跃表节点的object属性保存了元素的成员，而跳跃表节点的score属性则保存了元素的分值</p>
+<p>其结构如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201118200641.png" srcset="/img/loading.gif" alt=""></p>
+<p>除此之外，zset结构中的<strong>dict字典为有序集合创建了一个从成员到分值的映射</strong>，字典中的每个键值对都保存了一个集合元素：字典的键保存了元素的成员，而字典的值则保存了元素的分值。通过这个字典，<strong>程序可以用O（1）复杂度查找给定成员的分值</strong>，ZSCORE命令就是根据这一特性实现的，而很多其他有序集合命令都在实现的内部用到了这一特性</p>
+<p><strong>为何sorted_set同时使用字典和跳表来作为底层的数据结构</strong></p>
+<p><strong>字典</strong>可以保证查询效率为O(1)，但是对于范围查询就无能为力了</p>
+<p><strong>跳表</strong>可以保证数据是有序的，范围查询效率较高，但是单个查询效率较低</p>
+<h3 id="8、内存回收"><a href="#8、内存回收" class="headerlink" title="8、内存回收"></a>8、内存回收</h3><p>因为C语言并不具备自动内存回收功能，所以Redis在自己的对象系统中构建了一个<strong>引用计数</strong>（reference counting）技术实现的内存回收机制，通过这一机制，程序可以通过跟踪对象的引用计数信息，在适当的时候自动释放对象并进行内存回收</p>
+<p>每个对象的引用计数信息由redisObject结构的<strong>refcount</strong>属性记录</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisObject</span> &#123;</span>
+    <span class="hljs-keyword">unsigned</span> type:<span class="hljs-number">4</span>;
+    <span class="hljs-keyword">unsigned</span> encoding:<span class="hljs-number">4</span>;
+    <span class="hljs-keyword">unsigned</span> lru:LRU_BITS; 
+    
+    <span class="hljs-comment">// 引用计数</span>
+    <span class="hljs-keyword">int</span> refcount;
+    <span class="hljs-keyword">void</span> *ptr;
+&#125; robj;</code></pre>
+
+<p>对象的引用计数信息会随着对象的使用状态而不断变化</p>
+<ul>
+<li>在创建一个新对象时，引用计数的值会被初始化为1</li>
+<li>当对象被一个新程序使用时，它的引用计数值会被增一</li>
+<li>当对象不再被一个程序使用时，它的引用计数值会被减一</li>
+<li>当对象的引用计数值变为0时，对象所占用的内存会被释放</li>
+</ul>
+<h1 id="Redis的功能实现"><a href="#Redis的功能实现" class="headerlink" title="Redis的功能实现"></a>Redis的功能实现</h1><h2 id="一、RDB持久化"><a href="#一、RDB持久化" class="headerlink" title="一、RDB持久化"></a>一、RDB持久化</h2><h3 id="1、简介-4"><a href="#1、简介-4" class="headerlink" title="1、简介"></a>1、简介</h3><p>因为<strong>Redis是内存数据库</strong>，它将自己的数据库状态储存在内存里面，所以如果不想办法将储存在内存中的数据库状态保存到磁盘里面，那么一旦服务器进程退出，服务器中的数据库状态也会消失不见。为了解决这个问题，<strong>Redis提供了RDB持久化功能</strong>，这个功能可以将Redis在内存中的数据库状态保存到磁盘里面，避免数据意外丢失</p>
+<p>更多关于RDB持久化的操作可以查看<a href="https://nyimac.gitee.io/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/#2%E3%80%81RDB"><strong>Redis学习文档——RDB</strong></a></p>
+<h3 id="2、-RDB文件的创建与载入"><a href="#2、-RDB文件的创建与载入" class="headerlink" title="2、 RDB文件的创建与载入"></a>2、 RDB文件的创建与载入</h3><p>有两个Redis命令可以用于生成RDB文件，一个是save，另一个是bgsave</p>
+<ul>
+<li>save命令会<strong>阻塞Redis服务器进程</strong>，直到RDB文件创建完毕为止，在服务器进程阻塞期间，服务器不能处理任何命令请求</li>
+<li>bgsave命令会<strong>派生出一个子进程</strong>，然后由子进程负责创建RDB文件，服务器进程（父进程）继续处理命令请求</li>
+</ul>
+<h4 id="save命令执行时的服务器状态"><a href="#save命令执行时的服务器状态" class="headerlink" title="save命令执行时的服务器状态"></a>save命令执行时的服务器状态</h4><p>当save命令执行时，Redis服务器会被阻塞，所以当save命令正在执行时，客户端发送的所有命令请求都会被拒绝</p>
+<p>只有在服务器执行完save命令、重新开始接受命令请求之后，客户端发送的命令才会被处理</p>
+<h4 id="bgsave命令执行时的服务器状态"><a href="#bgsave命令执行时的服务器状态" class="headerlink" title="bgsave命令执行时的服务器状态"></a>bgsave命令执行时的服务器状态</h4><p>因为bgsave命令的保存工作是由子进程执行的，所以在子进程创建RDB文件的过程中，Redis服务器仍然可以继续处理客户端的命令请求，但是，<strong>在bgsave命令执行期间</strong>，服务器处理save、bgsave、bgrewriteaof三个命令的方式会和平时有所不同</p>
+<ul>
+<li>在bgsave命令执行期间，客户端发送的save命令会被服务器拒绝，服务器禁止save命令和bgsave命令同时执行是为了避免父进程（服务器进程）和子进程同时执行两个rdbSave调用，<strong>防止产生竞争条件</strong></li>
+<li>在bgsave命令执行期间，客户端发送的bgsave命令会被服务器拒绝，因为同时执行两个bgsave命令也<strong>会产生竞争条件</strong></li>
+<li>bgwriteaof和bgsave两个命令不能同时执行 <ul>
+<li>如果bgsave命令正在执行，那么客户端发送的bgwriteaof命令会被延迟到bgsave命令执行完毕之后执行</li>
+<li>如果bgwriteaof命令正在执行，那么客户端发送的bgsave命令<strong>会被服务器拒绝</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="3、自动间隔性保存"><a href="#3、自动间隔性保存" class="headerlink" title="3、自动间隔性保存"></a>3、自动间隔性保存</h3><p>用户可以通过save选项设置多个保存条件，但只要其中任意一个条件被满足，服务器就会执行bgsave命令，如果我们向服务器提供以下配置</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119143917.png" srcset="/img/loading.gif" alt=""></p>
+<ul>
+<li>900秒内修改1次数据，则保存</li>
+<li>300秒内修改10次数据，则保存</li>
+<li>60秒内修改10000次数据，则保存</li>
+</ul>
+<h4 id="saveparams数组"><a href="#saveparams数组" class="headerlink" title="saveparams数组"></a><strong>saveparams数组</strong></h4><p>服务器程序会根据save选项所设置的保存条件，设置服务器状态redisServer结构的<strong>saveparams</strong>属性</p>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisServer</span> &#123;</span>
+    ...
+    <span class="hljs-comment">// 保存save配置参数</span>
+    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">saveparam</span> *<span class="hljs-title">saveparams</span>;</span>
+    ...
+&#125;;</code></pre>
+
+<p>saveparams属性是一个数组，数组中的每个元素都是一个saveparam结构，每个saveparam结构都保存了一个save选项设置的保存条件。saveparam的结构如下</p>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">saveparam</span> &#123;</span>
+  	<span class="hljs-comment">// 设定的秒数</span>
+    <span class="hljs-keyword">time_t</span> seconds;
+    <span class="hljs-comment">// 规定时间内的修改次数</span>
+    <span class="hljs-keyword">int</span> changes;
+&#125;;</code></pre>
+
+
+
+<p>如果save的设定为</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119144559.png" srcset="/img/loading.gif" alt=""></p>
+<p>那么，redisServer中的saveparams数组的结构如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119144621.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="dirty计数器和lastsave属性"><a href="#dirty计数器和lastsave属性" class="headerlink" title="dirty计数器和lastsave属性"></a><strong>dirty计数器和lastsave属性</strong></h4><ul>
+<li>dirty计数器记录距离上一次成功执行save命令或者bgsave命令之后，服务器对数据库状态（服务器中的所有数据库）<strong>进行了多少次修改</strong>（包括写入、删除、更新等操作）</li>
+<li>lastsave属性是一个UNIX时间戳，记录了服务器上一次成功执行save命令或者bgsave命令的<strong>时间</strong></li>
+</ul>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisServer</span> &#123;</span>
+    ...
+    <span class="hljs-comment">// 上次save到现在Redis中数据修改的次数</span>
+    <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty;                <span class="hljs-comment">/* Changes to DB from the last save */</span>
+    
+    <span class="hljs-comment">// 上一次成功save到现在所经过的实践</span>
+    <span class="hljs-keyword">time_t</span> lastsave;                <span class="hljs-comment">/* Unix time of last successful save */</span>
+    ...
+&#125;;</code></pre>
+
+
+
+<h4 id="检查保存条件是否满足"><a href="#检查保存条件是否满足" class="headerlink" title="检查保存条件是否满足"></a>检查保存条件是否满足</h4><p>Redis的服务器周期性操作函数<strong>serverCron</strong>默认每隔100毫秒就会执行一次，该函数用于对正在运行的服务器进行维护，它的其中一项工作就是<strong>检查save选项所设置的保存条件是否已经满足</strong>，如果满足的话，就执行bgsave命令</p>
+<h2 id="二、AOF持久化"><a href="#二、AOF持久化" class="headerlink" title="二、AOF持久化"></a>二、AOF持久化</h2><h3 id="1、简介-5"><a href="#1、简介-5" class="headerlink" title="1、简介"></a>1、简介</h3><p>除了RDB持久化功能之外，Redis还提供了AOF（Append Only File）持久化功能。与RDB持久化通过保存数据库中的键值对来记录数据库状态不同，<strong>AOF持久化是通过保存Redis服务器所执行的写命令来记录数据库状态的</strong>，如图下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119150042.png" srcset="/img/loading.gif" alt=""></p>
+<p>更多关于AOF持久化的操作可以查<a href="https://nyimac.gitee.io/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/#3%E3%80%81AOF"><strong>Redis学习文档——AOF</strong></a></p>
+<h3 id="2、实现"><a href="#2、实现" class="headerlink" title="2、实现"></a>2、实现</h3><p>AOF持久化功能的实现可以分为<strong>命令追加</strong>（append）、<strong>文件写入</strong>、<strong>文件同步</strong>（sync）三个步骤</p>
+<h4 id="命令追加"><a href="#命令追加" class="headerlink" title="命令追加"></a>命令追加</h4><p>当AOF持久化功能处于打开状态时，服务器在执行完一个写命令之后，会以协议格式<strong>将被执行的写命令追加到服务器状态的aof_buf缓冲区的末尾</strong></p>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisServer</span> &#123;</span>
+    ...
+    <span class="hljs-comment">// 缓冲区，本质上是一个动态字符串</span>
+  	sds aof_buf;      <span class="hljs-comment">/* AOF buffer, written before entering the event loop */</span>
+    ...
+&#125;;如果客户端向服务器发送以下命令</code></pre>
+
+
+
+<p><strong>步骤解析</strong></p>
+<p>如果客户端向服务器发送以下命令</p>
+<pre><code class="hljs q"><span class="hljs-built_in">set</span> <span class="hljs-built_in">key</span> <span class="hljs-built_in">value</span></code></pre>
+
+<p>那么服务器在执行这个SET命令之后，会将以下<strong>协议内容追加到aof_buf缓冲区的末尾</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119150935.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="写入"><a href="#写入" class="headerlink" title="写入"></a>写入</h4><p>Redis的服务器进程就是一个事件循环（loop），这个循环中的<strong>文件事件</strong>负责接收客户端的命令请求，以及向客户端发送命令回复，而<strong>时间事件</strong>则负责执行像serverCron函数这样需要定时运行的函数</p>
+<p>因为服务器在处理文件事件时可能会执行写命令，使得一些内容被追加到aof_buf缓冲区里面，所以在服务器<strong>每次结束一个事件循环之前，它都会调用flushAppendOnlyFile函数</strong>，考虑是否需要将aof_buf缓冲区中的内容写入和保存到AOF文件里面</p>
+<h3 id="3、文件的载入与数据还原"><a href="#3、文件的载入与数据还原" class="headerlink" title="3、文件的载入与数据还原"></a>3、文件的载入与数据还原</h3><p>因为AOF文件里面包含了重建数据库状态所需的所有写命令，所以<strong>服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就可以还原服务器关闭之前的数据库状态</strong></p>
+<h4 id="还原步骤"><a href="#还原步骤" class="headerlink" title="还原步骤"></a>还原步骤</h4><ul>
+<li><p>创建一个<strong>不带网络连接</strong>的伪客户端（fake client）</p>
+<ul>
+<li>因为Redis的命令只能在客户端上下文中执行，而载入AOF文件时所使用的命令直接来源于AOF文件而不是网络连接，所以服务器使用了一个没有网络连接的伪客户端来执行AOF文件保存的写命令，伪客户端执行命令的效果和带网络连接的客户端执行命令的效果完全一样</li>
+</ul>
+</li>
+<li><p>从AOF文件中分析并读取出一条写命令</p>
+</li>
+<li><p>使用伪客户端执行被读出的写命令</p>
+</li>
+<li><p>一直执行上面两步，直到AOF文件中的所有写命令都被处理完毕为止</p>
+</li>
+</ul>
+<p><strong>以上过程的流程图如下</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119153503.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="4、重写"><a href="#4、重写" class="headerlink" title="4、重写"></a>4、重写</h3><h4 id="为什么需要重写"><a href="#为什么需要重写" class="headerlink" title="为什么需要重写"></a>为什么需要重写</h4><p>因为AOF持久化是通过保存被执行的写命令来记录数据库状态的，<strong>所以随着服务器运行时间的流逝，AOF文件中的内容会越来越多</strong>，文件的体积也会越来越大，如果不加以控制的话，体积过大的AOF文件很可能对Redis服务器、甚至整个宿主计算机造成影响，并且AOF文件的体积越大，使用AOF文件来进行数据还原所需的时间就越多</p>
+<p>比如下面执行的命令，都是对list的操作，如果不加以重写，则会将4条操作语句都写入AOF文件中，导致AOF文件体积增大</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119154720.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="重写的实现"><a href="#重写的实现" class="headerlink" title="重写的实现"></a>重写的实现</h4><p><strong>Redis将生成新AOF文件替换旧AOF文件的功能命名为“AOF文件重写”</strong>，但实际上，AOF文件重写并不<strong>需要对现有的AOF文件进行任何读取、分析或者写入操作</strong>，这个功能是<strong>通过读取服务器当前的数据库状态来实现的</strong></p>
+<p>例如上面执行的语句，<strong>通过重写可以合并为一条语句</strong></p>
+<pre><code class="hljs stylus">rpush list <span class="hljs-selector-tag">b</span> <span class="hljs-selector-tag">a</span> c d</code></pre>
+
+<p>执行该语句后，Redis数据库中数据的状态和执行上面4条语句以后的状态是一样的，但是写入AOF文件时只需写入一条语句，这就大大缩小了AOF文件的体积</p>
+<p><strong>重写过程的伪代码</strong></p>
+<p>重写过程伪代码如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119155315.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119155330.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119155427.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119155437.png" srcset="/img/loading.gif" alt=""></p>
+<p>因为aof_rewrite函数生成的新AOF文件只包含还原当前数据库状态所必须的命令，所以<strong>新AOF文件不会浪费任何硬盘空间</strong></p>
+<h4 id="后台重写（bgrewriteaof）"><a href="#后台重写（bgrewriteaof）" class="headerlink" title="后台重写（bgrewriteaof）"></a>后台重写（bgrewriteaof）</h4><p>为了避免出现AOF重写出现服务器无法处理请求的情况，所以Redis决定<strong>将AOF重写程序放到子进程里执行</strong>，这样做可以有以下两个目的</p>
+<ul>
+<li>子进程进行AOF重写期间，服务器进程（父进程）可以继续处理命令请求</li>
+<li>子进程带有服务器进程的数据副本，使用子进程而不是线程，可以在避免使用锁的情况下，保证数据的安全性</li>
+</ul>
+<p>不过，使用子进程也有一个问题需要解决，因为子进程在进行AOF重写期间，服务器进程还需要继续处理命令请求，而<strong>新的命令可能会对现有的数据库状态进行修改，从而使得服务器当前的数据库状态和重写后的AOF文件所保存的数据库状态不一致</strong>（有点像CMS垃圾回收期，在并发清理期间产生的垃圾，没法在本次GC中得到回收）</p>
+<p>为了解决这种数据不一致问题，Redis服务器设置了一个<strong>AOF重写缓冲区</strong>（保存了子进程在重写过程中，主进程执行的操作），这个缓冲区在服务器创建子进程之后开始使用，<strong>当Redis服务器执行完一个写命令之后，它会同时将这个写命令发送给AOF缓冲区和AOF重写缓冲区</strong>，如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119160522.png" srcset="/img/loading.gif" alt=""></p>
+<p>在子进程执行AOF重写期间，<strong>服务器进程需要执行以下三个工作</strong></p>
+<ul>
+<li>执行客户端发来的命令</li>
+<li>将执行后的写命令追加到<strong>AOF缓冲区</strong></li>
+<li>将执行后的写命令追加到<strong>AOF重写缓冲区</strong></li>
+</ul>
+<p>当子进程完成AOF重写工作之后，它会向父进程发送一个信号，父进程在接到该信号之后，会调用一个信号处理函数，并执行以下工作</p>
+<ul>
+<li>将<strong>AOF重写缓冲区</strong>中的所有内容写入到新AOF文件中，<strong>这时新AOF文件所保存的数据库状态将和服务器当前的数据库状态一致</strong></li>
+<li>对新的AOF文件进行改名，<strong>原子地（atomic）覆盖现有的AOF文件</strong>，完成新旧两个AOF文件的替换</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119201211.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="三、事件"><a href="#三、事件" class="headerlink" title="三、事件"></a>三、事件</h2><h3 id="1、简介-6"><a href="#1、简介-6" class="headerlink" title="1、简介"></a>1、简介</h3><p>Redis服务器是一个事件驱动程序，服务器需要处理以下两类事件</p>
+<ul>
+<li><strong>文件事件</strong>（file event）<ul>
+<li>Redis服务器通过套接字与客户端（或者其他Redis服务器）进行连接，而文件事件就是服务器对套接字操作的抽象。服务器与客户端（或者其他服务器）的通信会产生相应的文件事件，而服务器则通过监听并处理这些事件来完成一系列网络通信操作</li>
+</ul>
+</li>
+<li><strong>时间事件</strong>（time event）<ul>
+<li>Redis服务器中的一些操作（比如serverCron函数）需要在给定的时间点执行，而时间事件就是服务器对这类定时操作的抽象</li>
+</ul>
+</li>
+</ul>
+<p><strong>这部分读起来有点难度，后面再进行补充</strong></p>
+<h2 id="四、复制"><a href="#四、复制" class="headerlink" title="四、复制"></a>四、复制</h2><h3 id="1、简介-7"><a href="#1、简介-7" class="headerlink" title="1、简介"></a>1、简介</h3><p>在Redis中，用户可以通过执行SLAVEOF命令或者设置slaveof选项，让一个服务器去复制（replicate）另一个服务器，我们称呼被复制的服务器为主服务器（master），而对主服务器进行复制的服务器则被称为从服务器（slave）</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119202229.png" srcset="/img/loading.gif" alt=""></p>
+<p>假设现在有两个Redis服务器，地址分别为127.0.0.1:6379和127.0.0.1:1111，如果我们向服务器127.0.0.1:1111发送以下命令</p>
+<pre><code class="hljs angelscript">slaveof <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span> <span class="hljs-number">1111</span></code></pre>
+
+<p>那么服务器127.0.0.1:1111将成为127.0.0.1:6379的从服务器，而服务器127.0.0.1:6379则会成为127.0.0.1:1111的主服务器</p>
+<p>进行复制中的主从服务器双方的数据库将保存相同的数据，概念上将这种现象称作“<strong>数据库状态一致</strong>”，或者简称“一致”</p>
+<h3 id="2、主从复制实现（旧版）"><a href="#2、主从复制实现（旧版）" class="headerlink" title="2、主从复制实现（旧版）"></a>2、主从复制实现（旧版）</h3><p>Redis的复制功能分为<strong>同步</strong>（sync）和<strong>命令传播</strong>（command propagate）两个操作：</p>
+<ul>
+<li><p>同步操作用于<strong>将从服务器的数据库状态更新至主服务器当前所处的数据库状态</strong></p>
+</li>
+<li><p>命令传播操作则用于在<strong>主服务器的数据库状态被修改，导致主从服务器的数据库状态出现不一致时，让主从服务器的数据库重新回到一致状态</strong></p>
+</li>
+</ul>
+<h4 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h4><p>当客户端向从服务器发送SLAVEOF命令，要求从服务器复制主服务器时，从服务器<strong>首先需要执行同步操作</strong>，也即是，将从服务器的数据库状态更新至主服务器当前所处的数据库状态</p>
+<p>从服务器对主服务器的同步操作需要通过向主服务器发送<strong>SYNC</strong>命令来完成，SYNC命令的执行步骤如下</p>
+<ul>
+<li><p>从服务器向主服务器发送SYNC命令</p>
+</li>
+<li><p>收到SYNC命令的主服务器执行BGSAVE命令，在后台生成一个RDB文件，<strong>并使用一个缓冲区记录从现在开始执行的所有写命令</strong></p>
+</li>
+<li><p>当主服务器的BGSAVE命令执行完毕时，主服务器会将BGSAVE命令生成的RDB文件发送给从服务器，从服务器接收并载入这个RDB文件，<strong>从服务器将自己的数据库状态更新至主服务器执行BGSAVE命令时的数据库状态</strong></p>
+</li>
+<li><p>主服务器将记录在<strong>缓冲区里面的所有写命令发送给从服务器</strong>，从服务器执行这些写命令，将自己的数据库状态更新至主服务器数据库当前所处的状态</p>
+</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119205651.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>虽然SYNC指令可以完成主从复制，但是该指令执行是十分消耗资源的！</strong></p>
+<p>每次执行SYNC命令，主从服务器需要执行以下动作</p>
+<ul>
+<li>主服务器需要执行BGSAVE命令来生成RDB文件，这个生成操作会耗费主服务器大量的CPU、内存和磁盘I/O资源</li>
+<li>主服务器需要将自己生成的RDB文件发送给从服务器，这个发送操作会耗费主从服务器大量的网络资源（带宽和流量），并对主服务器响应命令请求的时间产生影响</li>
+<li>接收到RDB文件的从服务器需要载入主服务器发来的RDB文件，并且在载入期间，从服务器会因为阻塞而没办法处理命令请求。因为SYNC命令是一个如此耗费资源的操作</li>
+</ul>
+<p><strong>所以Redis有必要保证在真正有需要时才执行SYNC命令</strong></p>
+<h4 id="命令传播"><a href="#命令传播" class="headerlink" title="命令传播"></a>命令传播</h4><p>在同步操作执行完毕之后，主从服务器两者的数据库将达到一致状态，但这种一致并不是一成不变的，<strong>每当主服务器执行客户端发送的写命令时，主服务器的数据库就有可能会被修改，并导致主从服务器状态不再一致</strong></p>
+<p>例如下面这种情况</p>
+<p>假设一个主服务器和一个从服务器刚刚完成同步操作，它们的数据库都保存了相同的五个键k1至k5，如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119205735.png" srcset="/img/loading.gif" alt=""></p>
+<p>这时，<strong>客户端向主服务器发送命令DEL k3</strong>，那么主服务器在执行完这个DEL命令之后，主从服务器的数据库将出现不一致，如下图所示</p>
+<ul>
+<li>主服务器的数据库已经不再包含键k3，但这个键却仍然包含在从服务器的数据库里面</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119205814.png" srcset="/img/loading.gif" alt=""></p>
+<p>为了让主从服务器再次回到一致状态，主服务器需要对从服务器执行<strong>命令传播</strong>操作</p>
+<ul>
+<li><strong>主服务器会将自己执行的写命令</strong>，也即是造成主从服务器不一致的那条写命令，<strong>发送给从服务器执行</strong>，当从服务器执行了相同的写命令之后，主从服务器将再次回到一致状态</li>
+</ul>
+<p>在上面的例子中，<strong>主服务器因为执行了命令DEL k3而导致主从服务器不一致</strong>，所以主服务器将向从服务器发送相同的命令DEL k3。当从服务器执行完这个命令之后，主从服务器将再次回到一致状态，现在主从服务器两者的数据库都不再包含键k3了，如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119205917.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h4><p>在Redis中，从服务器对主服务器的复制可以分为以下两种情况</p>
+<ul>
+<li><strong>初次复制</strong><ul>
+<li>从服务器以前没有复制过任何主服务器，或者从服务器当前要复制的主服务器和上一次复制的主服务器不同</li>
+</ul>
+</li>
+<li><strong>断线后重复制</strong><ul>
+<li>处于命令传播阶段的主从服务器因为网络原因而中断了复制，但从服务器通过自动重连接重新连上了主服务器，并<strong>继续复制主服务器</strong></li>
+</ul>
+</li>
+</ul>
+<p>对于初次复制来说，旧版复制功能能够很好地完成任务，但<strong>对于断线后重复制来说，旧版复制功能虽然也能让主从服务器重新回到一致状态，但效率却非常低</strong></p>
+<p><strong>例如下面这种断线重连情况</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">时间</th>
+<th align="center">主服务器</th>
+<th align="center">从服务器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">T1</td>
+<td align="center">主从服务器完成同步</td>
+<td align="center">主从服务器完成同步</td>
+</tr>
+<tr>
+<td align="center">T2</td>
+<td align="center">执行命令并传播SET key1 val1</td>
+<td align="center">接收主服务器传来的命令并执行SET key1 set1</td>
+</tr>
+<tr>
+<td align="center">T3</td>
+<td align="center">执行命令并传播SET key2 val2</td>
+<td align="center">接收主服务器传来的命令并执行SET key2 set2</td>
+</tr>
+<tr>
+<td align="center">…</td>
+<td align="center">…</td>
+<td align="center">…</td>
+</tr>
+<tr>
+<td align="center">T1111</td>
+<td align="center">执行命令并传播SET key1111 val1111</td>
+<td align="center">接收主服务器传来的命令并执行SET key1111 set1111</td>
+</tr>
+<tr>
+<td align="center">T1112</td>
+<td align="center"><strong>主从服务器断开连接</strong></td>
+<td align="center"><strong>主从服务器断开连接</strong></td>
+</tr>
+<tr>
+<td align="center">T1113</td>
+<td align="center">执行命令并传播SET key1112 val1112</td>
+<td align="center">断线中，尝试重连</td>
+</tr>
+<tr>
+<td align="center">T1114</td>
+<td align="center">执行命令并传播SET key1113 val1113</td>
+<td align="center">断线中，尝试重连</td>
+</tr>
+<tr>
+<td align="center">T1115</td>
+<td align="center"><strong>主从服务器重新建立连接</strong></td>
+<td align="center"><strong>主从服务器重新建立连接</strong></td>
+</tr>
+<tr>
+<td align="center">T1116</td>
+<td align="center"></td>
+<td align="center">发送SYNC指令</td>
+</tr>
+<tr>
+<td align="center">T1117</td>
+<td align="center">接收SYNC指令，先进行BGSAVE生成RDB文件，<strong>此文件中包含了key1~key1113</strong>。生成后将RDB文件发送给从服务器，并将此期间执行的操作记录在缓冲区中</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">T1118</td>
+<td align="center"></td>
+<td align="center">接收到RDB文件，进行恢复</td>
+</tr>
+<tr>
+<td align="center">T1119</td>
+<td align="center">主从服务器再次完成同步</td>
+<td align="center">主从服务器再次完成同步</td>
+</tr>
+</tbody></table>
+<p>主从服务器断开连接后，在T1115秒再次建立连接。但<strong>因为这时主从服务器的状态已经不再一致，所以从服务器将向主服务器发送SYNC命令</strong>，而<strong>主服务器会将包含键key1至键key1113的RDB文件发送给从服务器</strong>，从服务器通过接收和载入这个RDB文件来将自己的数据库更新至主服务器数据库当前所处的状态</p>
+<p>虽然再次发送SYNC命令可以让主从服务器重新回到一致状态，但<strong>传送RDB文件这一步实际上并不是非做不可的</strong></p>
+<ul>
+<li>主从服务器在时间T0至时间T1110中一直处于一致状态，<strong>这两个服务器保存的数据大部分都是相同的</strong></li>
+<li>从服务器想要将自己更新至主服务器当前所处的状态，真正需要的是主从服务器连接中断期间，主服务器新添加的key1112、key1113这两个键的数据</li>
+<li>但旧版复制功能并没有利用以上列举的两点条件，而是继续让主服务器生成并向从服务器发送包含键k1至键k1112的RDB文件，但<strong>实际上RDB文件包含的键k1至键k10086的数据对于从服务器来说都是不必要的</strong>。并且如上面所说，SYNC操作是非常消耗资源的一种操作，所以要尽量避免不必要的同步操作</li>
+</ul>
 
             </article>
             <hr>
