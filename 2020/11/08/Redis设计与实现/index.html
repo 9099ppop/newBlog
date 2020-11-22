@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      21.5k 字
+      28.2k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      237
+      310
        分钟
     </span>
   
@@ -1324,7 +1324,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
     <span class="hljs-comment">// 缓冲区，本质上是一个动态字符串</span>
   	sds aof_buf;      <span class="hljs-comment">/* AOF buffer, written before entering the event loop */</span>
     ...
-&#125;;如果客户端向服务器发送以下命令</code></pre>
+&#125;;</code></pre>
 
 
 
@@ -1387,7 +1387,155 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <li>对新的AOF文件进行改名，<strong>原子地（atomic）覆盖现有的AOF文件</strong>，完成新旧两个AOF文件的替换</li>
 </ul>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119201211.png" srcset="/img/loading.gif" alt=""></p>
-<h2 id="三、事件"><a href="#三、事件" class="headerlink" title="三、事件"></a>三、事件</h2><h3 id="1、简介-6"><a href="#1、简介-6" class="headerlink" title="1、简介"></a>1、简介</h3><p>Redis服务器是一个事件驱动程序，服务器需要处理以下两类事件</p>
+<h2 id="三、数据库"><a href="#三、数据库" class="headerlink" title="三、数据库"></a>三、数据库</h2><h3 id="1、服务器中的数据库"><a href="#1、服务器中的数据库" class="headerlink" title="1、服务器中的数据库"></a>1、服务器中的数据库</h3><p>Redis服务器将所有数据库都保存在服务器状态redisServer结构的<strong>db数组</strong>中，db数组的每个项都是一个redisDb结构，每个redisDb结构代表一个数据库。在初始化服务器时，程序会根据服务器状态的<strong>dbnum属性来决定应该创建多少个数据库</strong>，默认为16个</p>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisServer</span> &#123;</span>
+	...
+    
+    <span class="hljs-comment">// 数据库</span>
+    redisDb *db;
+     
+    <span class="hljs-comment">// 数据库的数量</span>
+    <span class="hljs-keyword">int</span> dbnum;                      <span class="hljs-comment">/* Total number of configured DBs */</span>
+
+    ...    
+&#125;</code></pre>
+
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span>
+    <span class="hljs-comment">// 数据库键空间</span>
+    dict *dict;                 <span class="hljs-comment">/* The keyspace for this DB */</span>
+    <span class="hljs-comment">// 过期字典</span>
+    dict *expires;              <span class="hljs-comment">/* Timeout of keys with a timeout set */</span>
+    dict *blocking_keys;        <span class="hljs-comment">/* Keys with clients waiting for data (BLPOP)*/</span>
+    dict *ready_keys;           <span class="hljs-comment">/* Blocked keys that received a PUSH */</span>
+    dict *watched_keys;         <span class="hljs-comment">/* WATCHED keys for MULTI/EXEC CAS */</span>
+    <span class="hljs-keyword">int</span> id;                     <span class="hljs-comment">/* Database ID */</span>
+    <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> avg_ttl;          <span class="hljs-comment">/* Average TTL, just for stats */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> expires_cursor; <span class="hljs-comment">/* Cursor of the active expire cycle. */</span>
+    <span class="hljs-built_in">list</span> *defrag_later;         <span class="hljs-comment">/* List of key names to attempt to defrag one by one, gradually. */</span>
+&#125; redisDb;</code></pre>
+
+
+
+<h3 id="2、数据库键空间"><a href="#2、数据库键空间" class="headerlink" title="2、数据库键空间"></a>2、数据库键空间</h3><p>Redis是一个键值对（key-value pair）数据库服务器，服务器中的每个数据库都由一个redisDb结构表示，其中，redisDb结构的<strong>dict字典保存了数据库中的所有键值对</strong>，我们将这个字典称为键空间（key space）</p>
+<p><strong>键空间和用户所见的数据库是直接对应的</strong></p>
+<ul>
+<li>键空间的键也就是数据库的键，每个键都是一个字符串对象</li>
+<li>键空间的值也就是数据库的值，每个值可以是字符串对象、列表对象、哈希表对象、集合对象和有序集合对象中的任意一种Redis对象</li>
+</ul>
+<p>如果我们在空白的数据库中执行以下命令</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122141436.png" srcset="/img/loading.gif" alt=""></p>
+<p>那么在这些命令执行之后，数据库的键空间的结构如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122141457.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="3、设置键的生存时间或过期时间"><a href="#3、设置键的生存时间或过期时间" class="headerlink" title="3、设置键的生存时间或过期时间"></a>3、设置键的生存时间或过期时间</h3><p>通过<strong>EXPIRE</strong>命令或者<strong>PEXPIRE</strong>命令，客户端可以以秒或者毫秒精度为数据库中的某个键设置生存时间（Time To Live，TTL），在经过指定的秒数或者毫秒数之后，服务器就会自动删除生存时间为0的键</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122141849.png" srcset="/img/loading.gif" alt=""></p>
+<p>通过<strong>EXPIREAT</strong>和<strong>PEXPIREAT</strong>命令，可以设定一个时间戳，该过期时间是一个UNIX时间戳，当键的过期时间来临时，服务器就会自动从数据库中删除这个键，可以通过<strong>TIME</strong>命令查看UNIX的时间</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122143212.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>TTL</strong>命令和<strong>PTTL</strong>命令接受一个带有生存时间或者过期时间的键，返回这个键的剩余生存时间，也就是，返回距离这个键被服务器自动删除还有多长时间</p>
+<h4 id="设置过期时间"><a href="#设置过期时间" class="headerlink" title="设置过期时间"></a>设置过期时间</h4><p>通过上面的例子，可以看出Redis有四个不同的命令可以用于设置键的生存时间（键可以存在多久）或过期时间（键什么时候会被删除）</p>
+<ul>
+<li>EXPIRE＜key＞＜ttl＞命令用于将键key的生存时间设置为ttl秒</li>
+<li>PEXPIRE＜key＞＜ttl＞命令用于将键key的生存时间设置为ttl毫秒</li>
+<li>EXPIREAT＜key＞＜timestamp＞命令用于将键key的过期时间设置为timestamp所指定的秒数时间戳</li>
+<li>PEXPIREAT＜key＞＜timestamp＞命令用于将键key的过期时间设置为timestamp所指定的毫秒数时间戳</li>
+</ul>
+<p>虽然有多种不同单位和不同形式的设置命令，但实际上EXPIRE、PEXPIRE、EXPIREAT三个命令<strong>都是使用PEXPIREAT命令来实现的</strong></p>
+<ul>
+<li>无论客户端执行的是以上四个命令中的哪一个，经过转换之后，<strong>最终的执行效果都和执行PEXPIREAT命令一样</strong></li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122143614.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="保存过期时间"><a href="#保存过期时间" class="headerlink" title="保存过期时间"></a>保存过期时间</h4><p>redisDb结构的<strong>expires</strong>字典保存了数据库中所有键的过期时间，我们称这个字典为<strong>过期字典</strong></p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span>
+    ...
+        
+    <span class="hljs-comment">// 过期字典，用于存放有过期时间的对象</span>
+    dict *expires;              <span class="hljs-comment">/* Timeout of keys with a timeout set */</span>
+   
+    ...
+        
+&#125; redisDb;</code></pre>
+
+<ul>
+<li>过期字典的<strong>键</strong>是一个指针，这个指针<strong>指向键空间中的某个键对象</strong>（也即是某个数据库键）</li>
+<li>过期字典的<strong>值</strong>是一个long long类型的整数，这个整数<strong>保存了键所指向的数据库键的过期时间</strong>——一个毫秒精度的UNIX时间戳</li>
+</ul>
+<h4 id="计算并返回剩余生存时间"><a href="#计算并返回剩余生存时间" class="headerlink" title="计算并返回剩余生存时间"></a>计算并返回剩余生存时间</h4><p>TTL命令以<strong>秒</strong>为单位返回键的剩余生存时间，而PTTL命令则以<strong>毫秒</strong>为单位返回键的剩余生存时间。这两个命令都是<strong>通过计算键的过期时间和当前时间之间的差来实现的</strong></p>
+<h4 id="过期键的判定"><a href="#过期键的判定" class="headerlink" title="过期键的判定"></a>过期键的判定</h4><p>通过过期字典，程序可以用以下步骤检查一个给定键是否过期</p>
+<ul>
+<li>检查给定键是否存在于过期字典<ul>
+<li>如果存在，那么取得键的过期时间</li>
+</ul>
+</li>
+<li>检查当前UNIX时间戳是否大于键的过期时间<ul>
+<li>是的话，那么键已经过期</li>
+<li>不是的话，键未过期</li>
+</ul>
+</li>
+</ul>
+<h3 id="4、删除策略"><a href="#4、删除策略" class="headerlink" title="4、删除策略"></a>4、删除策略</h3><p>通过上面的知识，我们知道了数据库键的过期时间都保存在过期字典中，又知道了如何根据过期时间去判断一个键是否过期，现在剩下的问题是：<strong>如果一个键过期了，那么它什么时候会被删除呢？</strong></p>
+<p>有以下三种删除策略</p>
+<ul>
+<li><strong>定时删除</strong><ul>
+<li>在设置键的过期时间的同时，创建一个定时器（timer），让定时器在键的过期时间来临时，<strong>立即执行对键的删除操作</strong></li>
+</ul>
+</li>
+<li>惰性删除<ul>
+<li>放任键过期不管，但是每次从键空间中<strong>获取键时</strong>，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，就返回该键</li>
+</ul>
+</li>
+<li>定期删除<ul>
+<li><strong>每隔一段时间，程序就对数据库进行一次检查，删除里面的过期键</strong>。至于要删除多少过期键，以及要检查多少个数据库，则由算法决定</li>
+</ul>
+</li>
+</ul>
+<h4 id="定时删除"><a href="#定时删除" class="headerlink" title="定时删除"></a>定时删除</h4><p><strong>优点</strong></p>
+<ul>
+<li>定时删除策略<strong>对内存是最友好的</strong><ul>
+<li>通过使用定时器，定时删除策略可以保证过期键会尽可能快地被删除，并释放过期键所占用的内存</li>
+</ul>
+</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li>它对<strong>CPU时间是最不友好的</strong><ul>
+<li>在过期键比较多的情况下，<strong>删除过期键这一行为可能会占用相当一部分CPU时间</strong>，在内存不紧张但是CPU时间非常紧张的情况下，将CPU时间用在删除和当前任务无关的过期键上，无疑会对服务器的响应时间和吞吐量造成影响</li>
+</ul>
+</li>
+<li>创建一个定时器需要用到Redis服务器中的时间事件，而当前时间事件的实现方式——无序链表，查找一个事件的时间复杂度为O（N）——<strong>并不能高效地处理大量时间事件</strong></li>
+</ul>
+<h4 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h4><p>惰性删除的优缺点和定时删除恰恰相反</p>
+<p><strong>优点</strong></p>
+<ul>
+<li>惰性删除策略对CPU时间来说是最友好的<ul>
+<li>程序只会在取出键时才对键进行过期检查，这可以保证删除过期键的操作<strong>只会在非做不可的情况下进行</strong>，并且删除的目标仅限于当前处理的键，这个策略不会在删除其他无关的过期键上花费任何CPU时间</li>
+</ul>
+</li>
+<li>它对内存是最不友好的<ul>
+<li>如果一个键已经过期，而这个键又仍然保留在数据库中，那么只要这个过期键不被删除，它所占用的内存就不会释放</li>
+</ul>
+</li>
+</ul>
+<h4 id="定期删除"><a href="#定期删除" class="headerlink" title="定期删除"></a>定期删除</h4><p>定期删除是一种较为综合的删除策略，能够兼顾CPU与内存</p>
+<ul>
+<li>定期删除策略<strong>每隔一段时间执行一次删除过期键操作</strong>，并通过限制删除操作执行的时长和频率来<strong>减少删除操作对CPU时间的影响</strong></li>
+<li>通过定期删除过期键，定期删除策略<strong>有效地减少了</strong>因为过期键而带来的<strong>内存浪费</strong></li>
+</ul>
+<h3 id="5、Redis中的删除策略"><a href="#5、Redis中的删除策略" class="headerlink" title="5、Redis中的删除策略"></a>5、Redis中的删除策略</h3><p>Redis服务器实际使用的是<strong>惰性删除</strong>和<strong>定期删除</strong>两种策略</p>
+<h4 id="惰性删除策略的实现"><a href="#惰性删除策略的实现" class="headerlink" title="惰性删除策略的实现"></a>惰性删除策略的实现</h4><p>过期键的惰性删除策略由<strong>expireIfNeeded</strong>函数实现，所有读写数据库的Redis命令在执行之前都会调用expireIfNeeded函数对输入键进行检查</p>
+<ul>
+<li>如果输入键已经过期，那么expireIfNeeded函数将输入键从数据库中删除</li>
+<li>如果输入键未过期，那么expireIfNeeded函数不做动作</li>
+</ul>
+<h4 id="定期删除策略的实现"><a href="#定期删除策略的实现" class="headerlink" title="定期删除策略的实现"></a>定期删除策略的实现</h4><p>过期键的定期删除策略由<strong>activeExpireCycle</strong>函数实现，每当Redis的服务器周期性操作serverCron函数执行时，activeExpireCycle函数就会被调用，它在规定的时间内，<strong>分多次遍历服务器中的各个数据库，从数据库的expires字典中随机检查一部分键的过期时间，并删除其中的过期键</strong></p>
+<p>activeExpireCycle函数的工作模式可以总结如下</p>
+<ul>
+<li><p>函数每次运行时，都从一定数量的数据库中取出一定数量的随机键进行检查，并删除其中的过期键</p>
+</li>
+<li><p>全局变量current_db会记录当前activeExpireCycle函数检查的进度，并在下一次activeExpireCycle函数调用时，接着上一次的进度进行处理。比如说，如果当前activeExpireCycle函数在遍历10号数据库时返回了，那么下次activeExpireCycle函数执行时，将从11号数据库开始查找并删除过期键</p>
+</li>
+<li><p>随着activeExpireCycle函数的不断执行，服务器中的所有数据库都会被检查一遍，这时函数将current_db变量重置为0，然后再次开始新一轮的检查工作</p>
+</li>
+</ul>
+<h2 id="四、事件"><a href="#四、事件" class="headerlink" title="四、事件"></a>四、事件</h2><h3 id="1、简介-6"><a href="#1、简介-6" class="headerlink" title="1、简介"></a>1、简介</h3><p>Redis服务器是一个事件驱动程序，服务器需要处理以下两类事件</p>
 <ul>
 <li><strong>文件事件</strong>（file event）<ul>
 <li>Redis服务器通过套接字与客户端（或者其他Redis服务器）进行连接，而文件事件就是服务器对套接字操作的抽象。服务器与客户端（或者其他服务器）的通信会产生相应的文件事件，而服务器则通过监听并处理这些事件来完成一系列网络通信操作</li>
@@ -1399,7 +1547,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 </li>
 </ul>
 <p><strong>这部分读起来有点难度，后面再进行补充</strong></p>
-<h2 id="四、复制"><a href="#四、复制" class="headerlink" title="四、复制"></a>四、复制</h2><h3 id="1、简介-7"><a href="#1、简介-7" class="headerlink" title="1、简介"></a>1、简介</h3><p>在Redis中，用户可以通过执行SLAVEOF命令或者设置slaveof选项，让一个服务器去复制（replicate）另一个服务器，我们称呼被复制的服务器为主服务器（master），而对主服务器进行复制的服务器则被称为从服务器（slave）</p>
+<h2 id="五、复制"><a href="#五、复制" class="headerlink" title="五、复制"></a>五、复制</h2><h3 id="1、简介-7"><a href="#1、简介-7" class="headerlink" title="1、简介"></a>1、简介</h3><p>在Redis中，用户可以通过执行SLAVEOF命令或者设置slaveof选项，让一个服务器去复制（replicate）另一个服务器，我们称呼被复制的服务器为主服务器（master），而对主服务器进行复制的服务器则被称为从服务器（slave）</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119202229.png" srcset="/img/loading.gif" alt=""></p>
 <p>假设现在有两个Redis服务器，地址分别为127.0.0.1:6379和127.0.0.1:1111，如果我们向服务器127.0.0.1:1111发送以下命令</p>
 <pre><code class="hljs angelscript">slaveof <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span> <span class="hljs-number">1111</span></code></pre>
@@ -1710,7 +1858,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <p>可以通过以下指令查看</p>
 <pre><code class="hljs pgsql"><span class="hljs-keyword">info</span> <span class="hljs-keyword">server</span></code></pre>
 
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201120172651.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201121084911.png" srcset="/img/loading.gif" alt=""></p>
 <p>当从服务器对主服务器进行初次复制时，<strong>主服务器会将自己的运行ID传送给从服务器</strong>，而从服务器则会将这个运行ID保存起来</p>
 <p>当从服务器<strong>断线并重新连</strong>上一个主服务器时，<strong>从服务器将向当前连接的主服务器发送之前保存的运行ID</strong>，这主要是用于验证从服务器当前所连的主服务器是否为断线前所连的那个主服务器</p>
 <ul>
@@ -1777,7 +1925,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 
 <p>那么在从服务器的数量少于3个，或者三个从服务器的延迟（lag）值都大于或等于10秒时，<strong>主服务器将拒绝执行写命令</strong>，这里的延迟值就是上面提到的INFOreplication命令的lag值</p>
 <h4 id="检测命令丢失"><a href="#检测命令丢失" class="headerlink" title="检测命令丢失"></a>检测命令丢失</h4><p>如果因为网络故障，<strong>主服务器传播给从服务器的写命令在半路丢失</strong>，那么当从服务器向主服务器发送<strong>REPLCONF ACK</strong>命令时，主服务器将发觉从服务器当前的复制偏移量少于自己的复制偏移量，然后主服务器就会根据从服务器提交的复制偏移量，在复制积压缓冲区里面找到从服务器缺少的数据，并将这些数据重新发送给从服务器</p>
-<h2 id="五、Sentinel-哨兵"><a href="#五、Sentinel-哨兵" class="headerlink" title="五、Sentinel(哨兵)"></a>五、Sentinel(哨兵)</h2><h3 id="1、简介-8"><a href="#1、简介-8" class="headerlink" title="1、简介"></a>1、简介</h3><p>Sentinel（哨岗、哨兵）是Redis的高可用性（high availability）解决方案</p>
+<h2 id="六、Sentinel-哨兵"><a href="#六、Sentinel-哨兵" class="headerlink" title="六、Sentinel(哨兵)"></a>六、Sentinel(哨兵)</h2><h3 id="1、简介-8"><a href="#1、简介-8" class="headerlink" title="1、简介"></a>1、简介</h3><p>Sentinel（哨岗、哨兵）是Redis的高可用性（high availability）解决方案</p>
 <ul>
 <li>由一个或多个Sentinel实例（instance）组成的Sentinel系统（system）可以监视任意多个主服务器，以及这些主服务器属下的所有从服务器，并在被监视的主服务器进入下线状态时，自动将下线主服务器属下的某个从服务器升级为新的主服务器，然后由新的主服务器代替已下线的主服务器继续处理命令请求</li>
 </ul>
@@ -1795,7 +1943,225 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201120200930.png" srcset="/img/loading.gif" alt=""></p>
 <p>如果此期间server1重新上线了，那么<strong>它会降级成为从服务器</strong></p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201120201001.png" srcset="/img/loading.gif" alt=""></p>
-<h3 id="2、启动并初始化Sentinel"><a href="#2、启动并初始化Sentinel" class="headerlink" title="2、启动并初始化Sentinel"></a>2、启动并初始化Sentinel</h3>
+<h3 id="2、启动与初始化"><a href="#2、启动与初始化" class="headerlink" title="2、启动与初始化"></a>2、启动与初始化</h3><p>当一个Sentinel启动时，它需要执行以下步骤</p>
+<ul>
+<li>初始化服务器</li>
+<li>将普通Redis服务器使用的代码<strong>替换成Sentinel专用代码</strong></li>
+<li>初始化Sentinel状态</li>
+<li>根据给定的配置文件，初始化Sentinel的监视主服务器列表</li>
+<li>创建连向主服务器的网络连接</li>
+</ul>
+<h4 id="初始化服务器"><a href="#初始化服务器" class="headerlink" title="初始化服务器"></a>初始化服务器</h4><p>Sentinel<strong>本质上只是一个运行在特殊模式下的Redis服务器</strong>，所以启动Sentinel的第一步，就是初始化一个普通的Redis服务器。不过，因为Sentinel执行的工作和普通Redis服务器执行的工作不同，所以Sentinel的初始化过程和普通Redis服务器的初始化过程<strong>并不完全相同</strong></p>
+<p>例如：普通服务器在初始化时会通过载入RDB文件或者AOF文件来还原数据库状态，但是因为<strong>Sentinel并不使用数据库</strong>，所以初始化Sentinel时就不会载入RDB文件或者AOF文件</p>
+<h4 id="使用Sentinel专用代码"><a href="#使用Sentinel专用代码" class="headerlink" title="使用Sentinel专用代码"></a>使用Sentinel专用代码</h4><p>启动Sentinel的第二个步骤就是将一部分普通Redis服务器使用的代码<strong>替换成Sentinel专用代码</strong>。比如说，普通Redis服务器使用redis.h/REDIS_SERVERPORT常量的值作为服务器端口</p>
+<pre><code class="hljs c"><span class="hljs-meta"># <span class="hljs-meta-keyword">define</span> REDIS_SERVERPORT 6379</span></code></pre>
+
+<p>而Sentinel则使用sentinel.c/REDIS_SENTINEL_PORT常量的值作为服务器端口</p>
+<pre><code class="hljs C"><span class="hljs-meta"># <span class="hljs-meta-keyword">define</span> REDIS_SENTINEL_PORT 6379</span></code></pre>
+
+
+
+<h4 id="初始化Sentinel状态"><a href="#初始化Sentinel状态" class="headerlink" title="初始化Sentinel状态"></a>初始化Sentinel状态</h4><p>在应用了Sentinel的专用代码之后，接下来，服务器会初始化一个<strong>sentinelState结构</strong>（后面简称“Sentinel状态”），这个结构保存了服务器中所有和Sentinel功能有关的状态（服务器的一般状态仍然由redisServer结构保存）。其代码如下</p>
+<pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sentinelState</span> &#123;</span>
+    <span class="hljs-keyword">char</span> myid[CONFIG_RUN_ID_SIZE+<span class="hljs-number">1</span>]; <span class="hljs-comment">/* This sentinel ID. */</span>
+    <span class="hljs-comment">// 当前纪元，用于故障转移</span>
+    <span class="hljs-keyword">uint64_t</span> current_epoch;         <span class="hljs-comment">/* Current epoch. */</span>
+    
+    <span class="hljs-comment">// 保存了被该哨兵监视的主服务器（多个）</span>
+    <span class="hljs-comment">// 使用字典，键是主服务器的名字，值是指向主服务器的指针</span>
+    dict *masters;      <span class="hljs-comment">/* Dictionary of master sentinelRedisInstances.</span>
+<span class="hljs-comment">                           Key is the instance name, value is the</span>
+<span class="hljs-comment">                           sentinelRedisInstance structure pointer. */</span>
+    <span class="hljs-keyword">int</span> tilt;           <span class="hljs-comment">/* Are we in TILT mode? */</span>
+    <span class="hljs-keyword">int</span> running_scripts;    <span class="hljs-comment">/* Number of scripts in execution right now. */</span>
+    <span class="hljs-keyword">mstime_t</span> tilt_start_time;       <span class="hljs-comment">/* When TITL started. */</span>
+    <span class="hljs-keyword">mstime_t</span> previous_time;         <span class="hljs-comment">/* Last time we ran the time handler. */</span>
+    <span class="hljs-built_in">list</span> *scripts_queue;            <span class="hljs-comment">/* Queue of user scripts to execute. */</span>
+    <span class="hljs-keyword">char</span> *announce_ip;  <span class="hljs-comment">/* IP addr that is gossiped to other sentinels if</span>
+<span class="hljs-comment">                           not NULL. */</span>
+    <span class="hljs-keyword">int</span> announce_port;  <span class="hljs-comment">/* Port that is gossiped to other sentinels if</span>
+<span class="hljs-comment">                           non zero. */</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> simfailure_flags; <span class="hljs-comment">/* Failures simulation. */</span>
+    <span class="hljs-keyword">int</span> deny_scripts_reconfig; <span class="hljs-comment">/* Allow SENTINEL SET ... to change script</span>
+<span class="hljs-comment">                                  paths at runtime? */</span>
+    <span class="hljs-keyword">char</span> *sentinel_auth_pass;    <span class="hljs-comment">/* Password to use for AUTH against other sentinel */</span>
+    <span class="hljs-keyword">char</span> *sentinel_auth_user;    <span class="hljs-comment">/* Username for ACLs AUTH against other sentinel. */</span>
+&#125; sentinel;</code></pre>
+
+
+
+<h4 id="初始化Sentinel状态的masters属性"><a href="#初始化Sentinel状态的masters属性" class="headerlink" title="初始化Sentinel状态的masters属性"></a>初始化Sentinel状态的masters属性</h4><p>Sentinel状态中的<strong>masters字典</strong>记录了所有被Sentinel监视的主服务器的相关信息，其中</p>
+<ul>
+<li><p>字典的键是被监视主服务器的名字</p>
+</li>
+<li><p>字典的值是指向被监视的主服务器的指针</p>
+</li>
+</ul>
+<p>每个sentinelRedisInstance结构（后面简称“<strong>实例结构</strong>”）代表一个<strong>被Sentinel监视的Redis服务器实例</strong>（instance），这个实例可以是主服务器、从服务器，或者另外一个Sentinel</p>
+<p><strong>sentinelRedisInstance结构的代码如下</strong></p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sentinelRedisInstance</span> &#123;</span>
+    <span class="hljs-keyword">int</span> flags;      <span class="hljs-comment">/* See SRI_... defines */</span>
+    
+    <span class="hljs-comment">// 实例的名字</span>
+    <span class="hljs-keyword">char</span> *name;     <span class="hljs-comment">/* Master name from the point of view of this sentinel. */</span>
+    
+    <span class="hljs-comment">// 实例的运行时id</span>
+    <span class="hljs-keyword">char</span> *runid;    <span class="hljs-comment">/* Run ID of this instance, or unique ID if is a Sentinel.*/</span>
+    <span class="hljs-keyword">uint64_t</span> config_epoch;  <span class="hljs-comment">/* Configuration epoch. */</span>
+    
+    <span class="hljs-comment">// 实例的运行时地址。通过该变量来寻找主服务器</span>
+    sentinelAddr *addr; <span class="hljs-comment">/* Master host. */</span>
+    
+    ...
+        
+    <span class="hljs-comment">// 从服务器的字典</span>
+    dict *slaves;       <span class="hljs-comment">/* Slaves for this master instance. */</span>
+
+    <span class="hljs-comment">// 其他哨兵的字典</span>
+    dict *sentinels;    <span class="hljs-comment">/* Other sentinels monitoring the same master. */</span> 
+&#125; sentinelRedisInstance;</code></pre>
+
+<p>其中的addr为一个sentinelAddr类型的指针，sentinelAddr的代码如下</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sentinelAddr</span> &#123;</span>
+    <span class="hljs-comment">// 实例的ip</span>
+    <span class="hljs-keyword">char</span> *ip;
+    <span class="hljs-comment">// 实例的端口号</span>
+    <span class="hljs-keyword">int</span> port;
+&#125; sentinelAddr;</code></pre>
+
+
+
+<p>若让哨兵分别监视两个主服务器的实例master1和master2，那么他们的结构如下图所示</p>
+<p>两个主服务器的<strong>实例</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122104850.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122104856.png" srcset="/img/loading.gif" alt=""></p>
+<p>Sentinel状态以及masters<strong>字典</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122104917.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="创建连向主服务器的网络连接"><a href="#创建连向主服务器的网络连接" class="headerlink" title="创建连向主服务器的网络连接"></a>创建连向主服务器的网络连接</h4><p>对于每个被Sentinel监视的主服务器来说，Sentinel会创建<strong>两个</strong>连向主服务器的异步网络连接</p>
+<ul>
+<li>一个是<strong>命令连接</strong>，这个连接专门用于向主服务器发送命令，并接收命令回复</li>
+<li>一个是<strong>订阅连接</strong>，这个连接专门用于订阅主服务器的<strong>sentinel</strong>:hello频道</li>
+</ul>
+<p><strong>为什么有两个连接？</strong></p>
+<p>一方面，在Redis目前的发布与订阅功能中，被发送的信息都不会保存在Redis服务器里面，如果在信息发送时，想要接收信息的客户端不在线或者断线，那么这个客户端就会丢失这条信息。因此，为了不丢失<strong>sentinel</strong>:hello频道的任何信息，Sentinel必须专门用一个订阅连接来接收该频道的信息</p>
+<p>另一方面，除了订阅频道之外，Sentinel还必须向主服务器发送命令，以此来与主服务器进行通信，所以Sentinel还必须向主服务器创建命令连接</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122105405.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="3、获取主服务器信息"><a href="#3、获取主服务器信息" class="headerlink" title="3、获取主服务器信息"></a>3、获取主服务器信息</h3><p>Sentinel默认会以每十秒一次的频率，通过命令连接<strong>向被监视的主服务器发送INFO命令</strong>，并通过分析INFO命令的<strong>回复</strong>来获取主服务器的当前信息</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122110153.png" srcset="/img/loading.gif" alt=""></p>
+<p>通过分析<strong>主服务器返回的INFO命令回复</strong>，Sentinel可以获取以下两方面的信息</p>
+<ul>
+<li><p>一方面是关于主服务器本身的信息，包括run_id域记录的服务器运行ID，以及role域记录的服务器角色</p>
+</li>
+<li><p>另一方面是关于主服务器属下所有从服务器的信息，每个<strong>从服务器都由一个”slave”字符串开头的行记录</strong>，每行的ip=域记录了从服务器的IP地址，而port=域则记录了从服务器的端口号。根据这些IP地址和端口号，Sentinel无须用户提供从服务器的地址信息，就可以自动发现从服务器</p>
+</li>
+</ul>
+<p>Sentinel在分析INFO命令中包含的<strong>从服务器</strong>信息时，会检查从服务器对应的实例结构是否已经存在于slaves字典</p>
+<ul>
+<li>如果从服务器对应的实例结构已经存在，那么Sentinel对从服务器的实例结构进行更新</li>
+<li>如果从服务器对应的实例结构不存在，那么说明这个从服务器是新发现的从服务器，Sentinel会在slaves字典中为这个从服务器新创建一个实例结构</li>
+</ul>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122110831.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="4、获取从服务器信息"><a href="#4、获取从服务器信息" class="headerlink" title="4、获取从服务器信息"></a>4、获取从服务器信息</h3><p>当Sentinel发现主服务器有<strong>新的从服务器</strong>出现时，Sentinel除了会为这个新的从服务器创建相应的实例结构之外，Sentinel还会创建连接到从服务器的<strong>命令连接和订阅连接</strong></p>
+<p>举个例子，对于下图所示的主从服务器关系来说</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122110153.png" srcset="/img/loading.gif" alt=""></p>
+<p>Sentinel将对slave0、slave1和slave2<strong>三个从服务器分别创建命令连接和订阅连接</strong>，如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122111758.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="5、接收主从服务器的频道信息"><a href="#5、接收主从服务器的频道信息" class="headerlink" title="5、接收主从服务器的频道信息"></a>5、接收主从服务器的频道信息</h3><p>当Sentinel与一个主服务器或者从服务器建立起<strong>订阅连接</strong>之后，Sentinel就会通过订阅连接，向服务器发送以下命令</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122111958.png" srcset="/img/loading.gif" alt=""></p>
+<p>Sentinel对<strong>sentinel</strong>:hello频道的订阅会一直持续到Sentinel与服务器的连接断开为止</p>
+<p>这也就是说，对于每个与Sentinel连接的服务器，Sentinel既通过<strong>命令连接</strong>向服务器的<strong>sentinel</strong>:hello频道发送信息，又通过<strong>订阅连接</strong>从服务器的<strong>sentinel</strong>:hello频道接收信息</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122112131.png" srcset="/img/loading.gif" alt=""></p>
+<p>对于监视同一个服务器的多个Sentinel来说，一个Sentinel发送的信息会被其他Sentinel接收到，这些信息会被用于<strong>更新其他Sentinel对发送信息Sentinel的认知，也会被用于更新其他Sentinel对被监视服务器的认知</strong></p>
+<p>举个例子，假设现在有sentinel1、sentinel2、sentinel3<strong>三个Sentinel</strong>在监视同一个服务器，那么当sentinel1向服务器的<strong>sentinel</strong>:hello频道发送一条信息时，<strong>所有</strong>订阅了<strong>sentinel</strong>:hello频道的Sentinel（包括sentinel1自己在内）都会收到这条信息，如图下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122112310.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="更新sentinels字典"><a href="#更新sentinels字典" class="headerlink" title="更新sentinels字典"></a>更新sentinels字典</h4><p>Sentinel为主服务器创建的实例结构中的sentinels字典保存了除Sentinel本身之外，还保存了<strong>所有同样监视这个主服务器的其他Sentinel的资料</strong></p>
+<ul>
+<li>键是其中一个Sentinel的名字，格式为ip:port</li>
+<li>值则是键所对应Sentinel的实例结构</li>
+</ul>
+<p>当一个Sentinel接收到其他Sentinel发来的信息时（我们称呼发送信息的Sentinel为<strong>源Sentinel</strong>，接收信息的Sentinel为<strong>目标Sentinel</strong>），目标Sentinel会从信息中分析并提取出以下<strong>两方面参数</strong></p>
+<ul>
+<li><p>与Sentinel有关的参数</p>
+<ul>
+<li>源Sentinel的IP地址、端口号、运行ID和配置纪元</li>
+</ul>
+</li>
+<li><p>与主服务器有关的参数</p>
+<ul>
+<li>源Sentinel正在监视的主服务器的名字、IP地址、端口号和配置纪元</li>
+</ul>
+</li>
+</ul>
+<p>根据信息中提取出的主服务器参数，目标Sentinel会在自己的Sentinel状态的masters字典中查找相应的主服务器实例结构，然后根据提取出的Sentinel参数，检查主服务器实例结构的sentinels字典中，源Sentinel的实例结构是否存在</p>
+<p>因为一个Sentinel可以通过分析接收到的频道信息来获知其他Sentinel的存在，并通过发送频道信息来让其他Sentinel知道自己的存在，所以用户在使用Sentinel的时候并不需要提供各个Sentinel的地址信息，<strong>监视同一个主服务器的多个Sentinel可以自动发现对方</strong></p>
+<h4 id="创建Sentinel之间的命令连接"><a href="#创建Sentinel之间的命令连接" class="headerlink" title="创建Sentinel之间的命令连接"></a>创建Sentinel之间的命令连接</h4><p>当Sentinel通过频道信息发现一个新的Sentinel时，它不仅会为新Sentinel在sentinels字典中创建相应的实例结构，还<strong>会创建一个连向新Sentinel的命令连接，而新Sentinel也同样会创建连向这个Sentinel的命令连接</strong>（互相连接）。<strong>这是为了能够让多个哨兵中保存的主从服务器信息一致</strong>。最终监视同一主服务器的多个Sentinel将形成相互连接的网络，如下图所示</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122124243.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>注意：Sentinel之间不会创建订阅连接</strong></p>
+<h3 id="出现故障的解决方案"><a href="#出现故障的解决方案" class="headerlink" title="出现故障的解决方案"></a>出现故障的解决方案</h3><h3 id="6、检测主观下线状态"><a href="#6、检测主观下线状态" class="headerlink" title="6、检测主观下线状态"></a>6、检测主观下线状态</h3><p>在默认情况下，Sentinel会以每秒一次的频率向所有与它创建了命令连接的实例（包括主服务器、从服务器、其他Sentinel在内）发送PING命令，并通过实例返回的PING命令回复来判断实例是否在线</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122125242.png" srcset="/img/loading.gif" alt=""></p>
+<p>实例对PING命令的<strong>回复</strong>可以分为以下两种情况</p>
+<ul>
+<li><strong>有效回复</strong><ul>
+<li>实例返回+PONG、-LOADING、-MASTERDOWN三种回复的其中一种</li>
+</ul>
+</li>
+<li><strong>无效回复</strong><ul>
+<li>实例返回除+PONG、-LOADING、-MASTERDOWN三种回复<strong>之外</strong>的其他回复，或者在指定时限内没有返回任何回复</li>
+</ul>
+</li>
+</ul>
+<p>Sentinel配置文件中的down-after-milliseconds选项指定了Sentinel判断实例进入主观下线所需的时间长度：如果一个实例在down-after-milliseconds毫秒内，连续向Sentinel返回无效回复，那么Sentinel会修改这个实例所对应的实例结构，在结构的flags属性中打开SRI_S_DOWN标识，以此来表示这个实例已经<strong>进入主观下线状态</strong></p>
+<h3 id="7、检查客观下线状态"><a href="#7、检查客观下线状态" class="headerlink" title="7、检查客观下线状态"></a>7、检查客观下线状态</h3><p>当Sentinel将一个主服务器判断为主观下线之后，为了确认这个主服务器是否真的下线了，<strong>它会向同样监视这一主服务器的其他Sentinel进行询问，看它们是否也认为主服务器已经进入了下线状态</strong>（可以是主观下线或者客观下线）。当Sentinel从其他Sentinel那里接收到足够数量的已下线判断之后，Sentinel就会将从服务器判定为客观下线，并对主服务器执行故障转移操作</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201122130223.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="8、选举领头Sentinel"><a href="#8、选举领头Sentinel" class="headerlink" title="8、选举领头Sentinel"></a>8、选举领头Sentinel</h3><p>当一个主服务器被判断为客观下线时，监视这个下线主服务器的各个Sentinel会进行协商，<strong>选举出一个领头Sentinel，并由领头Sentinel对下线主服务器执行故障转移操作</strong></p>
+<p>选举规则如下</p>
+<ul>
+<li><p>所有在线的Sentinel都有被选为领头Sentinel的资格，换句话说，监视同一个主服务器的多个在线Sentinel中的任意一个都有可能成为领头Sentinel</p>
+</li>
+<li><p>每次进行领头Sentinel<strong>选举之后</strong>，不论选举是否成功，所有Sentinel的配置纪元（configuration epoch）的值都会自增一次。配置纪元实际上就是一个计数器，并没有什么特别的</p>
+</li>
+<li><p>在一个配置纪元里面，<strong>所有Sentinel都有一次将某个Sentinel设置为局部领头Sentinel的机会</strong>，并且局部领头一旦设置，在这个配置纪元里面就不能再更改</p>
+</li>
+<li><p>每个<strong>发现主服务器进入客观下线</strong>的Sentinel都会要求其他Sentinel将自己设置为局部领头Sentinel</p>
+</li>
+<li><p>当一个Sentinel（源Sentinel）向另一个Sentinel（目标Sentinel）发送SENTINEL is-master-down-by-addr命令，并且命令中的runid参数不是*符号而是源Sentinel的运行ID时，这表示源Sentinel要求目标Sentinel将前者设置为后者的局部领头Sentinel</p>
+</li>
+<li><p>Sentinel设置局部领头Sentinel的规则是<strong>先到先得</strong></p>
+<ul>
+<li>最先向目标Sentinel发送设置要求的源Sentinel将成为目标Sentinel的局部领头Sentinel，而之后接收到的所有设置要求都会被目标Sentinel拒绝</li>
+</ul>
+</li>
+<li><p>目标Sentinel在接收到SENTINEL is-master-down-by-addr命令之后，将向源Sentinel返回一条命令回复，回复中的leader_runid参数和leader_epoch参数分别记录了目标Sentinel的局部领头Sentinel的运行ID和配置纪元</p>
+</li>
+<li><p>源Sentinel在接收到目标Sentinel返回的命令回复之后，会检查回复中leader_epoch参数的值和自己的配置纪元是否相同，如果相同的话，那么源Sentinel继续取出回复中的leader_runid参数，如果leader_runid参数的值和源Sentinel的运行ID一致，那么表示目标Sentinel将源Sentinel设置成了局部领头Sentinel</p>
+</li>
+<li><p>如果有<strong>某个Sentinel被半数以上的Sentinel设置成了局部领头Sentinel</strong>，那么这个Sentinel成为领头Sentinel</p>
+<ul>
+<li>举个例子，在一个由10个Sentinel组成的Sentinel系统里面，只要有大于等于10/2+1=6个Sentinel将某个Sentinel设置为局部领头Sentinel，那么被设置的那个Sentinel就会成为领头Sentinel</li>
+</ul>
+</li>
+<li><p>因为领头Sentinel的产生需要半数以上Sentinel的支持，并且每个Sentinel在每个配置纪元里面只能设置一次局部领头Sentinel，所以在一个配置纪元里面，只会出现一个领头Sentinel</p>
+</li>
+<li><p>如果在给定时限内，没有一个Sentinel被选举为领头Sentinel，那么各个Sentinel将在一段时间之后<strong>再次进行选举，直到选出领头Sentinel为止</strong></p>
+</li>
+</ul>
+<h3 id="9、故障转移"><a href="#9、故障转移" class="headerlink" title="9、故障转移"></a>9、故障转移</h3><p>在选举产生出领头Sentinel之后，<strong>领头Sentinel将对已下线的主服务器执行故障转移操作</strong>，该操作包含以下三个步骤</p>
+<ul>
+<li>在已下线主服务器<strong>属下</strong>的所有从服务器里面，<strong>挑选出一个从服务器，并将其转换为主服务器</strong></li>
+<li>让已下线主服务器属下的所有从服务器改为复制新的主服务器</li>
+<li>将已下线主服务器设置为新的主服务器的从服务器，当这个旧的主服务器重新上线时，它就会成为新的主服务器的从服务器</li>
+</ul>
+<h4 id="选出新的主服务器"><a href="#选出新的主服务器" class="headerlink" title="选出新的主服务器"></a>选出新的主服务器</h4><p>故障转移操作第一步要做的就是在已下线主服务器属下的所有从服务器中，挑选出一个状态良好、数据完整的从服务器，然后向这个从服务器发送SLAVEOF no one命令（断开与主服务器的连接），<strong>将这个从服务器转换为主服务器</strong></p>
+<p>领头Sentinel筛选新主服务器的规则如下</p>
+<ul>
+<li><strong>删除列表中所有处于下线或者断线状态的从服务器</strong>，这可以保证列表中剩余的从服务器都是正常在线的</li>
+<li><strong>删除列表中所有最近五秒内没有回复过领头Sentinel的INFO命令的从服务器</strong>，这可以保证列表中剩余的从服务器都是最近成功进行过通信的</li>
+<li>删除所有与已下线主服务器连接断开超过down-after-milliseconds*10毫秒的从服务器</li>
+</ul>
+<p>之后，领头Sentinel将根据从服务器的<strong>优先级</strong>，对列表中剩余的从服务器进行排序，并选出其中优先级最高的从服务器</p>
+<h4 id="修改从服务器的复制目标"><a href="#修改从服务器的复制目标" class="headerlink" title="修改从服务器的复制目标"></a>修改从服务器的复制目标</h4><p>当新的主服务器出现之后，领头Sentinel下一步要做的就是，让已下线主服务器属下的<strong>所有从服务器去复制新的主服务器</strong>，这一动作可以通过向从服务器发送<strong>SLAVEOF</strong>命令来实现</p>
+<h4 id="将旧的主服务器变为从服务器"><a href="#将旧的主服务器变为从服务器" class="headerlink" title="将旧的主服务器变为从服务器"></a>将旧的主服务器变为从服务器</h4><p>因为旧的主服务器已经下线，所以这种设置是保存在server1对应的实例结构里面的，当<strong>server1重新上线</strong>时，Sentinel就会向它发送SLAVEOF命令，让它成为server2的从服务器</p>
+<h2 id="七、事务"><a href="#七、事务" class="headerlink" title="七、事务"></a>七、事务</h2>
             </article>
             <hr>
             <div>

@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      22.4k 字
+      22.7k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      290
+      297
        分钟
     </span>
   
@@ -1411,6 +1411,151 @@ ReentrantLock lock = <span class="hljs-keyword">new</span> ReentrantLock(<span c
 		&#125;
 
 	&#125;).start();
+&#125;</code></pre>
+
+
+
+<h4 id="通过Lock与AQS实现可重入锁"><a href="#通过Lock与AQS实现可重入锁" class="headerlink" title="通过Lock与AQS实现可重入锁"></a>通过Lock与AQS实现可重入锁</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyLock</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Lock</span> </span>&#123;
+   <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sync</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractQueuedSynchronizer</span> </span>&#123;
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+         <span class="hljs-keyword">if</span> (getExclusiveOwnerThread() == <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">if</span> (compareAndSetState(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>)) &#123;
+               setExclusiveOwnerThread(Thread.currentThread());
+               <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+            &#125;
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+         &#125;
+
+         <span class="hljs-keyword">if</span> (getExclusiveOwnerThread() == Thread.currentThread()) &#123;
+            <span class="hljs-keyword">int</span> state = getState();
+            compareAndSetState(state, state + <span class="hljs-number">1</span>);
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+         &#125;
+
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+      &#125;
+
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryRelease</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+         <span class="hljs-keyword">if</span> (getState() &lt;= <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalMonitorStateException();
+         &#125;
+
+         <span class="hljs-keyword">if</span> (getExclusiveOwnerThread() != Thread.currentThread()) &#123;
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalMonitorStateException();
+         &#125;
+
+         <span class="hljs-keyword">int</span> state = getState();
+         <span class="hljs-keyword">if</span> (state == <span class="hljs-number">1</span>) &#123;
+            setExclusiveOwnerThread(<span class="hljs-keyword">null</span>);
+            compareAndSetState(state, <span class="hljs-number">0</span>);
+         &#125; <span class="hljs-keyword">else</span> &#123;
+            compareAndSetState(state, state - <span class="hljs-number">1</span>);
+         &#125;
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+      &#125;
+
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isHeldExclusively</span><span class="hljs-params">()</span> </span>&#123;
+         <span class="hljs-keyword">return</span> getState() &gt;= <span class="hljs-number">1</span>;
+      &#125;
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> Condition <span class="hljs-title">newCondition</span><span class="hljs-params">()</span> </span>&#123;
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ConditionObject();
+      &#125;
+
+   &#125;
+
+   Sync sync = <span class="hljs-keyword">new</span> Sync();
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> </span>&#123;
+      sync.acquire(<span class="hljs-number">1</span>);
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lockInterruptibly</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
+      sync.acquireInterruptibly(<span class="hljs-number">1</span>);
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryLock</span><span class="hljs-params">()</span> </span>&#123;
+      <span class="hljs-keyword">return</span> sync.tryAcquire(<span class="hljs-number">1</span>);
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryLock</span><span class="hljs-params">(<span class="hljs-keyword">long</span> time, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
+      <span class="hljs-keyword">return</span> sync.tryAcquireNanos(<span class="hljs-number">1</span>, time);
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unlock</span><span class="hljs-params">()</span> </span>&#123;
+      sync.release(<span class="hljs-number">1</span>);
+   &#125;
+
+   <span class="hljs-meta">@Override</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> Condition <span class="hljs-title">newCondition</span><span class="hljs-params">()</span> </span>&#123;
+      <span class="hljs-keyword">return</span> sync.newCondition();
+   &#125;
+&#125;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>&#123;
+   <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> num = <span class="hljs-number">0</span>;
+   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException, IOException </span>&#123;
+      MyLock lock = <span class="hljs-keyword">new</span> MyLock();
+
+      Object syncLock = <span class="hljs-keyword">new</span> Object();
+
+      Thread t1 = <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;
+         <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++) &#123;
+            lock.lock();
+            <span class="hljs-keyword">try</span> &#123;
+               lock.lock();
+               <span class="hljs-keyword">try</span> &#123;
+                  lock.lock();
+                  <span class="hljs-keyword">try</span> &#123;
+                     num++;
+                  &#125; <span class="hljs-keyword">finally</span> &#123;
+                     lock.unlock();
+                  &#125;
+               &#125; <span class="hljs-keyword">finally</span> &#123;
+                  lock.unlock();
+               &#125;
+            &#125; <span class="hljs-keyword">finally</span> &#123;
+               lock.unlock();
+            &#125;
+         &#125;
+      &#125;);
+
+      Thread t2 = <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;
+         <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span>; i++) &#123;
+            lock.lock();
+            <span class="hljs-keyword">try</span> &#123;
+               lock.lock();
+               <span class="hljs-keyword">try</span> &#123;
+                  lock.lock();
+                  <span class="hljs-keyword">try</span> &#123;
+                     num--;
+                  &#125; <span class="hljs-keyword">finally</span> &#123;
+                     lock.unlock();
+                  &#125;
+               &#125; <span class="hljs-keyword">finally</span> &#123;
+                  lock.unlock();
+               &#125;
+            &#125; <span class="hljs-keyword">finally</span> &#123;
+               lock.unlock();
+            &#125;
+         &#125;
+      &#125;);
+
+      t1.start();
+      t2.start();
+      t1.join();
+      t2.join();
+
+      <span class="hljs-keyword">int</span> x = <span class="hljs-number">0</span>;
+   &#125;
 &#125;</code></pre>
 
 
