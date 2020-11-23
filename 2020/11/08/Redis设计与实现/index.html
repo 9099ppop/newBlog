@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      28.2k 字
+      29.7k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      310
+      327
        分钟
     </span>
   
@@ -2161,7 +2161,99 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <p>之后，领头Sentinel将根据从服务器的<strong>优先级</strong>，对列表中剩余的从服务器进行排序，并选出其中优先级最高的从服务器</p>
 <h4 id="修改从服务器的复制目标"><a href="#修改从服务器的复制目标" class="headerlink" title="修改从服务器的复制目标"></a>修改从服务器的复制目标</h4><p>当新的主服务器出现之后，领头Sentinel下一步要做的就是，让已下线主服务器属下的<strong>所有从服务器去复制新的主服务器</strong>，这一动作可以通过向从服务器发送<strong>SLAVEOF</strong>命令来实现</p>
 <h4 id="将旧的主服务器变为从服务器"><a href="#将旧的主服务器变为从服务器" class="headerlink" title="将旧的主服务器变为从服务器"></a>将旧的主服务器变为从服务器</h4><p>因为旧的主服务器已经下线，所以这种设置是保存在server1对应的实例结构里面的，当<strong>server1重新上线</strong>时，Sentinel就会向它发送SLAVEOF命令，让它成为server2的从服务器</p>
-<h2 id="七、事务"><a href="#七、事务" class="headerlink" title="七、事务"></a>七、事务</h2>
+<h2 id="七、事务"><a href="#七、事务" class="headerlink" title="七、事务"></a>七、事务</h2><p><a href="https://nyimac.gitee.io/2020/06/07/Redis%E5%AD%A6%E4%B9%A0%E6%96%87%E6%A1%A3/#%E4%BA%94%E3%80%81Redis%E4%BA%8B%E5%8A%A1"><strong>Redis事务的基本使用</strong></a></p>
+<h3 id="1、简介-9"><a href="#1、简介-9" class="headerlink" title="1、简介"></a>1、简介</h3><p>Redis通过<strong>MULTI、EXEC、WATCH</strong>等命令来实现事务（transaction）功能。事务提供了一种将多个命令请求打包，然后一次性、按顺序地执行多个命令的机制，并且<strong>在事务执行期间，服务器不会中断事务而改去执行其他客户端的命令请求</strong>，它会将事务中的所有命令都执行完毕，然后才去处理其他客户端的命令请求</p>
+<h3 id="2、事务的实现"><a href="#2、事务的实现" class="headerlink" title="2、事务的实现"></a>2、事务的实现</h3><p>一个事务从开始到结束通常会经历以下<strong>三个阶段</strong></p>
+<ul>
+<li>事务开始</li>
+<li>命令入队</li>
+<li>事务执行</li>
+</ul>
+<h4 id="事务开始"><a href="#事务开始" class="headerlink" title="事务开始"></a>事务开始</h4><p><strong>MULTI</strong>命令的执行标志着事务的开始</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123095602.png" srcset="/img/loading.gif" alt=""></p>
+<p>MULTI命令可以将执行该命令的客户端从非事务状态切换至事务状态，这一切换是通过在<strong>客户端状态的flags</strong>属性中打开REDIS_MULTI标识来完成的</p>
+<h4 id="命令入队"><a href="#命令入队" class="headerlink" title="命令入队"></a>命令入队</h4><p>当一个客户端处于<strong>非事务状态</strong>时，这个客户端发送的命令会立即被服务器执行。但是当切换为<strong>事务状态</strong>后，服务器会根据这个客户端发来的不同命令执行不同的操作</p>
+<ul>
+<li>如果客户端发送的命令为<strong>EXEC、DISCARD、WATCH、MULTI</strong>四个命令的其中一个，那么服务器立即执行这个命令</li>
+<li>如果客户端发送的命令是EXEC、DISCARD、WATCH、MULTI四个命令<strong>以外的其他命令</strong>，那么服务器并不立即执行这个命令，而是将这个<strong>命令放入一个事务队列里面，然后向客户端返回QUEUED回复</strong></li>
+</ul>
+<p>服务器判断命令是该入队还是该立即执行的过程如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123095940.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="事务队列"><a href="#事务队列" class="headerlink" title="事务队列"></a>事务队列</h4><p>每个Redis客户端都有自己的事务状态，这个事务状态保存在客户端状态的<strong>mstate</strong>属性里面</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">client</span> &#123;</span>
+    
+    ...
+        
+    <span class="hljs-comment">// 事务状态    </span>
+    multiState mstate;      <span class="hljs-comment">/* MULTI/EXEC state */</span>
+    
+    ...
+        
+&#125; client;</code></pre>
+
+<p>事务状态包含一个<strong>事务队列</strong>，以及一个已入队命令的<strong>计数器</strong>（也可以说是事务队列的长度）</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">multiState</span> &#123;</span>
+    <span class="hljs-comment">// 事务队列，存放MULTI命令之后的命令</span>
+    multiCmd *commands;     <span class="hljs-comment">/* Array of MULTI commands */</span>
+    
+    <span class="hljs-comment">// 命令的数量</span>
+    <span class="hljs-keyword">int</span> count;              <span class="hljs-comment">/* Total number of MULTI commands */</span>
+    
+    <span class="hljs-keyword">int</span> cmd_flags;          <span class="hljs-comment">/* The accumulated command flags OR-ed together.</span>
+<span class="hljs-comment">                               So if at least a command has a given flag, it</span>
+<span class="hljs-comment">                               will be set in this field. */</span>
+    <span class="hljs-keyword">int</span> cmd_inv_flags;      <span class="hljs-comment">/* Same as cmd_flags, OR-ing the ~flags. so that it</span>
+<span class="hljs-comment">                               is possible to know if all the commands have a</span>
+<span class="hljs-comment">                               certain flag. */</span>
+    <span class="hljs-keyword">int</span> minreplicas;        <span class="hljs-comment">/* MINREPLICAS for synchronous replication */</span>
+    <span class="hljs-keyword">time_t</span> minreplicas_timeout; <span class="hljs-comment">/* MINREPLICAS timeout as unixtime. */</span>
+&#125; multiState;</code></pre>
+
+<p>事务队列是一个multiCmd类型的数组，数组中的每个multiCmd结构都保存了一个已入队命令的相关信息，包括指向命令实现函数的指针、命令的参数，以及参数的数量</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">multiCmd</span> &#123;</span>
+    <span class="hljs-comment">// 参数</span>
+    robj **argv;
+    
+    <span class="hljs-comment">// 命令数量</span>
+    <span class="hljs-keyword">int</span> argc;
+    
+    <span class="hljs-comment">// 命令指针</span>
+    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisCommand</span> *<span class="hljs-title">cmd</span>;</span>
+&#125; multiCmd;</code></pre>
+
+<p>事务队列以先进先出（FIFO）的方式保存入队的命令，较先入队的命令会被放到数组的前面，而较后入队的命令则会被放到数组的后面</p>
+<p><strong>例如</strong>以下指令在执行后，事务队列的结构如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123101417.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>结构</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123101433.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="执行事务"><a href="#执行事务" class="headerlink" title="执行事务"></a>执行事务</h4><p>当一个处于<strong>事务状态的客户端向服务器发送EXEC命令时</strong>，这个EXEC命令将立即被服务器执行。服务器会遍历这个客户端的事务队列，执行队列中保存的所有命令，最后将执行命令所得的结果全部返回给客户端    </p>
+<h3 id="3、-WATCH命令的实现"><a href="#3、-WATCH命令的实现" class="headerlink" title="3、 WATCH命令的实现"></a>3、 WATCH命令的实现</h3><p>WATCH命令是一个<strong>乐观锁</strong>（optimistic locking），它可以在EXEC命令执行之前，监视任意数量的数据库键，并在EXEC命令执行时，检查被监视的键<strong>是否至少有一个已经被修改过了</strong>，如果是的话，服务器将拒绝执行事务，并向客户端返回代表事务执行失败的空回复</p>
+<p>如此出，执行watch指令监视name，监视期间name被另一个客户端所修改。<strong>该客户端执行事务失败</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123102913.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="使用WATCH命令监视数据库键"><a href="#使用WATCH命令监视数据库键" class="headerlink" title="使用WATCH命令监视数据库键"></a>使用WATCH命令监视数据库键</h4><p>每个Redis数据库都保存着一个<strong>watched_keys</strong>字典，这个字典的键是某个被WATCH命令监视的数据库键，而字典的值则是一个链表，链表中记录了所有监视相应数据库键的客户端</p>
+<pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">redisDb</span> &#123;</span>
+    
+    ...
+        
+    <span class="hljs-comment">// 被监视的键    </span>
+    dict *watched_keys;         <span class="hljs-comment">/* WATCHED keys for MULTI/EXEC CAS */</span>
+    
+    ...
+        
+&#125; redisDb;</code></pre>
+
+<p>通过watched_keys字典，服务器可以清楚地知道哪些数据库键正在被监视，以及哪些客户端正在监视这些数据库键</p>
+<h4 id="监视机制的触发"><a href="#监视机制的触发" class="headerlink" title="监视机制的触发"></a>监视机制的触发</h4><p>所有对数据库进行修改的命令，比如SET、LPUSH、SADD、ZREM、DEL、FLUSHDB等等，在执行之后都会调用<strong>touchWatchKey</strong>函数对watched_keys字典进行检查，查看是否有客户端正在<strong>监视</strong>刚刚被命令<strong>修改过的数据库键</strong>，如果有的话，那么touchWatchKey函数会将监视被修改键的客户端的<strong>REDIS_DIRTY_CAS标识打开</strong>，表示该客户端的事务安全性已经被破坏</p>
+<p>touchWatchKey的伪代码如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123103628.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="判断事务是否安全"><a href="#判断事务是否安全" class="headerlink" title="判断事务是否安全"></a>判断事务是否安全</h4><p>当服务器接收到一个客户端发来的EXEC命令时，服务器会根据这个客户端<strong>是否打开了REDIS_DIRTY_CAS标识</strong>来决定是否执行事务</p>
+<ul>
+<li>如果客户端的REDIS_DIRTY_CAS标识已经被打开，那么说明客户端所监视的键当中，<strong>至少有一个键已经被修改过了</strong>，在这种情况下，客户端提交的事务已经<strong>不再安全</strong>，所以服务器会拒绝执行客户端提交的事务</li>
+<li>如果客户端的REDIS_DIRTY_CAS标识没有被打开，那么说明客户端监视的所有键都没有被修改过（或者客户端没有监视任何键），事务仍然是安全的，服务器将执行客户端提交的这个事务</li>
+</ul>
+<p>根据REDIS_DIRTY_CAS表示来判断是否执行事务的流程图如下</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201123103819.png" srcset="/img/loading.gif" alt=""></p>
+
             </article>
             <hr>
             <div>
