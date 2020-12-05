@@ -1584,27 +1584,27 @@ config <span class="hljs-builtin-name">get</span> requirepass</code></pre>
 <li>使用<a href="https://www.bilibili.com/video/BV19i4y1u7rV?from=search&seid=8200619784088161214" target="_blank" rel="noopener"><strong>布隆过滤器</strong></a></li>
 </ul>
 <h4 id="布隆过滤器简介"><a href="#布隆过滤器简介" class="headerlink" title="布隆过滤器简介"></a>布隆过滤器简介</h4><p>想要尽量避免缓存穿透，一个办法就是对数据进行<strong>预校验</strong>，在对Redis和数据库进行操作前，<strong>先检查数据是否存在，如果不存在就直接返回。</strong>如果我们想要查询一个元素是否存在，要保证查询效率，可以选择HashSet，但是如果有10亿个数据，都用HashSet进行存储，<strong>内存肯定是无法容纳的</strong>。这时就需要布隆过滤器了</p>
-<p><strong>布隆过滤器</strong>（英语：Bloom Filter）是1970年由布隆提出的。它实际上是一个很长的二进制向量（字节数组）和一系列随机映射函数（hash）。布隆过滤器可以用于检索一个元素是否在一个集合中</p>
-<p>因为是基于<strong>字节数组和hash函数</strong>的，所以它的<strong>优点</strong>是<strong>空间效率和查询</strong>时间都远远超过一般的算法。但<strong>缺点</strong>也很明显，那就是有一定的误识别率和删除困难。但是可以通过增加字节数组的大小和增加hash函数个数来<strong>降低</strong>误识别率（<strong>只能降低，没法避免</strong>）</p>
+<p><strong>布隆过滤器</strong>（英语：Bloom Filter）是1970年由布隆提出的。它实际上是一个很长的二进制向量（bit数组）和一系列随机映射函数（hash）。布隆过滤器可以用于检索一个元素是否在一个集合中</p>
+<p>因为是基于<strong>位数组和hash函数</strong>的，所以它的<strong>优点</strong>是<strong>空间效率和查询</strong>时间都远远超过一般的算法。但<strong>缺点</strong>也很明显，那就是有一定的误识别率和删除困难。但是可以通过增加位数组的大小和增加hash函数个数来<strong>降低</strong>误识别率（<strong>只能降低，没法避免</strong>）</p>
 <p><strong>放入过程</strong></p>
-<p>布隆过滤器初始化后，字节数组中的值都为0。当一个变量将要放入布隆过滤器时，会通过多个hash函数映射到字节数组的各个位上，然后<strong>将对应位置为1</strong></p>
+<p>布隆过滤器初始化后，位数组中的值都为0。当一个变量将要放入布隆过滤器时，会通过多个hash函数映射到位数组的各个位上，然后<strong>将对应位置为1</strong></p>
 <p><strong>查询过程</strong></p>
-<p>查询依然是通过多个hash函数映射到字节数组的各个位上，如果各个位都为1，说明该元素<strong>可能存在，注意是可能存在！！</strong>。但是如果通过映射后，字节数组对应位上<strong>不为1，那么该元素肯定不存在</strong></p>
+<p>查询依然是通过多个hash函数映射到位数组的各个位上，如果各个位都为1，说明该元素<strong>可能存在，注意是可能存在！！</strong>。但是如果通过映射后，位数组对应位上<strong>不为1，那么该元素肯定不存在</strong></p>
 <p><strong>放入过程图解</strong></p>
-<p>比如我们的布隆过滤器位一个<strong>8位的字节数组</strong>，并且有<strong>3个hash函数</strong>对元素进行计算，映射到数组中的各个位上</p>
+<p>比如我们的布隆过滤器位一个<strong>8位的位数组</strong>，并且有<strong>3个hash函数</strong>对元素进行计算，映射到数组中的各个位上</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204191457.png" srcset="/img/loading.gif" alt=""></p>
 <p>我们将字符串”Nyima”放入布隆过滤器中</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204191637.png" srcset="/img/loading.gif" alt=""></p>
 <p>接下来将字符串”Cpower”放入布隆过滤器中</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204191725.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>查询过程图解</strong></p>
-<p>比如我们要查询字符串”Cpower”是否存在，通过3个hash函数映射到了字节数组的三个位置上， 三个位置都为1，那么该<strong>字符串可能存在</strong></p>
+<p>比如我们要查询字符串”Cpower”是否存在，通过3个hash函数映射到了位数组的三个位置上， 三个位置都为1，那么该<strong>字符串可能存在</strong></p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204191725.png" srcset="/img/loading.gif" alt=""></p>
-<p>比如我们要查询字符串”SWPU”是否存在，通过3个hash函数映射到了字节数组的三个位置，发现有一个位置不为1，那么该<strong>字符串肯定不存在</strong></p>
+<p>比如我们要查询字符串”SWPU”是否存在，通过3个hash函数映射到了位数组的三个位置，发现有一个位置不为1，那么该<strong>字符串肯定不存在</strong></p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204192628.png" srcset="/img/loading.gif" alt=""></p>
-<p>比如我们要查询字符串”Hulu”是否存在，通过3个hash函数映射到了字节数组的三个位置，发现所有位置都为1，但是我们前面并没有将字符串”Hulu”放入布隆过滤器中，所以这里<strong>发生了误判</strong></p>
+<p>比如我们要查询字符串”Hulu”是否存在，通过3个hash函数映射到了位数组的三个位置，发现所有位置都为1，但是我们前面并没有将字符串”Hulu”放入布隆过滤器中，所以这里<strong>发生了误判</strong></p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201204192741.png" srcset="/img/loading.gif" alt=""></p>
-<p><strong>增加字节数组的大小和hash函数个数可以降低误判率，但是无法避免误判</strong></p>
+<p><strong>增加位数组的大小和hash函数个数可以降低误判率，但是无法避免误判</strong></p>
 
             </article>
             <hr>
