@@ -268,7 +268,7 @@
 <td align="center">SDS中的buf相当于字符串</td>
 </tr>
 </tbody></table>
-<h2 id="二、链表（Redis-3-2以后已经不再使用）"><a href="#二、链表（Redis-3-2以后已经不再使用）" class="headerlink" title="二、链表（Redis 3.2以后已经不再使用）"></a>二、链表（Redis 3.2以后已经不再使用）</h2><h3 id="1、Redis中的链表"><a href="#1、Redis中的链表" class="headerlink" title="1、Redis中的链表"></a>1、Redis中的链表</h3><p>Redis中的<strong>链表节点</strong>定义如下</p>
+<h2 id="二、链表（Redis-3-2以后已经不再使用）"><a href="#二、链表（Redis-3-2以后已经不再使用）" class="headerlink" title="二、链表（Redis 3.2以后已经不再使用）"></a>二、<del>链表（Redis 3.2以后已经不再使用）</del></h2><h3 id="1、Redis中的链表"><a href="#1、Redis中的链表" class="headerlink" title="1、Redis中的链表"></a>1、Redis中的链表</h3><p>Redis中的<strong>链表节点</strong>定义如下</p>
 <pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> &#123;</span>
     <span class="hljs-comment">// 保存前驱节点</span>
     <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">listNode</span> *<span class="hljs-title">prev</span>;</span>
