@@ -380,10 +380,10 @@
 <p>经过以上过程后，便可以进行数据的对称加密传输了。</p>
 <h2 id="五、查询MAC地址"><a href="#五、查询MAC地址" class="headerlink" title="五、查询MAC地址"></a>五、查询MAC地址</h2><p>这一步主要负责为打包好的<code>数据+TCP首部+IP首部</code>寻找传输路线，<strong>找到IP对应的物理机</strong>，这里会用到ARP协议。</p>
 <h3 id="1、ARP协议"><a href="#1、ARP协议" class="headerlink" title="1、ARP协议"></a>1、ARP协议</h3><p>ARP（Address Resolution Protocol）即地址解析协议， 用于<strong>实现从 IP 地址到 MAC 地址的映射</strong>，即询问目标IP对应的MAC地址。</p>
-<h3 id="2、ARP如何交互"><a href="#2、ARP如何交互" class="headerlink" title="2、ARP如何交互"></a>2、ARP如何交互</h3><p>ARP协议通过”<strong>一问一答</strong>“实现交互，但是”问”和”答”都有讲究，”问”是通过广播形式实现，”答”是通过单播形式。</p>
+<h3 id="2、ARP如何交互"><a href="#2、ARP如何交互" class="headerlink" title="2、ARP如何交互"></a>2、ARP如何交互</h3><p>ARP协议通过<strong>一问一答</strong>实现交互，但是问和答都有讲究，<strong>问是通过广播形式实现，答是通过单播形式。</strong></p>
+<hr>
 <p><strong>以上都是计算机网络的部分，接下来将介绍服务器如何接收与处理请求</strong></p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201209203752.png" srcset="/img/loading.gif" alt=""></p>
-<hr>
 <h2 id="六、请求在Tomcat中的处理流程"><a href="#六、请求在Tomcat中的处理流程" class="headerlink" title="六、请求在Tomcat中的处理流程"></a>六、请求在Tomcat中的处理流程</h2><p>Web 容器以<strong>进程</strong>的方式在计算机上运行，<strong>它主要负责接收请求，并将其投送至特定的应用</strong>，但Web容器并不属于计算机网络的组成部分。接下来将以Tomcat为例介绍Web容器的核心组件。</p>
 <h3 id="1、Tomcat的核心组件"><a href="#1、Tomcat的核心组件" class="headerlink" title="1、Tomcat的核心组件"></a>1、Tomcat的核心组件</h3><p>Tomcat的核心组件主要有：<strong>Server、Service、Connector、Engine、Host和Conext</strong>。</p>
 <p><strong>一个Server可以包含多个Service，一个Service可以包含多个Connector，但只能包含一个Engine，一个Engine可以包含多个Host，一个Host可以包含多个Conetxt</strong>。</p>
