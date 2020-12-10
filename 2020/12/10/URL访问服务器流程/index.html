@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.7k 字
+      6.8k 字
     </span>
   
 
@@ -216,7 +216,8 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <h1 id="从输入URL到浏览器显示页面的流程"><a href="#从输入URL到浏览器显示页面的流程" class="headerlink" title="从输入URL到浏览器显示页面的流程"></a>从输入URL到浏览器显示页面的流程</h1><p>注意：以下分析基于<strong>HTTP</strong>请求，并且Web容器使用<strong>Tomcat</strong>，后端框架使用<strong>SSM</strong></p>
+              <h1 id="从输入URL到浏览器显示页面的流程"><a href="#从输入URL到浏览器显示页面的流程" class="headerlink" title="从输入URL到浏览器显示页面的流程"></a>从输入URL到浏览器显示页面的流程</h1><p>当在浏览器中输入域名，敲下回车后，不一会儿浏览器就会显示我们想要的界面。本文将简单介绍这其中经历了什么过程。</p>
+<p>注意：以下分析基于<strong>HTTP</strong>请求，并且Web容器使用<strong>Tomcat</strong>，后端框架使用<strong>SSM</strong></p>
 <h2 id="一、URL解析"><a href="#一、URL解析" class="headerlink" title="一、URL解析"></a>一、URL解析</h2><h3 id="1、地址解析"><a href="#1、地址解析" class="headerlink" title="1、地址解析"></a><strong>1、地址解析</strong></h3><p>浏览器会根据你的输入来判断该输入是一条合法的URL，还是需要被搜索的关键词。并且根据你输入的内容进行自动完成、字符编码等操作。</p>
 <h3 id="2、其他操作"><a href="#2、其他操作" class="headerlink" title="2、其他操作"></a>2、其他操作</h3><p>目前大部分浏览器都会<strong>强制客户端使用HTTPS协议</strong>以保证信息传输的安全性。同时还会进行一些额外的操作，比如安全检查、访问限制等。</p>
 <h3 id="3、缓存检查"><a href="#3、缓存检查" class="headerlink" title="3、缓存检查"></a>3、缓存检查</h3><p>有时候博客在gitee上进行了更新，但是通过谷歌浏览器查看博客时，仍是更新前的博客，这是因为浏览器中缓存了之前的博客界面。</p>
@@ -425,7 +426,7 @@
 <li><strong>AJP</strong></li>
 <li><strong>Proxy</strong></li>
 </ul>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201209200714.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201210125922.png" srcset="/img/loading.gif" alt=""></p>
 <p>Connector作为通信接口，<strong>它为其所属特定的 Service 接收外部客户端请求，以及回送应答至外部客户端</strong>。具体职责包括创建 Request、Response 对象用于跟外部客户端交换数据，并<strong>将 Request 交给配套的 Engine 来处理</strong>。</p>
 <h4 id="Engine"><a href="#Engine" class="headerlink" title="Engine"></a>Engine</h4><p>Engine 是 Service 组件中<strong>负责请求处理的组件</strong>，其内部可以包含多个 Host。Engine 从一个或多个 Connector 中接收请求并处理，并将处理结果封装成应答交给 Connector，最终回传给外部客户端。</p>
 <h4 id="Host"><a href="#Host" class="headerlink" title="Host"></a>Host</h4><p><strong>Host 代表一个虚拟主机，它对应计算机网络上的一个实体</strong>。即某个在 DNS 服务器上注册过的域名或者 IP 地址，例如：<code>www.baidu.com</code>或 201.187.10.21。Host 内部可以包含多个 Context，<strong>每个 Context 表示一个 Web 应用</strong>。Host 负责安装、展开、启动和结束每个 Web 应用。</p>
@@ -524,9 +525,8 @@
 <h2 id="九、返回过程"><a href="#九、返回过程" class="headerlink" title="九、返回过程"></a>九、返回过程</h2><p>Web 应用处理完请求并将结果返回给 Web 容器后，容器会将响应结果返回给客户端，这是上面流程的逆过程。浏览器收到响应结果后，会对结果进行解析和渲染。这样我们就能看到浏览器给我们显示的网页了。</p>
 <h2 id="十、整体流程图"><a href="#十、整体流程图" class="headerlink" title="十、整体流程图"></a>十、整体流程图</h2><p>下面给出了输入URL到浏览器显示界面的流程图</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201210113745.png" srcset="/img/loading.gif" alt=""></p>
-<p><strong>以上便是URL所经历的旅途</strong></p>
-<p><strong>参考文献</strong></p>
-<p><a href="https://mp.weixin.qq.com/s/AK1Pb9rx0q5Hf8dq6HNOhw" target="_blank" rel="noopener">你每天都在使用的HTTP协议，到底是什么鬼？</a></p>
+<p><strong>以上便是从输入URL到浏览器显示页面的整个流程</strong></p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a><strong>参考文献</strong></h2><p><a href="https://mp.weixin.qq.com/s/AK1Pb9rx0q5Hf8dq6HNOhw" target="_blank" rel="noopener">你每天都在使用的HTTP协议，到底是什么鬼？</a></p>
 <p><a href="https://segmentfault.com/a/1190000021137583" target="_blank" rel="noopener">图解 Spring：HTTP 请求的处理流程与机制</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/80551769" target="_blank" rel="noopener">在浏览器输入 URL 回车之后发生了什么（超详细版）</a></p>
 <p><a href="https://juejin.cn/post/6844903832435032072" target="_blank" rel="noopener">史上最详细的经典面试题 从输入URL到看到页面发生了什么？</a></p>
