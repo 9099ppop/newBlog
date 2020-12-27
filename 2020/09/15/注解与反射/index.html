@@ -225,7 +225,7 @@
 
 
 
-<h3 id="Documented"><a href="#Documented" class="headerlink" title="@Documented"></a>@Documented</h3><p>用于标记已经过时的方法、属性等内容</p>
+<h3 id="Deprecated"><a href="#Deprecated" class="headerlink" title="@Deprecated"></a>@Deprecated</h3><p>用于标记已经过时的方法、属性等内容</p>
 <pre><code class="hljs java"><span class="hljs-meta">@Documented</span>
 <span class="hljs-meta">@Retention</span>(RetentionPolicy.RUNTIME)
 <span class="hljs-meta">@Target</span>(value=&#123;CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE&#125;)
@@ -319,7 +319,7 @@
 
 
 
-<h4 id="Documented-1"><a href="#Documented-1" class="headerlink" title="@Documented"></a>@Documented</h4><p>用于标明该注解将会被包含在javadoc中</p>
+<h4 id="Documented"><a href="#Documented" class="headerlink" title="@Documented"></a>@Documented</h4><p>用于标明该注解将会被包含在javadoc中</p>
 <pre><code class="hljs java"><span class="hljs-meta">@Documented</span>
 <span class="hljs-meta">@Retention</span>(RetentionPolicy.RUNTIME)
 <span class="hljs-meta">@Target</span>(ElementType.ANNOTATION_TYPE)
@@ -527,15 +527,15 @@
 
 
 
-<p><strong>总结</strong>：获得类的构造方法的步骤</p>
+<p><strong>总结</strong>：获得类的实例的步骤</p>
 <ul>
 <li>通过类的Class对象</li>
-<li>如果想获得无参构造器<ul>
+<li>如果想通过调用<strong>无参构造方法</strong>创建实例<ul>
 <li>直接调用Class对象的newInstance()方法</li>
 <li>将返回值强转为对应的类型</li>
 </ul>
 </li>
-<li>如果想获得有参构造方法<ul>
+<li>如果想通过<strong>有参构造方法</strong>创建实例<ul>
 <li>调用Class对象的getDeclaredConstructor()并传入构造方法相应的参数的类型</li>
 <li>通过获得的有参构造器，调用newInstance()方法，传入相应参数</li>
 <li>将返回值强转为对应的类型</li>

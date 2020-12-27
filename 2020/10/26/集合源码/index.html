@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      291
+      292
        分钟
     </span>
   
@@ -794,11 +794,6 @@
 
 
 <h3 id="4、AbstractList抽象类"><a href="#4、AbstractList抽象类" class="headerlink" title="4、AbstractList抽象类"></a>4、AbstractList抽象类</h3><p>该抽象类含有一个空构造方法，以及一些需要子类去实现的抽象方法</p>
-<pre><code class="hljs plain">
-</code></pre>
-
-
-
 <h2 id="三、ArrayList源码分析"><a href="#三、ArrayList源码分析" class="headerlink" title="三、ArrayList源码分析"></a>三、ArrayList源码分析</h2><h3 id="1、构造方法"><a href="#1、构造方法" class="headerlink" title="1、构造方法"></a>1、构造方法</h3><h4 id="无参构造器"><a href="#无参构造器" class="headerlink" title="无参构造器"></a>无参构造器</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ArrayList</span> </span>&#123;
     <span class="hljs-comment">//默认的初始化容量</span>
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_CAPACITY = <span class="hljs-number">10</span>;
@@ -1316,7 +1311,7 @@
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200910163121.png" srcset="/img/loading.gif" alt=""></p>
 <p><strong>问题分析</strong></p>
 <ul>
-<li><p>每次进行遍历操作调用 next 方法时，在开头都会先调用  方法，<strong>来判断modCount是否和expectedModCount是否一致</strong></p>
+<li><p>每次进行遍历操作调用 next 方法时，在开头都会先调用<strong>checkForComodification</strong>方法，<strong>来判断modCount是否和expectedModCount是否一致</strong></p>
 <ul>
 <li><p>在删除指定元素前的遍历中，可以看到 modCount 和 expectedModCount 相同，都为3</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200910163407.png" srcset="/img/loading.gif" alt=""></p>
@@ -1473,7 +1468,7 @@
 <h1 id="LinkedList-1"><a href="#LinkedList-1" class="headerlink" title="LinkedList"></a>LinkedList</h1><h2 id="一、LinkedList底层数据结构"><a href="#一、LinkedList底层数据结构" class="headerlink" title="一、LinkedList底层数据结构"></a>一、LinkedList底层数据结构</h2><h3 id="1、LinkedList集合介绍"><a href="#1、LinkedList集合介绍" class="headerlink" title="1、LinkedList集合介绍"></a>1、LinkedList集合介绍</h3><p>LinkedList底层由一个<strong>拥有头、尾指针的双向链表构成</strong></p>
 <h3 id="2、链表"><a href="#2、链表" class="headerlink" title="2、链表"></a>2、链表</h3><p>链表的<strong>增删插入效率高</strong>，但是<strong>查找效率较低</strong></p>
 <p>详细可见<a href="https://nyimac.gitee.io/2020/06/17/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/#%E4%BA%8C%E3%80%81%E9%93%BE%E8%A1%A8">Java数据结构与算法——链表</a></p>
-<h2 id="二、LinkedList继承关系"><a href="#二、LinkedList继承关系" class="headerlink" title="二、LinkedList继承关系"></a>二、LinkedList继承关系</h2><h3 id="1、继承关系图"><a href="#1、继承关系图" class="headerlink" title="1、继承关系图"></a>1、继承关系图</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200911202302.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="二、LinkedList继承关系"><a href="#二、LinkedList继承关系" class="headerlink" title="二、LinkedList继承关系"></a>二、LinkedList继承关系</h2><h3 id="1、继承关系图"><a href="#1、继承关系图" class="headerlink" title="1、继承关系图"></a>1、继承关系图</h3><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201227205501.png" srcset="/img/loading.gif" alt=""></p>
 <p>LinkedList也实现了Serializable和Clonealbe接口，但因为链表随机访问效率较低，所以未实现RandomAccess方法</p>
 <h3 id="2、clone方法"><a href="#2、clone方法" class="headerlink" title="2、clone方法"></a>2、clone方法</h3><pre><code class="hljs php"><span class="hljs-keyword">public</span> Object <span class="hljs-keyword">clone</span>() &#123;
 	<span class="hljs-comment">// 调用本地方法，将链表进行克隆，此时clone里元素与被克隆链表的元素一致</span>

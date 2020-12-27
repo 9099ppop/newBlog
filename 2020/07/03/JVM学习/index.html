@@ -465,7 +465,7 @@ ing;
 
 <ul>
 <li>使用<strong>拼接字符串常量</strong>的方法来创建新的字符串时，因为<strong>内容是常量，javac在编译期会进行优化，结果已在编译期确定为ab</strong>，而创建ab的时候已经在串池中放入了“ab”，所以ab3直接从串池中获取值，所以进行的操作和 ab = “ab” 一致。</li>
-<li>使用<strong>拼接字符串变量</strong>的方法来创建新的字符串时，因为内容是变量，只能<strong>在运行期确定它的值，所以需要使用StringBuffer来创建</strong></li>
+<li>使用<strong>拼接字符串变量</strong>的方法来创建新的字符串时，因为内容是变量，只能<strong>在运行期确定它的值，所以需要使用StringBuilder来创建</strong></li>
 </ul>
 <h5 id="intern方法-1-8"><a href="#intern方法-1-8" class="headerlink" title="intern方法 1.8"></a>intern方法 1.8</h5><p>调用字符串对象的intern方法，会将该字符串对象尝试放入到串池中</p>
 <ul>
