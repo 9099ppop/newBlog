@@ -365,7 +365,7 @@
 
 <ul>
 <li>key保存了键值对中键的值</li>
-<li>v保存了键值对中值的值，其中值可以为指针类型，uint64_t、int64_t和double</li>
+<li>value保存了键值对中值的值，其中值可以为指针类型，uint64_t、int64_t和double</li>
 <li>next用于解决哈希冲突，使用拉链法</li>
 </ul>
 <h4 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h4><p>Redis中的字典实现如下</p>
@@ -1061,7 +1061,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 </tbody></table>
 <p>对于Redis数据库保存的键值对来说，<strong>键总是一个字符串对象</strong>，而值<strong>则可以是字符串对象、列表对象、哈希对象、集合对象或者有序集合对象的其中一种</strong>，因此</p>
 <ul>
-<li>当我们称呼一个数据库键为<strong>字符串</strong>键时，我们指的是“这个数据库键所对应的<strong>值为字符串对象</strong></li>
+<li>当我们称呼一个数据库键为<strong>字符串</strong>键时，我们指的是这个数据库键所对应的<strong>值为字符串对象</strong></li>
 <li>当我们称呼一个键为<strong>列表键</strong>时，我们指的是这个数据库键所对应的值为<strong>列表对象</strong></li>
 </ul>
 <p>TYPE命令的实现方式也与此类似，当我们对一个数据库键执行TYPE命令时，<strong>命令返回的结果为数据库键对应的值对象的类型</strong>，而不是键对象的类型，如</p>
@@ -1181,7 +1181,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201117215430.png" srcset="/img/loading.gif" alt=""></p>
 <h4 id="编码转换"><a href="#编码转换" class="headerlink" title="编码转换"></a>编码转换</h4><p>当哈希对象可以<strong>同时满足</strong>以下两个条件时，哈希对象使用<strong>ziplist编码</strong></p>
 <ul>
-<li>希对象保存的所有键值对的<strong>键和值的字符串长度都小于64字节</strong></li>
+<li>哈希对象保存的所有键值对的<strong>键和值的字符串长度都小于64字节</strong></li>
 <li>哈希对象保存的键值对<strong>数量小于512个</strong></li>
 </ul>
 <p>不能满足这两个条件的哈希对象需要使用hashtable编码</p>
@@ -1306,7 +1306,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
     <span class="hljs-comment">// 上次save到现在Redis中数据修改的次数</span>
     <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty;                <span class="hljs-comment">/* Changes to DB from the last save */</span>
     
-    <span class="hljs-comment">// 上一次成功save到现在所经过的实践</span>
+    <span class="hljs-comment">// 上一次成功save到现在所经过的时间</span>
     <span class="hljs-keyword">time_t</span> lastsave;                <span class="hljs-comment">/* Unix time of last successful save */</span>
     ...
 &#125;;</code></pre>
@@ -1355,7 +1355,7 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <h3 id="4、重写"><a href="#4、重写" class="headerlink" title="4、重写"></a>4、重写</h3><h4 id="为什么需要重写"><a href="#为什么需要重写" class="headerlink" title="为什么需要重写"></a>为什么需要重写</h4><p>因为AOF持久化是通过保存被执行的写命令来记录数据库状态的，<strong>所以随着服务器运行时间的流逝，AOF文件中的内容会越来越多</strong>，文件的体积也会越来越大，如果不加以控制的话，体积过大的AOF文件很可能对Redis服务器、甚至整个宿主计算机造成影响，并且AOF文件的体积越大，使用AOF文件来进行数据还原所需的时间就越多</p>
 <p>比如下面执行的命令，都是对list的操作，如果不加以重写，则会将4条操作语句都写入AOF文件中，导致AOF文件体积增大</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20201119154720.png" srcset="/img/loading.gif" alt=""></p>
-<h4 id="重写的实现"><a href="#重写的实现" class="headerlink" title="重写的实现"></a>重写的实现</h4><p><strong>Redis将生成新AOF文件替换旧AOF文件的功能命名为“AOF文件重写”</strong>，但实际上，AOF文件重写并不<strong>需要对现有的AOF文件进行任何读取、分析或者写入操作</strong>，这个功能是<strong>通过读取服务器当前的数据库状态来实现的</strong></p>
+<h4 id="重写的实现"><a href="#重写的实现" class="headerlink" title="重写的实现"></a>重写的实现</h4><p><strong>Redis将生成新AOF文件替换旧AOF文件的功能命名为“AOF文件重写”</strong>，但实际上，AOF文件重写并<strong>不需要对现有的AOF文件进行任何读取、分析或者写入操作</strong>，这个功能是<strong>通过读取服务器当前的数据库状态来实现的</strong></p>
 <p>例如上面执行的语句，<strong>通过重写可以合并为一条语句</strong></p>
 <pre><code class="hljs stylus">rpush list <span class="hljs-selector-tag">b</span> <span class="hljs-selector-tag">a</span> c d</code></pre>
 
@@ -1478,11 +1478,11 @@ load_factory = ht[<span class="hljs-number">0</span>].used/ht[<span class="hljs-
 <li>在设置键的过期时间的同时，创建一个定时器（timer），让定时器在键的过期时间来临时，<strong>立即执行对键的删除操作</strong></li>
 </ul>
 </li>
-<li>惰性删除<ul>
+<li><strong>惰性删除</strong><ul>
 <li>放任键过期不管，但是每次从键空间中<strong>获取键时</strong>，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，就返回该键</li>
 </ul>
 </li>
-<li>定期删除<ul>
+<li><strong>定期删除</strong><ul>
 <li><strong>每隔一段时间，程序就对数据库进行一次检查，删除里面的过期键</strong>。至于要删除多少过期键，以及要检查多少个数据库，则由算法决定</li>
 </ul>
 </li>
