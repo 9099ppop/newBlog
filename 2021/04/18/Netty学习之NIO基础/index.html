@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      13.4k 字
+      13.3k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      178
+      177
        分钟
     </span>
   
@@ -247,13 +247,7 @@
 <h2 id="1、Selector"><a href="#1、Selector" class="headerlink" title="1、Selector"></a>1、Selector</h2><p>在使用Selector之前，处理socket连接还有以下两种方法</p>
 <p><strong>使用多线程技术</strong></p>
 <p>为每个连接分别开辟一个线程，分别去处理对应的socke连接</p>
-<pre><code class="hljs mermaid">graph TD
-subgraph 多线程技术
-t1(thread) --&gt; s1(socket1)
-t2(thread) --&gt; s2(socket2)
-t3(thread) --&gt; s3(socket3)
-end</code></pre>
-
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210418181918.png" srcset="/img/loading.gif" alt=""></p>
 <p>这种方法存在以下几个问题</p>
 <ul>
 <li>内存占用高<ul>
@@ -268,14 +262,7 @@ end</code></pre>
 </ul>
 <p><strong>使用线程池技术</strong></p>
 <p>使用线程池，让线程池中的线程去处理连接</p>
-<pre><code class="hljs mermaid">graph TD
-subgraph 线程池技术
-t4(thread) --&gt; s4(socket1)
-t5(thread) --&gt; s5(socket2)
-t4(thread) -.-&gt; s6(socket3)
-t5(thread) -.-&gt; s7(socket4)
-end</code></pre>
-
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210418181933.png" srcset="/img/loading.gif" alt=""></p>
 <p>这种方法存在以下几个问题</p>
 <ul>
 <li>阻塞模式下，线程仅能处理一个连接<ul>
@@ -290,14 +277,7 @@ end</code></pre>
 </ul>
 <p><strong>使用选择器</strong></p>
 <p><strong>selector 的作用就是配合一个线程来管理多个 channel（fileChannel因为是阻塞式的，所以无法使用selector）</strong>，获取这些 channel 上发生的<strong>事件</strong>，这些 channel 工作在<strong>非阻塞模式</strong>下，当一个channel中没有执行任务时，可以去执行其他channel中的任务。<strong>适合连接数多，但流量较少的场景</strong></p>
-<pre><code class="hljs mermaid">graph TD
-subgraph 选择器技术
-thread --&gt; selector
-selector --&gt; c1(channel)
-selector --&gt; c2(channel)
-selector --&gt; c3(channel)
-end</code></pre>
-
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210418181947.png" srcset="/img/loading.gif" alt=""></p>
 <p>若事件未就绪，调用 selector 的 select() 方法会阻塞线程，直到 channel 发生了就绪事件。这些事件就绪后，select 方法就会返回这些事件交给 thread 来处理</p>
 <h2 id="2、ByteBuffer"><a href="#2、ByteBuffer" class="headerlink" title="2、ByteBuffer"></a>2、ByteBuffer</h2><h3 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h3><h4 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h4><ul>
 <li>向 buffer 写入数据，例如调用 channel.read(buffer)</li>
