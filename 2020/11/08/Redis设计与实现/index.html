@@ -495,8 +495,8 @@
 <ul>
 <li><p>为字典的ht[1]哈希表分配空间，这个哈希表的空间大小取决于要执行的操作，以及ht[0]当前包含的键值对数量（dictht.used的大小）</p>
 <ul>
-<li>如果执行的是<strong>扩展操作</strong>，那么ht[1]的大小为<strong>第一个</strong>大于等于ht[0].used*2 的 2<sup>n</sup> （和Java 中的 HashMap一样，这样可以保证sizemask的值必定为11…11）</li>
-<li>如果执行的是<strong>收缩操作</strong>，那么ht[1]的大小为第一个大于等于ht[0].used的 2<sup>n</sup> <ul>
+<li>如果执行的是<strong>扩展操作</strong>，那么ht[1]的大小为<strong>第一个</strong>大于ht[0].used*2 的 2<sup>n</sup> （和Java 中的 HashMap一样，这样可以保证sizemask的值必定为11…11）</li>
+<li>如果执行的是<strong>收缩操作</strong>，那么ht[1]的大小为第一个小于ht[0].used的 2<sup>n</sup> <ul>
 <li>注：Redis中的字典是有<strong>缩容</strong>操作的，而Java中的HashMap没有缩容操作</li>
 </ul>
 </li>

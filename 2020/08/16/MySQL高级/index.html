@@ -1670,7 +1670,7 @@ CLOSE _cur;
 <p>所以要<strong>避免索引失效</strong></p>
 <h3 id="间隙锁危害"><a href="#间隙锁危害" class="headerlink" title="间隙锁危害"></a>间隙锁危害</h3><h4 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h4><p>当我们用<strong>范围条件</strong>而不是相等条件检索数据，并请求共享或排他锁时，InnoDB会给符合条件的已有数据记录的索引项加锁</p>
 <p>对于键值<strong>在条件范围内但并不存在的记录</strong>，叫做<strong>“间隙(GAP)</strong>” ，<strong>InnoDB也会对这个“间隙”加锁</strong>，这种锁机制就是所谓的间隙锁(Next-Key锁)。</p>
-<h4 id="危害"><a href="#危害" class="headerlink" title="危害"></a>危害</h4><p>因为Query执行过程中通过过范围查找的话，他会锁定整个范围内所有的索引键值，即使这个键值并不存在。<br>间隙锁有一个比较致命的弱点，就是当锁定一个范围键值之后，即使某些不存在的键值也会被无辜的锁定，而造成在锁定的时候无<br>法插入锁定键值范围内的任何数据。在某些场景下这可能会对性能造成很大的危害</p>
+<h4 id="危害"><a href="#危害" class="headerlink" title="危害"></a>危害</h4><p>因为Query执行过程中通过过范围查找的话，他会锁定整个范围内所有的索引键值，即使这个键值并不存在。<br>间隙锁有一个比较致命的弱点，就是当锁定一个范围键值之后，即使某些不存在的键值也会被无辜的锁定，而造成在锁定的时候无法插入锁定键值范围内的任何数据。在某些场景下这可能会对性能造成很大的危害</p>
 <h4 id="演示"><a href="#演示" class="headerlink" title="演示"></a>演示</h4><pre><code class="hljs sql"><span class="hljs-comment">--查询表记录，此处没有id=2的记录</span>
 <span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> t_emp;
 
@@ -1704,7 +1704,7 @@ CLOSE _cur;
 <span class="hljs-keyword">COMMIT</span>;</code></pre>
 
 <p>如果当某一行被锁住后，其他客户端对改行进行操作，会被<strong>阻塞</strong></p>
-<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>Innodb存储引擎由于实现了<strong>行级锁定</strong>，虽然在锁定机制的实现方面所带来的性能损耗可能比表级锁定会要更高一些， 但是在整体<strong>并</strong><br><strong>发处理能力方面要远远优于MyISAM的表级锁定的</strong>。当系统并发量较高的时候，Innodb的整体性能和MyISAM相比就会有比较明显的<br>优势了。<br>但是，Innodb的行级锁定同样也有其脆弱的一面，当我们<strong>使用不当的时候</strong>，可能会让Innodb的整体性能表现不仅不能比MylSAM高<br>，甚至可能会更差。</p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>Innodb存储引擎由于实现了<strong>行级锁定</strong>，虽然在锁定机制的实现方面所带来的性能损耗可能比表级锁定会要更高一些， 但是在整体<strong>并发处理能力方面要远远优于MyISAM的表级锁定的</strong>。当系统并发量较高的时候，Innodb的整体性能和MyISAM相比就会有比较明显的优势了。<br>但是，Innodb的行级锁定同样也有其脆弱的一面，当我们<strong>使用不当的时候</strong>，可能会让Innodb的整体性能表现不仅不能比MylSAM高，甚至可能会更差。</p>
 <h1 id="十、复制"><a href="#十、复制" class="headerlink" title="十、复制"></a>十、复制</h1><h2 id="1、主从复制"><a href="#1、主从复制" class="headerlink" title="1、主从复制"></a>1、主从复制</h2><p>主要涉及三个线程：binlog 线程、I/O 线程和 SQL 线程。</p>
 <ul>
 <li><strong>binlog 线程</strong> ：负责将主服务器上的数据更改<strong>写入二进制日志</strong>（Binary log）中。</li>

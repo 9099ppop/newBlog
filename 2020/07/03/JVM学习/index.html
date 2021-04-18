@@ -675,7 +675,7 @@ ByteBuffer byteBuffer = ByteBuffer.allocateDirect(_1M);</code></pre>
 <li>虚引用的一个体现是<strong>释放直接内存所分配的内存</strong>，当引用的对象ByteBuffer被垃圾回收以后，虚引用对象Cleaner就会被放入引用队列中，然后调用Cleaner的clean方法来释放直接内存</li>
 <li>如上图，B对象不再引用ByteBuffer对象，ByteBuffer就会被回收。但是直接内存中的内存还未被回收。这时需要将虚引用对象Cleaner放入引用队列中，然后调用它的clean方法来释放直接内存</li>
 </ul>
-<h5 id="终结器引用"><a href="#终结器引用" class="headerlink" title="终结器引用"></a>终结器引用</h5><p>所有的类都继承自Object类，Object类有一个finalize方法。当某个对象不再被其他的对象所引用时，会先将终结器引用对象放入饮用队列中，然后根据终结器引用对象找到它所引用的对象，然后调用该对象的finalize方法。调用以后，该对象就可以被垃圾回收了</p>
+<h5 id="终结器引用"><a href="#终结器引用" class="headerlink" title="终结器引用"></a>终结器引用</h5><p>所有的类都继承自Object类，Object类有一个finalize方法。当某个对象不再被其他的对象所引用时，会先将终结器引用对象放入引用队列中，然后根据终结器引用对象找到它所引用的对象，然后调用该对象的finalize方法。调用以后，该对象就可以被垃圾回收了</p>
 <ul>
 <li>如上图，B对象不再引用A4对象。这是终结器对象就会被放入引用队列中，引用队列会根据它，找到它所引用的对象。然后调用被引用对象的finalize方法。调用以后，该对象就可以被垃圾回收了</li>
 </ul>
@@ -716,7 +716,7 @@ ByteBuffer byteBuffer = ByteBuffer.allocateDirect(_1M);</code></pre>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608151010.png" srcset="/img/loading.gif" alt=""></p>
 <p>如果幸存区中的对象的<strong>寿命超过某个阈值</strong>（最大为15，4bit），就会被<strong>放入老年代</strong>中</p>
 <p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20200608151018.png" srcset="/img/loading.gif" alt=""></p>
-<p>如果新生代老年代中的内存都满了，就会先出法Minor Gc，再触发<strong>Full GC</strong>，扫描<strong>新生代和老年代中</strong>所有不再使用的对象并回收</p>
+<p>如果新生代老年代中的内存都满了，就会先触发Minor GC，再触发<strong>Full GC</strong>，扫描<strong>新生代和老年代中</strong>所有不再使用的对象并回收</p>
 <h4 id="GC-分析"><a href="#GC-分析" class="headerlink" title="GC 分析"></a>GC 分析</h4><h5 id="大对象处理策略"><a href="#大对象处理策略" class="headerlink" title="大对象处理策略"></a>大对象处理策略</h5><p>当遇到一个<strong>较大的对象</strong>时，就算新生代的<strong>伊甸园</strong>为空，也<strong>无法容纳该对象</strong>时，会将该对象<strong>直接晋升为老年代</strong></p>
 <h5 id="线程内存溢出"><a href="#线程内存溢出" class="headerlink" title="线程内存溢出"></a>线程内存溢出</h5><p>某个线程的内存溢出了而抛异常（out of memory），不会让其他的线程结束运行</p>
 <p>这是因为当一个线程<strong>抛出OOM异常后</strong>，<strong>它所占据的内存资源会全部被释放掉</strong>，从而不会影响其他线程的运行，<strong>进程依然正常</strong></p>
