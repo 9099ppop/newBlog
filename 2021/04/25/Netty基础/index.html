@@ -1047,14 +1047,14 @@ read index:<span class="hljs-number">0</span> write index:<span class="hljs-numb
     &#125;
 &#125;</code></pre>
 
-<pre><code class="hljs java"><span class="hljs-comment">// 使用池化的直接内存</span>
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">io</span>.<span class="hljs-title">netty</span>.<span class="hljs-title">buffer</span>.<span class="hljs-title">PooledUnsafeDirectByteBuf</span></span>
-<span class="hljs-class">    </span>
-<span class="hljs-class">// 使用池化的堆内存    </span>
-<span class="hljs-class"><span class="hljs-title">class</span> <span class="hljs-title">io</span>.<span class="hljs-title">netty</span>.<span class="hljs-title">buffer</span>.<span class="hljs-title">PooledUnsafeHeapByteBuf</span></span>
-<span class="hljs-class">    </span>
-<span class="hljs-class">// 使用池化的堆内存    </span>
-<span class="hljs-class"><span class="hljs-title">class</span> <span class="hljs-title">io</span>.<span class="hljs-title">netty</span>.<span class="hljs-title">buffer</span>.<span class="hljs-title">PooledUnsafeDirectByteBuf</span></span></code></pre>
+<pre><code class="hljs stylus"><span class="hljs-comment">// 使用池化的直接内存</span>
+class io<span class="hljs-selector-class">.netty</span><span class="hljs-selector-class">.buffer</span>.PooledUnsafeDirectByteBuf
+    
+<span class="hljs-comment">// 使用池化的堆内存    </span>
+class io<span class="hljs-selector-class">.netty</span><span class="hljs-selector-class">.buffer</span>.PooledUnsafeHeapByteBuf
+    
+<span class="hljs-comment">// 使用池化的直接内存    </span>
+class io<span class="hljs-selector-class">.netty</span><span class="hljs-selector-class">.buffer</span>.PooledUnsafeDirectByteBuf</code></pre>
 
 
 
@@ -1818,7 +1818,8 @@ buffer.writeBytes(sb.toString().getBytes(StandardCharsets.UTF_8));
 ...</code></pre>
 
 <p>服务器代码</p>
-<pre><code class="hljs java">ByteBuf bufSet = ch.alloc().buffer().writeBytes(<span class="hljs-string">"\\c"</span>.getBytes(StandardCharsets.UTF_8));
+<pre><code class="hljs java"><span class="hljs-comment">// 将分隔符放入ByteBuf中</span>
+ByteBuf bufSet = ch.alloc().buffer().writeBytes(<span class="hljs-string">"\\c"</span>.getBytes(StandardCharsets.UTF_8));
 <span class="hljs-comment">// 通过行解码器对粘包数据进行拆分，以 \c 为分隔符</span>
 ch.pipeline().addLast(<span class="hljs-keyword">new</span> DelimiterBasedFrameDecoder(<span class="hljs-number">64</span>, ch.alloc().buffer().writeBytes(bufSet)));
 ch.pipeline().addLast(<span class="hljs-keyword">new</span> LoggingHandler(LogLevel.DEBUG));</code></pre>
@@ -1893,6 +1894,7 @@ initialBytesToStrip = 0 (= <span class="hljs-keyword">do</span> <span class="hlj
 
 <p>从0开始即为长度标识，长度标识长度为2个字节</p>
 <p><strong>0x000C</strong> 即为后面 <code>HELLO, WORLD</code>的长度</p>
+<hr>
 <pre><code class="hljs gherkin">lengthFieldOffset   = 0
 lengthFieldLength   = 2
 lengthAdjustment    = 0
@@ -1906,6 +1908,7 @@ BEFORE DECODE (14 bytes)         AFTER DECODE (12 bytes)
 
 <p>从0开始即为长度标识，长度标识长度为2个字节，<strong>读取时从第二个字节开始读取</strong>（此处即跳过长度标识）</p>
 <p>因为<strong>跳过了用于表示长度的2个字节</strong>，所以此处直接读取<code>HELLO, WORLD</code></p>
+<hr>
 <pre><code class="hljs gherkin">lengthFieldOffset   = 2 (= the length of Header 1)
 lengthFieldLength   = 3
 lengthAdjustment    = 0
@@ -1919,6 +1922,7 @@ BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
 
 <p>长度标识<strong>前面还有2个字节的其他内容</strong>（0xCAFE），第三个字节开始才是长度标识，长度表示长度为3个字节(0x00000C)</p>
 <p>Header1中有附加信息，<strong>读取长度标识时需要跳过这些附加信息来获取长度</strong></p>
+<hr>
 <pre><code class="hljs gherkin">lengthFieldOffset   = 0
 lengthFieldLength   = 3
 lengthAdjustment    = 2 (= the length of Header 1)
@@ -1932,6 +1936,7 @@ BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
 
 <p>从0开始即为长度标识，长度标识长度为3个字节，<strong>长度标识之后还有2个字节的其他内容</strong>（0xCAFE）</p>
 <p>长度标识(0x00000C)表示的是<strong>从其后lengthAdjustment（2个字节）开始的数据的长度，即<code>HELLO, WORLD</code></strong>，不包括0xCAFE</p>
+<hr>
 <pre><code class="hljs gherkin">lengthFieldOffset   = 1 (= the length of HDR1)
 lengthFieldLength   = 2
 lengthAdjustment    = 1 (= the length of HDR2)
@@ -1944,6 +1949,7 @@ BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)
 +------+--------+------+----------------+      +------+----------------+</code></pre>
 
 <p>长度标识<strong>前面有1个字节的其他内容，后面也有1个字节的其他内容，读取时从长度标识之后3个字节处开始读取</strong>，即读取 <code>0xFE HELLO, WORLD</code></p>
+<hr>
 <p><strong>使用</strong></p>
 <p>通过 <strong>EmbeddedChannel</strong> 对 handler 进行测试</p>
 <pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EncoderStudy</span> </span>&#123;
