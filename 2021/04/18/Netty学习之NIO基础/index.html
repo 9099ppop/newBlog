@@ -324,11 +324,11 @@
 
 
 <h3 id="核心属性"><a href="#核心属性" class="headerlink" title="核心属性"></a>核心属性</h3><p>字节缓冲区的父类Buffer中有几个核心属性，如下</p>
-<pre><code class="hljs angelscript"><span class="hljs-comment">// Invariants: mark &lt;= position &lt;= limit &lt;= capacity</span>
-<span class="hljs-keyword">private</span> <span class="hljs-built_in">int</span> mark = <span class="hljs-number">-1</span>;
-<span class="hljs-keyword">private</span> <span class="hljs-built_in">int</span> position = <span class="hljs-number">0</span>;
-<span class="hljs-keyword">private</span> <span class="hljs-built_in">int</span> limit;
-<span class="hljs-keyword">private</span> <span class="hljs-built_in">int</span> capacity;Copy</code></pre>
+<pre><code class="hljs java"><span class="hljs-comment">// Invariants: mark &lt;= position &lt;= limit &lt;= capacity</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> mark = -<span class="hljs-number">1</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> position = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> limit;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> capacity;</code></pre>
 
 <ul>
 <li><strong>capacity</strong>：缓冲区的容量。通过构造函数赋予，一旦设置，无法更改</li>

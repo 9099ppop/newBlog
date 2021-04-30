@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      19k 字
+      22.5k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      276
+      327
        分钟
     </span>
   
@@ -2452,8 +2452,8 @@ channel2.pipeline().addLast(loggingHandler);</code></pre>
 
 
 
-<h4 id="整体结构"><a href="#整体结构" class="headerlink" title="整体结构"></a>整体结构</h4><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210427161650.png" srcset="/img/loading.gif" alt=""></p>
-<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210427161716.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="整体结构"><a href="#整体结构" class="headerlink" title="整体结构"></a>整体结构</h4><p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210428154749.png" srcset="/img/loading.gif" alt=""></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210428154801.png" srcset="/img/loading.gif" alt=""></p>
 <ul>
 <li><p>client包：存放客户端相关类</p>
 </li>
@@ -3023,6 +3023,692 @@ ch.pipeline().addLast(<span class="hljs-keyword">new</span> ChannelDuplexHandler
     &#125;
 &#125;);</code></pre>
 
+
+
+<h1 id="五、优化"><a href="#五、优化" class="headerlink" title="五、优化"></a>五、优化</h1><h2 id="1、拓展序列化算法"><a href="#1、拓展序列化算法" class="headerlink" title="1、拓展序列化算法"></a>1、拓展序列化算法</h2><h3 id="序列化接口"><a href="#序列化接口" class="headerlink" title="序列化接口"></a>序列化接口</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Serializer</span> </span>&#123;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 序列化</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> object 被序列化的对象</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt; 被序列化对象类型</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 序列化后的字节数组</span>
+<span class="hljs-comment">     */</span>
+    &lt;T&gt; <span class="hljs-keyword">byte</span>[] serialize(T object);
+
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 反序列化</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> clazz 反序列化的目标类的Class对象</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> bytes 被反序列化的字节数组</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt; 反序列化目标类</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 反序列化后的对象</span>
+<span class="hljs-comment">     */</span>
+    &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">deserialize</span><span class="hljs-params">(Class&lt;T&gt; clazz, <span class="hljs-keyword">byte</span>[] bytes)</span></span>;
+&#125;</code></pre>
+
+
+
+<h3 id="枚举实现类"><a href="#枚举实现类" class="headerlink" title="枚举实现类"></a>枚举实现类</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> SerializerAlgorithm implements Serializer &#123;
+    <span class="hljs-comment">// Java的序列化和反序列化</span>
+    Java &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-keyword">byte</span>[] serialize(T object) &#123;
+            <span class="hljs-comment">// 序列化后的字节数组</span>
+            <span class="hljs-keyword">byte</span>[] bytes = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">try</span> (ByteArrayOutputStream bos = <span class="hljs-keyword">new</span> ByteArrayOutputStream();
+                 ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(bos)) &#123;
+                oos.writeObject(object);
+                bytes = bos.toByteArray();
+            &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
+                e.printStackTrace();
+            &#125;
+            System.out.println(Arrays.toString(bytes));
+            <span class="hljs-keyword">return</span> bytes;
+        &#125;
+
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">deserialize</span><span class="hljs-params">(Class&lt;T&gt; clazz, <span class="hljs-keyword">byte</span>[] bytes)</span> </span>&#123;
+            T target = <span class="hljs-keyword">null</span>;
+            System.out.println(Arrays.toString(bytes));
+            <span class="hljs-keyword">try</span> (ByteArrayInputStream bis = <span class="hljs-keyword">new</span> ByteArrayInputStream(bytes);
+                 ObjectInputStream ois = <span class="hljs-keyword">new</span> ObjectInputStream(bis)) &#123;
+                target = (T) ois.readObject();
+                System.out.println(target);
+            &#125; <span class="hljs-keyword">catch</span> (IOException | ClassNotFoundException e) &#123;
+                e.printStackTrace();
+            &#125;
+            <span class="hljs-comment">// 返回反序列化后的对象</span>
+            <span class="hljs-keyword">return</span> target;
+        &#125;
+    &#125;
+    
+     <span class="hljs-comment">// Json的序列化和反序列化</span>
+    Json &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-keyword">byte</span>[] serialize(T object) &#123;
+            String s = <span class="hljs-keyword">new</span> Gson().toJson(object);
+            System.out.println(s);
+            <span class="hljs-comment">// 指定字符集，获得字节数组</span>
+            <span class="hljs-keyword">return</span> s.getBytes(StandardCharsets.UTF_8);
+        &#125;
+
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">deserialize</span><span class="hljs-params">(Class&lt;T&gt; clazz, <span class="hljs-keyword">byte</span>[] bytes)</span> </span>&#123;
+            String s = <span class="hljs-keyword">new</span> String(bytes, StandardCharsets.UTF_8);
+            System.out.println(s);
+            <span class="hljs-comment">// 此处的clazz为具体类型的Class对象，而不是父类Message的</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Gson().fromJson(s, clazz);
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+
+
+<h3 id="修改原编解码器"><a href="#修改原编解码器" class="headerlink" title="修改原编解码器"></a>修改原编解码器</h3><p><strong>编码</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 获得序列化后的msg</span>
+<span class="hljs-comment">// 使用指定的序列化方式</span>
+SerializerAlgorithm[] values = SerializerAlgorithm.values();
+<span class="hljs-comment">// 获得序列化后的对象</span>
+<span class="hljs-keyword">byte</span>[] bytes = values[out.getByte(<span class="hljs-number">5</span>)-<span class="hljs-number">1</span>].serialize(msg);</code></pre>
+
+<p><strong>解码</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 获得反序列化方式</span>
+SerializerAlgorithm[] values = SerializerAlgorithm.values();
+<span class="hljs-comment">// 通过指定方式进行反序列化</span>
+<span class="hljs-comment">// 需要通过Message的方法获得具体的消息类型</span>
+Message message = values[seqType-<span class="hljs-number">1</span>].deserialize(Message.getMessageClass(messageType), bytes);</code></pre>
+
+
+
+<h2 id="2、参数调优"><a href="#2、参数调优" class="headerlink" title="2、参数调优"></a>2、参数调优</h2><h3 id="CONNECT-TIMEOUT-MILLIS"><a href="#CONNECT-TIMEOUT-MILLIS" class="headerlink" title="CONNECT_TIMEOUT_MILLIS"></a>CONNECT_TIMEOUT_MILLIS</h3><ul>
+<li>属于 <strong>SocketChannal</strong> 的参数</li>
+<li>用在<strong>客户端建立连接</strong>时，如果在指定毫秒内无法连接，会抛出 timeout 异常</li>
+<li><strong>注意</strong>：Netty 中不要用成了SO_TIMEOUT 主要用在阻塞 IO，而 Netty 是非阻塞 IO</li>
+</ul>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a><strong>使用</strong></h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TestParam</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+        <span class="hljs-comment">// SocketChannel 5s内未建立连接就抛出异常</span>
+        <span class="hljs-keyword">new</span> Bootstrap().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, <span class="hljs-number">5000</span>);
+        
+        <span class="hljs-comment">// ServerSocketChannel 5s内未建立连接就抛出异常</span>
+        <span class="hljs-keyword">new</span> ServerBootstrap().option(ChannelOption.CONNECT_TIMEOUT_MILLIS,<span class="hljs-number">5000</span>);
+        <span class="hljs-comment">// SocketChannel 5s内未建立连接就抛出异常</span>
+        <span class="hljs-keyword">new</span> ServerBootstrap().childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, <span class="hljs-number">5000</span>);
+    &#125;
+&#125;</code></pre>
+
+<ul>
+<li>客户端通过 <code>Bootstrap.option</code> 函数来配置参数，<strong>配置参数作用于 SocketChannel</strong> </li>
+<li>服务器通过 <code>ServerBootstrap</code>来配置参数，但是对于不同的 Channel 需要选择不同的方法<ul>
+<li>通过 <code>option</code> 来配置 <strong>ServerSocketChannel</strong> 上的参数</li>
+<li>通过 <code>childOption</code> 来配置 <strong>SocketChannel</strong> 上的参数</li>
+</ul>
+</li>
+</ul>
+<h4 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h4><p>客户端中连接服务器的线程是 NIO 线程，抛出异常的是主线程。这是如何做到超时判断以及线程通信的呢？</p>
+<p><code>AbstractNioChannel.AbstractNioUnsafe.connect</code>方法中</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">connect</span><span class="hljs-params">(</span></span>
+<span class="hljs-function"><span class="hljs-params">                <span class="hljs-keyword">final</span> SocketAddress remoteAddress, <span class="hljs-keyword">final</span> SocketAddress localAddress, <span class="hljs-keyword">final</span> ChannelPromise promise)</span> </span>&#123;
+    
+    ...
+        
+    <span class="hljs-comment">// Schedule connect timeout.</span>
+    <span class="hljs-comment">// 设置超时时间，通过option方法传入的CONNECT_TIMEOUT_MILLIS参数进行设置</span>
+    <span class="hljs-keyword">int</span> connectTimeoutMillis = config().getConnectTimeoutMillis();
+    <span class="hljs-comment">// 如果超时时间大于0</span>
+    <span class="hljs-keyword">if</span> (connectTimeoutMillis &gt; <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-comment">// 创建一个定时任务，延时connectTimeoutMillis（设置的超时时间时间）后执行</span>
+        <span class="hljs-comment">// schedule(Runnable command, long delay, TimeUnit unit)</span>
+        connectTimeoutFuture = eventLoop().schedule(<span class="hljs-keyword">new</span> Runnable() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+                <span class="hljs-comment">// 判断是否建立连接，Promise进行NIO线程与主线程之间的通信</span>
+                <span class="hljs-comment">// 如果超时，则通过tryFailure方法将异常放入Promise中</span>
+                <span class="hljs-comment">// 在主线程中抛出</span>
+                ChannelPromise connectPromise = AbstractNioChannel.<span class="hljs-keyword">this</span>.connectPromise;
+                ConnectTimeoutException cause = <span class="hljs-keyword">new</span> ConnectTimeoutException(<span class="hljs-string">"connection timed out: "</span> + remoteAddress);
+                <span class="hljs-keyword">if</span> (connectPromise != <span class="hljs-keyword">null</span> &amp;&amp; connectPromise.tryFailure(cause)) &#123;
+                    close(voidPromise());
+                &#125;
+            &#125;
+        &#125;, connectTimeoutMillis, TimeUnit.MILLISECONDS);
+    &#125;
+    
+   	...
+        
+&#125;</code></pre>
+
+<p>超时的判断<strong>主要是通过 Eventloop 的 schedule 方法和 Promise 共同实现的</strong></p>
+<ul>
+<li>schedule 设置了一个定时任务，延迟<code>connectTimeoutMillis</code>秒后执行该方法</li>
+<li>如果指定时间内没有建立连接，则会执行其中的任务<ul>
+<li>任务负责创建 <code>ConnectTimeoutException</code> 异常，并将异常通过 Pormise 传给主线程并抛出</li>
+</ul>
+</li>
+</ul>
+<h3 id="SO-BACKLOG"><a href="#SO-BACKLOG" class="headerlink" title="SO_BACKLOG"></a>SO_BACKLOG</h3><p>该参数是 <strong>ServerSocketChannel</strong> 的参数</p>
+<h4 id="三次握手与连接队列"><a href="#三次握手与连接队列" class="headerlink" title="三次握手与连接队列"></a>三次握手与连接队列</h4><p>第一次握手时，因为客户端与服务器之间的连接还未完全建立，连接会被放入<strong>半连接队列</strong>中</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210429211913.png" srcset="/img/loading.gif" alt=""></p>
+<p>当完成三次握手以后，连接会被放入<strong>全连接队列中</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210429211952.png" srcset="/img/loading.gif" alt=""></p>
+<p>服务器处理Accept事件是在TCP三次握手，也就是建立连接之后。服务器会从全连接队列中获取连接并进行处理</p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210430094836.png" srcset="/img/loading.gif" alt=""></p>
+<p>在 linux 2.2 之前，backlog 大小包括了两个队列的大小，<strong>在 linux 2.2 之后，分别用下面两个参数来控制</strong></p>
+<ul>
+<li>半连接队列 - sync queue<ul>
+<li>大小通过 /proc/sys/net/ipv4/tcp_max_syn_backlog 指定，在 <code>syncookies</code> 启用的情况下，逻辑上没有最大值限制，这个设置便被忽略</li>
+</ul>
+</li>
+<li><strong>全连接队列 - accept queue</strong><ul>
+<li>其大小通过 /proc/sys/net/core/somaxconn 指定，在使用 listen 函数时，<strong>内核会根据传入的 backlog 参数与系统参数，取二者的较小值</strong></li>
+<li>如果 accpet queue 队列满了，server 将发送一个拒绝连接的错误信息到 client</li>
+</ul>
+</li>
+</ul>
+<h4 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h4><p>在Netty中，<code>SO_BACKLOG</code>主要用于设置全连接队列的大小。<strong>当处理Accept的速率小于连接建立的速率时，全连接队列中堆积的连接数大于<code>SO_BACKLOG</code>设置的值是，便会抛出异常</strong></p>
+<p><strong>设置方式如下</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 设置全连接队列，大小为2</span>
+<span class="hljs-keyword">new</span> ServerBootstrap().option(ChannelOption.SO_BACKLOG, <span class="hljs-number">2</span>);</code></pre>
+
+
+
+<h4 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h4><p>backlog参数在<code>NioSocketChannel.doBind</code>方法被使用</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doBind</span><span class="hljs-params">(SocketAddress localAddress)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-keyword">if</span> (PlatformDependent.javaVersion() &gt;= <span class="hljs-number">7</span>) &#123;
+        javaChannel().bind(localAddress, config.getBacklog());
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        javaChannel().socket().bind(localAddress, config.getBacklog());
+    &#125;
+&#125;</code></pre>
+
+<p>其中backlog被保存在了<code>DefaultServerSocketChannelConfig</code>配置类中</p>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> backlog = NetUtil.SOMAXCONN;</code></pre>
+
+<p>具体的赋值操作如下</p>
+<pre><code class="hljs java">SOMAXCONN = AccessController.doPrivileged(<span class="hljs-keyword">new</span> PrivilegedAction&lt;Integer&gt;() &#123;
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Integer <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-comment">// Determine the default somaxconn (server socket backlog) value of the platform.</span>
+        <span class="hljs-comment">// The known defaults:</span>
+        <span class="hljs-comment">// - Windows NT Server 4.0+: 200</span>
+        <span class="hljs-comment">// - Linux and Mac OS X: 128</span>
+        <span class="hljs-keyword">int</span> somaxconn = PlatformDependent.isWindows() ? <span class="hljs-number">200</span> : <span class="hljs-number">128</span>;
+        File file = <span class="hljs-keyword">new</span> File(<span class="hljs-string">"/proc/sys/net/core/somaxconn"</span>);
+        BufferedReader in = <span class="hljs-keyword">null</span>;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// file.exists() may throw a SecurityException if a SecurityManager is used, so execute it in the</span>
+            <span class="hljs-comment">// try / catch block.</span>
+            <span class="hljs-comment">// See https://github.com/netty/netty/issues/4936</span>
+            <span class="hljs-keyword">if</span> (file.exists()) &#123;
+                in = <span class="hljs-keyword">new</span> BufferedReader(<span class="hljs-keyword">new</span> FileReader(file));
+                <span class="hljs-comment">// 将somaxconn设置为Linux配置文件中设置的值</span>
+                somaxconn = Integer.parseInt(in.readLine());
+                <span class="hljs-keyword">if</span> (logger.isDebugEnabled()) &#123;
+                    logger.debug(<span class="hljs-string">"&#123;&#125;: &#123;&#125;"</span>, file, somaxconn);
+                &#125;
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                ...
+            &#125;
+            ...
+        &#125;  
+        <span class="hljs-comment">// 返回backlog的值</span>
+        <span class="hljs-keyword">return</span> somaxconn;
+    &#125;
+&#125;</code></pre>
+
+<ul>
+<li>backlog的值会根据操作系统的不同，来<strong>选择不同的默认值</strong><ul>
+<li>Windows 200</li>
+<li>Linux/Mac OS 128</li>
+</ul>
+</li>
+<li><strong>如果配置文件<code>/proc/sys/net/core/somaxconn</code>存在</strong>，会读取配置文件中的值，并将backlog的值设置为配置文件中指定的</li>
+</ul>
+<h3 id="TCP-NODELAY"><a href="#TCP-NODELAY" class="headerlink" title="TCP_NODELAY"></a>TCP_NODELAY</h3><ul>
+<li>属于 <strong>SocketChannal</strong> 参数</li>
+<li>因为 Nagle 算法，数据包会堆积到一定的数量后一起发送，这就<strong>可能导致数据的发送存在一定的延时</strong></li>
+<li><strong>该参数默认为false</strong>，如果不希望的发送被延时，则需要将该值设置为true</li>
+</ul>
+<h3 id="SO-SNDBUF-amp-SO-RCVBUF"><a href="#SO-SNDBUF-amp-SO-RCVBUF" class="headerlink" title="SO_SNDBUF &amp; SO_RCVBUF"></a>SO_SNDBUF &amp; SO_RCVBUF</h3><ul>
+<li>SO_SNDBUF 属于 <strong>SocketChannal</strong> 参数</li>
+<li>SO_RCVBUF <strong>既可用于 SocketChannal 参数，也可以用于 ServerSocketChannal 参数</strong>（建议设置到 ServerSocketChannal 上）</li>
+<li>该参数用于<strong>指定接收方与发送方的滑动窗口大小</strong></li>
+</ul>
+<h3 id="ALLOCATOR"><a href="#ALLOCATOR" class="headerlink" title="ALLOCATOR"></a>ALLOCATOR</h3><ul>
+<li>属于 <strong>SocketChannal</strong> 参数</li>
+<li>用来配置 ByteBuf 是池化还是非池化，是直接内存还是堆内存</li>
+</ul>
+<h4 id="使用-1"><a href="#使用-1" class="headerlink" title="使用"></a>使用</h4><pre><code class="hljs java"><span class="hljs-comment">// 选择ALLOCATOR参数，设置SocketChannel中分配的ByteBuf类型</span>
+<span class="hljs-comment">// 第二个参数需要传入一个ByteBufAllocator，用于指定生成的 ByteBuf 的类型</span>
+<span class="hljs-keyword">new</span> ServerBootstrap().childOption(ChannelOption.ALLOCATOR, <span class="hljs-keyword">new</span> PooledByteBufAllocator());</code></pre>
+
+
+
+<p><strong>ByteBufAllocator类型</strong></p>
+<ul>
+<li><p>池化并使用直接内存</p>
+<pre><code class="hljs java"><span class="hljs-comment">// true表示使用直接内存</span>
+<span class="hljs-keyword">new</span> PooledByteBufAllocator(<span class="hljs-keyword">true</span>);</code></pre>
+</li>
+<li><p>池化并使用堆内存</p>
+<pre><code class="hljs java"><span class="hljs-comment">// false表示使用堆内存</span>
+<span class="hljs-keyword">new</span> PooledByteBufAllocator(<span class="hljs-keyword">false</span>);</code></pre>
+</li>
+<li><p>非池化并使用直接内存</p>
+<pre><code class="hljs java"><span class="hljs-comment">// ture表示使用直接内存</span>
+<span class="hljs-keyword">new</span> UnpooledByteBufAllocator(<span class="hljs-keyword">true</span>);</code></pre>
+</li>
+<li><p>非池化并使用堆内存</p>
+<pre><code class="hljs java"><span class="hljs-comment">// false表示使用堆内存</span>
+<span class="hljs-keyword">new</span> UnpooledByteBufAllocator(<span class="hljs-keyword">false</span>);</code></pre>
+
+
+
+</li>
+</ul>
+<h3 id="RCVBUF-ALLOCATOR"><a href="#RCVBUF-ALLOCATOR" class="headerlink" title="RCVBUF_ALLOCATOR"></a>RCVBUF_ALLOCATOR</h3><ul>
+<li>属于 <strong>SocketChannal</strong> 参数</li>
+<li><strong>控制 Netty 接收缓冲区大小</strong></li>
+<li>负责入站数据的分配，决定入站缓冲区的大小（并可动态调整），<strong>统一采用 direct 直接内存</strong>，具体池化还是非池化由 allocator 决定</li>
+</ul>
+<h2 id="3、RPC框架"><a href="#3、RPC框架" class="headerlink" title="3、RPC框架"></a>3、RPC框架</h2><h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><p>在聊天室代码的基础上进行一定的改进</p>
+<p><strong>Message</strong>中添加如下代码</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Message</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span> </span>&#123;
+
+    ...
+
+    <span class="hljs-comment">// 添加RPC消息类型</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> RPC_MESSAGE_TYPE_REQUEST = <span class="hljs-number">101</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>  RPC_MESSAGE_TYPE_RESPONSE = <span class="hljs-number">102</span>;
+
+    <span class="hljs-keyword">static</span> &#123;
+        <span class="hljs-comment">// 将消息类型放入消息类对象Map中</span>
+        messageClasses.put(RPC_MESSAGE_TYPE_REQUEST, RpcRequestMessage<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+        messageClasses.put(RPC_MESSAGE_TYPE_RESPONSE, RpcResponseMessage<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+    &#125;
+
+&#125;</code></pre>
+
+
+
+<p><strong>RPC请求消息</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RpcRequestMessage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Message</span> </span>&#123;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 调用的接口全限定名，服务端根据它找到实现</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> String interfaceName;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 调用接口中的方法名</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> String methodName;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 方法返回类型</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> Class&lt;?&gt; returnType;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 方法参数类型数组</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> Class[] parameterTypes;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 方法参数值数组</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> Object[] parameterValue;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RpcRequestMessage</span><span class="hljs-params">(<span class="hljs-keyword">int</span> sequenceId, String interfaceName, String methodName, Class&lt;?&gt; returnType, Class[] parameterTypes, Object[] parameterValue)</span> </span>&#123;
+        <span class="hljs-keyword">super</span>.setSequenceId(sequenceId);
+        <span class="hljs-keyword">this</span>.interfaceName = interfaceName;
+        <span class="hljs-keyword">this</span>.methodName = methodName;
+        <span class="hljs-keyword">this</span>.returnType = returnType;
+        <span class="hljs-keyword">this</span>.parameterTypes = parameterTypes;
+        <span class="hljs-keyword">this</span>.parameterValue = parameterValue;
+    &#125;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getMessageType</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> RPC_MESSAGE_TYPE_REQUEST;
+    &#125;
+    
+     <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getInterfaceName</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> interfaceName;
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getMethodName</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> methodName;
+    &#125;
+
+    <span class="hljs-keyword">public</span> Class&lt;?&gt; getReturnType() &#123;
+        <span class="hljs-keyword">return</span> returnType;
+    &#125;
+
+    <span class="hljs-keyword">public</span> Class[] getParameterTypes() &#123;
+        <span class="hljs-keyword">return</span> parameterTypes;
+    &#125;
+
+    <span class="hljs-keyword">public</span> Object[] getParameterValue() &#123;
+        <span class="hljs-keyword">return</span> parameterValue;
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">toString</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"RpcRequestMessage&#123;"</span> +
+                <span class="hljs-string">"interfaceName='"</span> + interfaceName + <span class="hljs-string">'\''</span> +
+                <span class="hljs-string">", methodName='"</span> + methodName + <span class="hljs-string">'\''</span> +
+                <span class="hljs-string">", returnType="</span> + returnType +
+                <span class="hljs-string">", parameterTypes="</span> + Arrays.toString(parameterTypes) +
+                <span class="hljs-string">", parameterValue="</span> + Arrays.toString(parameterValue) +
+                <span class="hljs-string">'&#125;'</span>;
+    &#125;
+&#125;</code></pre>
+
+<p>想要远程调用一个方法，必须知道以<strong>下五个信息</strong></p>
+<ul>
+<li>方法所在的全限定类名</li>
+<li>方法名</li>
+<li>方法返回值类型</li>
+<li>方法参数类型</li>
+<li>方法参数值</li>
+</ul>
+<p><strong>RPC响应消息</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RpcResponseMessage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Message</span> </span>&#123;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 返回值</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> Object returnValue;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 异常值</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> Exception exceptionValue;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getMessageType</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> RPC_MESSAGE_TYPE_RESPONSE;
+    &#125;
+    
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setReturnValue</span><span class="hljs-params">(Object returnValue)</span> </span>&#123;
+        <span class="hljs-keyword">this</span>.returnValue = returnValue;
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setExceptionValue</span><span class="hljs-params">(Exception exceptionValue)</span> </span>&#123;
+        <span class="hljs-keyword">this</span>.exceptionValue = exceptionValue;
+    &#125;
+    
+     <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">getReturnValue</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> returnValue;
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Exception <span class="hljs-title">getExceptionValue</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> exceptionValue;
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">toString</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"RpcResponseMessage&#123;"</span> +
+                <span class="hljs-string">"returnValue="</span> + returnValue +
+                <span class="hljs-string">", exceptionValue="</span> + exceptionValue +
+                <span class="hljs-string">'&#125;'</span>;
+    &#125;
+&#125;</code></pre>
+
+<p>响应消息中只需要获取<strong>返回结果和异常值</strong></p>
+<p><strong>服务器</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RPCServer</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+        NioEventLoopGroup boss = <span class="hljs-keyword">new</span> NioEventLoopGroup();
+        NioEventLoopGroup worker = <span class="hljs-keyword">new</span> NioEventLoopGroup();
+        LoggingHandler loggingHandler = <span class="hljs-keyword">new</span> LoggingHandler(LogLevel.DEBUG);
+        MessageSharableCodec messageSharableCodec = <span class="hljs-keyword">new</span> MessageSharableCodec();
+
+        <span class="hljs-comment">// PRC 请求消息处理器</span>
+        RpcRequestMessageHandler rpcRequestMessageHandler = <span class="hljs-keyword">new</span> RpcRequestMessageHandler();
+        <span class="hljs-keyword">try</span> &#123;
+            ServerBootstrap serverBootstrap = <span class="hljs-keyword">new</span> ServerBootstrap();
+            serverBootstrap.channel(NioServerSocketChannel<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+            serverBootstrap.group(boss, worker);
+            serverBootstrap.childHandler(<span class="hljs-keyword">new</span> ChannelInitializer&lt;SocketChannel&gt;() &#123;
+                <span class="hljs-meta">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(SocketChannel ch)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                    ch.pipeline().addLast(<span class="hljs-keyword">new</span> ProtocolFrameDecoder());
+                    ch.pipeline().addLast(loggingHandler);
+                    ch.pipeline().addLast(messageSharableCodec);
+                    ch.pipeline().addLast(rpcRequestMessageHandler);
+                &#125;
+            &#125;);
+            Channel channel = serverBootstrap.bind(<span class="hljs-number">8080</span>).sync().channel();
+            channel.closeFuture().sync();
+        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+            e.printStackTrace();
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            boss.shutdownGracefully();
+            worker.shutdownGracefully();
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p>服务器中添加了<strong>处理RPCRequest消息的handler</strong></p>
+<p><strong>客户端</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RPCClient</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+        NioEventLoopGroup group = <span class="hljs-keyword">new</span> NioEventLoopGroup();
+        LoggingHandler loggingHandler = <span class="hljs-keyword">new</span> LoggingHandler(LogLevel.DEBUG);
+        MessageSharableCodec messageSharableCodec = <span class="hljs-keyword">new</span> MessageSharableCodec();
+
+        <span class="hljs-comment">// PRC 请求消息处理器</span>
+        RpcResponseMessageHandler rpcResponseMessageHandler = <span class="hljs-keyword">new</span> RpcResponseMessageHandler();
+        <span class="hljs-keyword">try</span> &#123;
+            Bootstrap bootstrap = <span class="hljs-keyword">new</span> Bootstrap();
+            bootstrap.channel(NioSocketChannel<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+            bootstrap.group(group);
+            bootstrap.handler(<span class="hljs-keyword">new</span> ChannelInitializer&lt;SocketChannel&gt;() &#123;
+                <span class="hljs-meta">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(SocketChannel ch)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                    ch.pipeline().addLast(<span class="hljs-keyword">new</span> ProtocolFrameDecoder());
+                    ch.pipeline().addLast(loggingHandler);
+                    ch.pipeline().addLast(messageSharableCodec);
+                    ch.pipeline().addLast(rpcResponseMessageHandler);
+                &#125;
+            &#125;);
+            Channel channel = bootstrap.connect(<span class="hljs-keyword">new</span> InetSocketAddress(<span class="hljs-string">"localhost"</span>, <span class="hljs-number">8080</span>)).sync().channel();
+            channel.closeFuture().sync();
+        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+            e.printStackTrace();
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            group.shutdownGracefully();
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+
+
+<p>通过接口Class获取实例对象的Factory</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ServicesFactory</span> </span>&#123;
+    <span class="hljs-keyword">static</span> HashMap&lt;Class&lt;?&gt;, Object&gt; map = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">16</span>);
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getInstance</span><span class="hljs-params">(Class&lt;?&gt; interfaceClass)</span> <span class="hljs-keyword">throws</span> ClassNotFoundException, IllegalAccessException, InstantiationException </span>&#123;
+        <span class="hljs-comment">// 根据Class创建实例</span>
+        <span class="hljs-keyword">try</span> &#123;
+            Class&lt;?&gt; clazz = Class.forName(<span class="hljs-string">"cn.nyimac.study.day8.server.service.HelloService"</span>);
+            Object instance = Class.forName(<span class="hljs-string">"cn.nyimac.study.day8.server.service.HelloServiceImpl"</span>).newInstance();
+           
+            <span class="hljs-comment">// 放入 InterfaceClass -&gt; InstanceObject 的映射</span>
+            map.put(clazz, instance);
+        &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException | InstantiationException | IllegalAccessException e) &#123;
+            e.printStackTrace();
+        &#125;  
+        <span class="hljs-keyword">return</span> map.get(interfaceClass);
+    &#125;
+&#125;</code></pre>
+
+
+
+<h3 id="RpcRequestMessageHandler"><a href="#RpcRequestMessageHandler" class="headerlink" title="RpcRequestMessageHandler"></a>RpcRequestMessageHandler</h3><pre><code class="hljs java"><span class="hljs-meta">@ChannelHandler</span>.Sharable
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RpcRequestMessageHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RpcRequestMessage</span>&gt; </span>&#123;
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RpcRequestMessage rpcMessage)</span> </span>&#123;
+        RpcResponseMessage rpcResponseMessage = <span class="hljs-keyword">new</span> RpcResponseMessage();
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// 设置返回值的属性</span>
+            rpcResponseMessage.setSequenceId(rpcMessage.getSequenceId());
+            <span class="hljs-comment">// 返回一个实例</span>
+            HelloService service = (HelloService) ServicesFactory.getInstance(Class.forName(rpcMessage.getInterfaceName()));
+            
+            <span class="hljs-comment">// 通过反射调用方法，并获取返回值</span>
+            Method method = service.getClass().getMethod(rpcMessage.getMethodName(), rpcMessage.getParameterTypes());
+            <span class="hljs-comment">// 获得返回值</span>
+            Object invoke = method.invoke(service, rpcMessage.getParameterValue());
+            <span class="hljs-comment">// 设置返回值</span>
+            rpcResponseMessage.setReturnValue(invoke);
+        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+            e.printStackTrace();
+           <span class="hljs-comment">// 设置异常</span>
+            rpcResponseMessage.setExceptionValue(e);
+        &#125;
+    &#125;
+    <span class="hljs-comment">// 向channel中写入Message</span>
+    ctx.writeAndFlush(rpcResponseMessage);
+&#125;</code></pre>
+
+<p>远程调用方法主要是通过反射实现的，大致步骤如下</p>
+<ul>
+<li>通过<strong>请求消息传入被调入方法的各个参数</strong></li>
+<li>通过<strong>全限定接口名，在map中查询到对应的类并实例化对象</strong></li>
+<li>通过反射获取Method，并调用其invoke方法的<strong>返回值，并放入响应消息中</strong></li>
+<li>若有<strong>异常需要捕获，并放入响应消息中</strong></li>
+</ul>
+<h3 id="RpcResponseMessageHandler"><a href="#RpcResponseMessageHandler" class="headerlink" title="RpcResponseMessageHandler"></a>RpcResponseMessageHandler</h3><pre><code class="hljs java"><span class="hljs-meta">@ChannelHandler</span>.Sharable
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RpcResponseMessageHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RpcResponseMessage</span>&gt; </span>&#123;
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger log = LoggerFactory.getLogger(ChatServer<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RpcResponseMessage msg)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        log.debug(<span class="hljs-string">"&#123;&#125;"</span>, msg);
+        System.out.println((String)msg.getReturnValue());
+    &#125;
+&#125;</code></pre>
+
+
+
+<h3 id="客户端发送消息"><a href="#客户端发送消息" class="headerlink" title="客户端发送消息"></a>客户端发送消息</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RPCClient</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+		...
+           
+        <span class="hljs-comment">// 创建请求并发送</span>
+		RpcRequestMessage message = <span class="hljs-keyword">new</span> RpcRequestMessage(<span class="hljs-number">1</span>,
+               <span class="hljs-string">"cn.nyimac.study.day8.server.service.HelloService"</span>,
+               <span class="hljs-string">"sayHello"</span>,
+               String<span class="hljs-class">.<span class="hljs-keyword">class</span>,</span>
+               new Class[]&#123;String.class&#125;,
+               <span class="hljs-keyword">new</span> Object[]&#123;<span class="hljs-string">"Nyima"</span>&#125;);
+		
+        channel.writeAndFlush(message);   
+            
+        ...    
+    &#125;
+&#125;</code></pre>
+
+
+
+<p><strong>运行结果</strong></p>
+<p>客户端</p>
+<pre><code class="hljs java"><span class="hljs-number">1606</span> [nioEventLoopGroup-<span class="hljs-number">2</span>-<span class="hljs-number">1</span>] DEBUG cn.nyimac.study.day8.server.ChatServer  - RpcResponseMessage&#123;returnValue=你好，Nyima, exceptionValue=<span class="hljs-keyword">null</span>&#125;</code></pre>
+
+
+
+<h3 id="改进客户端"><a href="#改进客户端" class="headerlink" title="改进客户端"></a>改进客户端</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RPCClientManager</span> </span>&#123;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> Channel channel = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Object lock = <span class="hljs-keyword">new</span> Object();
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+        <span class="hljs-comment">// 创建代理对象</span>
+        HelloService service = (HelloService) getProxy(HelloService<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+        <span class="hljs-comment">// 通过代理对象执行方法</span>
+        service.sayHello(<span class="hljs-string">"Nyima"</span>);
+    &#125;
+
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 单例模式创建Channel</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Channel <span class="hljs-title">getChannel</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">if</span> (channel == <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">synchronized</span> (lock) &#123;
+                <span class="hljs-keyword">if</span> (channel == <span class="hljs-keyword">null</span>) &#123;
+                    init();
+                &#125;
+            &#125;
+        &#125;
+        <span class="hljs-keyword">return</span> channel;
+    &#125;
+
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 使用代理模式，帮助我们创建请求消息并发送</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getProxy</span><span class="hljs-params">(Class&lt;?&gt; serviceClass)</span> </span>&#123;
+        Class&lt;?&gt;[] classes = <span class="hljs-keyword">new</span> Class&lt;?&gt;[]&#123;serviceClass&#125;;
+        <span class="hljs-comment">// 使用JDK代理，创建代理对象</span>
+        Object o = Proxy.newProxyInstance(serviceClass.getClassLoader(), classes, <span class="hljs-keyword">new</span> InvocationHandler() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
+                <span class="hljs-comment">// 创建请求消息</span>
+                RpcRequestMessage message = <span class="hljs-keyword">new</span> RpcRequestMessage(<span class="hljs-number">1</span>, serviceClass.getName(),
+                        method.getName(), method.getReturnType(),
+                        method.getParameterTypes(),
+                        args);
+                <span class="hljs-comment">// 发送消息</span>
+                getChannel().writeAndFlush(message);
+                <span class="hljs-keyword">return</span> proxy;
+            &#125;
+        &#125;);
+        <span class="hljs-keyword">return</span> o;
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> </span>&#123;
+        NioEventLoopGroup group = <span class="hljs-keyword">new</span> NioEventLoopGroup();
+        LoggingHandler loggingHandler = <span class="hljs-keyword">new</span> LoggingHandler(LogLevel.DEBUG);
+        MessageSharableCodec messageSharableCodec = <span class="hljs-keyword">new</span> MessageSharableCodec();
+
+        <span class="hljs-comment">// PRC 请求消息处理器</span>
+        RpcResponseMessageHandler rpcResponseMessageHandler = <span class="hljs-keyword">new</span> RpcResponseMessageHandler();
+
+        Bootstrap bootstrap = <span class="hljs-keyword">new</span> Bootstrap();
+        bootstrap.channel(NioSocketChannel<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+        bootstrap.group(group);
+        bootstrap.handler(<span class="hljs-keyword">new</span> ChannelInitializer&lt;SocketChannel&gt;() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(SocketChannel ch)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                ch.pipeline().addLast(<span class="hljs-keyword">new</span> ProtocolFrameDecoder());
+                ch.pipeline().addLast(loggingHandler);
+                ch.pipeline().addLast(messageSharableCodec);
+                ch.pipeline().addLast(rpcResponseMessageHandler);
+            &#125;
+        &#125;);
+        <span class="hljs-keyword">try</span> &#123;
+            channel = bootstrap.connect(<span class="hljs-keyword">new</span> InetSocketAddress(<span class="hljs-string">"localhost"</span>, <span class="hljs-number">8080</span>)).sync().channel();
+            <span class="hljs-comment">// 异步关闭 group，避免Channel被阻塞</span>
+            channel.closeFuture().addListener(future -&gt; &#123;
+                group.shutdownGracefully();
+            &#125;);
+        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+            e.printStackTrace();
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p><strong>获得Channel</strong></p>
+<ul>
+<li><p>建立连接，获取Channel的操作被封装到了init方法中，当连接断开时，通过<code>addListener</code>方<strong>法异步关闭group</strong></p>
+</li>
+<li><p>通过<strong>单例模式</strong>创建与获取Channel</p>
+</li>
+</ul>
+<p><strong>远程调用方法</strong></p>
+<ul>
+<li><p>为了让方法的调用变得简洁明了，将<code>RpcRequestMessage</code>的<strong>创建与发送过程通过JDK的代理来完成</strong></p>
+</li>
+<li><p>通过返回的代理对象调用方法即可，<strong>方法参数为被调用方法接口的Class类</strong></p>
+</li>
+</ul>
 
             </article>
             <hr>
