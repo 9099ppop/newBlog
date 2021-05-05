@@ -1528,7 +1528,7 @@ System.out.println(StandardCharsets.UTF_8.decode(buffer));</code></pre>
 <p>可通过SelectionKey的<strong>attachment()方法获得附件</strong></p>
 <pre><code class="hljs java">ByteBuffer buffer = (ByteBuffer) key.attachment();</code></pre>
 
-<p>我们需要在Accept事件发生后，将通道注册到Selector中时，<strong>对每个通道添加一个ByteBuffer附件</strong>，让每个通道发生读事件时都是用自己的通道，避免与其他通道发生冲突而导致问题</p>
+<p>我们需要在Accept事件发生后，将通道注册到Selector中时，<strong>对每个通道添加一个ByteBuffer附件</strong>，让每个通道发生读事件时都使用自己的通道，避免与其他通道发生冲突而导致问题</p>
 <pre><code class="hljs java"><span class="hljs-comment">// 设置为非阻塞模式，同时将连接的通道也注册到选择其中，同时设置附件</span>
 socketChannel.configureBlocking(<span class="hljs-keyword">false</span>);
 ByteBuffer buffer = ByteBuffer.allocate(<span class="hljs-number">16</span>);
@@ -1545,7 +1545,7 @@ socketChannel.register(selector, SelectionKey.OP_READ, buffer);</code></pre>
     key.attach(newBuffer);
 &#125;</code></pre>
 
-<p><strong>该制造后的服务器代码如下</strong></p>
+<p><strong>改造后的服务器代码如下</strong></p>
 <pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SelectServer</span> </span>&#123;
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
         <span class="hljs-comment">// 获得服务器通道</span>

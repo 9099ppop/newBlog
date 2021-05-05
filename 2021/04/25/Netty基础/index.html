@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      22.5k 字
+      25.3k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      327
+      369
        分钟
     </span>
   
@@ -3060,7 +3060,6 @@ ch.pipeline().addLast(<span class="hljs-keyword">new</span> ChannelDuplexHandler
             &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
                 e.printStackTrace();
             &#125;
-            System.out.println(Arrays.toString(bytes));
             <span class="hljs-keyword">return</span> bytes;
         &#125;
 
@@ -3071,7 +3070,6 @@ ch.pipeline().addLast(<span class="hljs-keyword">new</span> ChannelDuplexHandler
             <span class="hljs-keyword">try</span> (ByteArrayInputStream bis = <span class="hljs-keyword">new</span> ByteArrayInputStream(bytes);
                  ObjectInputStream ois = <span class="hljs-keyword">new</span> ObjectInputStream(bis)) &#123;
                 target = (T) ois.readObject();
-                System.out.println(target);
             &#125; <span class="hljs-keyword">catch</span> (IOException | ClassNotFoundException e) &#123;
                 e.printStackTrace();
             &#125;
@@ -3523,7 +3521,7 @@ Message message = values[seqType-<span class="hljs-number">1</span>].deserialize
 
 
 
-<p>通过接口Class获取实例对象的Factory</p>
+<p>通过接口Class获取实例对象的<strong>Factory</strong></p>
 <pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ServicesFactory</span> </span>&#123;
     <span class="hljs-keyword">static</span> HashMap&lt;Class&lt;?&gt;, Object&gt; map = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">16</span>);
 
@@ -3563,7 +3561,7 @@ Message message = values[seqType-<span class="hljs-number">1</span>].deserialize
             rpcResponseMessage.setReturnValue(invoke);
         &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
             e.printStackTrace();
-           <span class="hljs-comment">// 设置异常</span>
+            <span class="hljs-comment">// 设置异常</span>
             rpcResponseMessage.setExceptionValue(e);
         &#125;
     &#125;
@@ -3618,13 +3616,18 @@ Message message = values[seqType-<span class="hljs-number">1</span>].deserialize
 
 
 <h3 id="改进客户端"><a href="#改进客户端" class="headerlink" title="改进客户端"></a>改进客户端</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RPCClientManager</span> </span>&#123;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 产生SequenceId</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> AtomicInteger sequenceId = <span class="hljs-keyword">new</span> AtomicInteger(<span class="hljs-number">0</span>);
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> Channel channel = <span class="hljs-keyword">null</span>;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Object lock = <span class="hljs-keyword">new</span> Object();
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
         <span class="hljs-comment">// 创建代理对象</span>
         HelloService service = (HelloService) getProxy(HelloService<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
         <span class="hljs-comment">// 通过代理对象执行方法</span>
-        service.sayHello(<span class="hljs-string">"Nyima"</span>);
+        System.out.println(service.sayHello(<span class="hljs-string">"Nyima"</span>));
+        System.out.println(service.sayHello(<span class="hljs-string">"Hulu"</span>));
     &#125;
 
     <span class="hljs-comment">/**</span>
@@ -3651,13 +3654,27 @@ Message message = values[seqType-<span class="hljs-number">1</span>].deserialize
             <span class="hljs-meta">@Override</span>
             <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
                 <span class="hljs-comment">// 创建请求消息</span>
-                RpcRequestMessage message = <span class="hljs-keyword">new</span> RpcRequestMessage(<span class="hljs-number">1</span>, serviceClass.getName(),
+                <span class="hljs-keyword">int</span> id = sequenceId.getAndIncrement();
+                RpcRequestMessage message = <span class="hljs-keyword">new</span> RpcRequestMessage(id, serviceClass.getName(),
                         method.getName(), method.getReturnType(),
                         method.getParameterTypes(),
                         args);
                 <span class="hljs-comment">// 发送消息</span>
                 getChannel().writeAndFlush(message);
-                <span class="hljs-keyword">return</span> proxy;
+
+                <span class="hljs-comment">// 创建Promise，用于获取NIO线程中的返回结果，获取的过程是异步的</span>
+                DefaultPromise&lt;Object&gt; promise = <span class="hljs-keyword">new</span> DefaultPromise&lt;&gt;(getChannel().eventLoop());
+                <span class="hljs-comment">// 将Promise放入Map中</span>
+                RpcResponseMessageHandler.promiseMap.put(id, promise);
+                <span class="hljs-comment">// 等待被放入Promise中结果</span>
+                promise.await();
+                <span class="hljs-keyword">if</span> (promise.isSuccess()) &#123;
+                    <span class="hljs-comment">// 调用方法成功，返回方法执行结果</span>
+                    <span class="hljs-keyword">return</span> promise.getNow();
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    <span class="hljs-comment">// 调用方法失败，抛出异常</span>
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(promise.cause());
+                &#125;
             &#125;
         &#125;);
         <span class="hljs-keyword">return</span> o;
@@ -3697,17 +3714,511 @@ Message message = values[seqType-<span class="hljs-number">1</span>].deserialize
 
 <p><strong>获得Channel</strong></p>
 <ul>
-<li><p>建立连接，获取Channel的操作被封装到了init方法中，当连接断开时，通过<code>addListener</code>方<strong>法异步关闭group</strong></p>
+<li><p>建立连接，获取Channel的操作被封装到了<code>init</code>方法中，当连接断开时，通过<code>addListener</code>方<strong>法异步关闭group</strong></p>
 </li>
 <li><p>通过<strong>单例模式</strong>创建与获取Channel</p>
 </li>
 </ul>
 <p><strong>远程调用方法</strong></p>
 <ul>
-<li><p>为了让方法的调用变得简洁明了，将<code>RpcRequestMessage</code>的<strong>创建与发送过程通过JDK的代理来完成</strong></p>
+<li>为了让方法的调用变得简洁明了，将<code>RpcRequestMessage</code>的<strong>创建与发送过程通过JDK的动态代理来完成</strong></li>
+<li>通过返回的代理对象调用方法即可，<strong>方法参数为被调用方法接口的Class类</strong></li>
+</ul>
+<p><strong>远程调用方法返回值获取</strong></p>
+<ul>
+<li><p>调用方法的是主线程，处理返回结果的是NIO线程（RpcResponseMessageHandler）。<strong>要在不同线程中进行返回值的传递，需要用到Promise</strong></p>
 </li>
-<li><p>通过返回的代理对象调用方法即可，<strong>方法参数为被调用方法接口的Class类</strong></p>
+<li><p>在<code>RpcResponseMessageHandler</code>中创建一个Map</p>
+<ul>
+<li>Key为<strong>SequenceId</strong></li>
+<li>Value为对应的<strong>Promise</strong></li>
+</ul>
 </li>
+<li><p><strong>主线程</strong>的代理类将RpcResponseMessage发送给服务器后，需要创建Promise对象，并将其放入到RpcResponseMessageHandler的Map中。<strong>需要使用await等待结果被放入Promise中</strong>。获取结果后，根据结果类型（判断是否成功）来返回结果或抛出异常</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 创建Promise，用于获取NIO线程中的返回结果，获取的过程是异步的</span>
+DefaultPromise&lt;Object&gt; promise = <span class="hljs-keyword">new</span> DefaultPromise&lt;&gt;(getChannel().eventLoop());
+<span class="hljs-comment">// 将Promise放入Map中</span>
+RpcResponseMessageHandler.promiseMap.put(id, promise);
+<span class="hljs-comment">// 等待被放入Promise中结果</span>
+promise.await();
+<span class="hljs-keyword">if</span> (promise.isSuccess()) &#123;
+    <span class="hljs-comment">// 调用方法成功，返回方法执行结果</span>
+    <span class="hljs-keyword">return</span> promise.getNow();
+&#125; <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// 调用方法失败，抛出异常</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(promise.cause());
+&#125;</code></pre>
+</li>
+<li><p><strong>NIO线程</strong>负责通过SequenceId<strong>获取并移除（remove）</strong>对应的Promise，然后根据RpcResponseMessage中的结果，向Promise中放入不同的值</p>
+<ul>
+<li>如果<strong>没有异常信息</strong>（ExceptionValue），就调用<code>promise.setSuccess(returnValue)</code>放入方法返回值</li>
+<li>如果<strong>有异常信息</strong>，就调用<code>promise.setFailure(exception)</code>放入异常信息</li>
+</ul>
+<pre><code class="hljs java"><span class="hljs-comment">// 将返回结果放入对应的Promise中，并移除Map中的Promise</span>
+Promise&lt;Object&gt; promise = promiseMap.remove(msg.getSequenceId());
+Object returnValue = msg.getReturnValue();
+Exception exception = msg.getExceptionValue();
+<span class="hljs-keyword">if</span> (promise != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">if</span> (exception != <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-comment">// 返回结果中有异常信息</span>
+        promise.setFailure(exception);
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// 方法正常执行，没有异常</span>
+        promise.setSuccess(returnValue);
+    &#125;
+&#125;</code></pre>
+
+
+
+</li>
+</ul>
+<h3 id="改进RpcResponseMessageHandler"><a href="#改进RpcResponseMessageHandler" class="headerlink" title="改进RpcResponseMessageHandler"></a>改进RpcResponseMessageHandler</h3><pre><code class="hljs java"><span class="hljs-meta">@ChannelHandler</span>.Sharable
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RpcResponseMessageHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimpleChannelInboundHandler</span>&lt;<span class="hljs-title">RpcResponseMessage</span>&gt; </span>&#123;
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger log = LoggerFactory.getLogger(ChatServer<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 用于存放Promise的集合，Promise用于主线程与NIO线程之间传递返回值</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Map&lt;Integer, Promise&lt;Object&gt;&gt; promiseMap = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="hljs-number">16</span>);
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RpcResponseMessage msg)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        <span class="hljs-comment">// 将返回结果放入对应的Promise中，并移除Map中的Promise</span>
+        Promise&lt;Object&gt; promise = promiseMap.remove(msg.getSequenceId());
+        Object returnValue = msg.getReturnValue();
+        Exception exception = msg.getExceptionValue();
+        <span class="hljs-keyword">if</span> (promise != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-keyword">if</span> (exception != <span class="hljs-keyword">null</span>) &#123;
+                <span class="hljs-comment">// 返回结果中有异常信息</span>
+                promise.setFailure(exception);
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                <span class="hljs-comment">// 方法正常执行，没有异常</span>
+                promise.setSuccess(returnValue);
+            &#125;
+        &#125;
+        <span class="hljs-comment">// 拿到返回结果并打印</span>
+        log.debug(<span class="hljs-string">"&#123;&#125;"</span>, msg);
+    &#125;
+&#125;</code></pre>
+
+
+
+<h1 id="六、源码"><a href="#六、源码" class="headerlink" title="六、源码"></a>六、源码</h1><h2 id="1、启动流程"><a href="#1、启动流程" class="headerlink" title="1、启动流程"></a>1、启动流程</h2><p>Netty启动流程可以简化成如下代码</p>
+<pre><code class="hljs java"><span class="hljs-comment">// netty 中使用 NioEventLoopGroup （简称 nio boss 线程）来封装线程和 selector</span>
+Selector selector = Selector.open(); 
+
+<span class="hljs-comment">// 创建 NioServerSocketChannel，同时会初始化它关联的 handler，以及为原生 ssc 存储 config</span>
+NioServerSocketChannel attachment = <span class="hljs-keyword">new</span> NioServerSocketChannel();
+
+<span class="hljs-comment">// 创建 NioServerSocketChannel 时，创建了 java 原生的 ServerSocketChannel</span>
+ServerSocketChannel serverSocketChannel = ServerSocketChannel.open(); 
+serverSocketChannel.configureBlocking(<span class="hljs-keyword">false</span>);
+
+<span class="hljs-comment">// 启动 nio boss 线程执行接下来的操作</span>
+
+<span class="hljs-comment">//注册（仅关联 selector 和 NioServerSocketChannel），未关注事件</span>
+SelectionKey selectionKey = serverSocketChannel.register(selector, <span class="hljs-number">0</span>, attachment);
+
+<span class="hljs-comment">// head -&gt; 初始化器 -&gt; ServerBootstrapAcceptor -&gt; tail，初始化器是一次性的，只为添加 acceptor</span>
+
+<span class="hljs-comment">// 绑定端口</span>
+serverSocketChannel.bind(<span class="hljs-keyword">new</span> InetSocketAddress(<span class="hljs-number">8080</span>));
+
+<span class="hljs-comment">// 触发 channel active 事件，在 head 中关注 op_accept 事件</span>
+selectionKey.interestOps(SelectionKey.OP_ACCEPT);</code></pre>
+
+<ul>
+<li>获得选择器Selector，Netty中使用NioEventloopGroup封装了线程和选择器</li>
+<li>创建<code>NioServerSocketChannel</code>，该Channel<strong>作为附件</strong>添加到<code>ServerSocketChannel</code>中</li>
+<li>创建<code>ServerSocketChannel</code>，将其设置为非阻塞模式，并注册到Selector中，<strong>此时未关注事件，但是添加了附件</strong><code>NioServerSocketChannel</code></li>
+<li>绑定端口</li>
+<li>通过<code>interestOps</code>设置感兴趣的事件</li>
+</ul>
+<h3 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h3><p>选择器Selector的创建是在NioEventloopGroup中完成的。<strong>NioServerSocketChannel与ServerSocketChannel的创建，ServerSocketChannel注册到Selector中以及绑定操作都是由<code>bind</code>方法完成的</strong></p>
+<p>所以服务器启动的<strong>入口</strong>便是<code>io.netty.bootstrap.ServerBootstrap.bind</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress)</span> </span>&#123;
+	validate();
+	<span class="hljs-keyword">return</span> doBind(ObjectUtil.checkNotNull(localAddress, <span class="hljs-string">"localAddress"</span>));
+&#125;</code></pre>
+
+
+
+<h3 id="doBind"><a href="#doBind" class="headerlink" title="doBind"></a>doBind</h3><p>真正完成初始化、注册以及绑定的<strong>方法是<code>io.netty.bootstrap.AbstractBootstrap.doBind</code></strong></p>
+<p><strong>dobind方法在主线程中执行</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> ChannelFuture <span class="hljs-title">doBind</span><span class="hljs-params">(<span class="hljs-keyword">final</span> SocketAddress localAddress)</span> </span>&#123;
+    <span class="hljs-comment">// 负责NioServerSocketChannel和ServerSocketChannel的创建</span>
+    <span class="hljs-comment">// ServerSocketChannel的注册工作</span>
+    <span class="hljs-comment">// init由main线程完成，regisetr由NIO线程完成</span>
+    <span class="hljs-keyword">final</span> ChannelFuture regFuture = initAndRegister();
+    <span class="hljs-keyword">final</span> Channel channel = regFuture.channel();
+    <span class="hljs-keyword">if</span> (regFuture.cause() != <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-keyword">return</span> regFuture;
+    &#125;
+
+    <span class="hljs-comment">// 因为register操作是异步的</span>
+    <span class="hljs-comment">// 所以要判断主线程执行到这里时，register操作是否已经执行完毕</span>
+    <span class="hljs-keyword">if</span> (regFuture.isDone()) &#123;
+        <span class="hljs-comment">// At this point we know that the registration was complete and successful.</span>
+        ChannelPromise promise = channel.newPromise();
+        
+        <span class="hljs-comment">// 执行doBind0绑定操作</span>
+        doBind0(regFuture, channel, localAddress, promise);
+        <span class="hljs-keyword">return</span> promise;
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// Registration future is almost always fulfilled already, but just in case it's not.</span>
+        <span class="hljs-comment">// 如果register操作还没执行完，就会到这个分支中来</span>
+        <span class="hljs-keyword">final</span> PendingRegistrationPromise promise = <span class="hljs-keyword">new</span> PendingRegistrationPromise(channel);
+        
+        <span class="hljs-comment">// 添加监听器，NIO线程异步进行doBind0操作</span>
+        regFuture.addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                Throwable cause = future.cause();
+                <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-comment">// Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an</span>
+                    <span class="hljs-comment">// IllegalStateException once we try to access the EventLoop of the Channel.</span>
+                    promise.setFailure(cause);
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    <span class="hljs-comment">// Registration was successful, so set the correct executor to use.</span>
+                    <span class="hljs-comment">// See https://github.com/netty/netty/issues/2586</span>
+                    promise.registered();
+
+                    doBind0(regFuture, channel, localAddress, promise);
+                &#125;
+            &#125;
+        &#125;);
+        <span class="hljs-keyword">return</span> promise;
+    &#125;
+&#125;</code></pre>
+
+<ul>
+<li><p>doBind()中有两个重要方法<code>initAndRegister()</code>和<code>doBind0(regFuture, channel, localAddress, promise)</code></p>
+</li>
+<li><p><strong>initAndRegister</strong>主要负责NioServerSocketChannel和ServerSocketChannel的创建（主线程中完成）与ServerSocketChannel注册（NIO线程中完成）工作</p>
+</li>
+<li><p><strong>doBind0</strong>则负责连接的创建工作</p>
+</li>
+</ul>
+<h3 id="initAndRegisterd"><a href="#initAndRegisterd" class="headerlink" title="initAndRegisterd"></a>initAndRegisterd</h3><p>代码</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">final</span> ChannelFuture <span class="hljs-title">initAndRegister</span><span class="hljs-params">()</span> </span>&#123;
+    Channel channel = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">try</span> &#123;
+        channel = channelFactory.newChannel();
+        init(channel);
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        <span class="hljs-keyword">if</span> (channel != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-comment">// channel can be null if newChannel crashed (eg SocketException("too many open files"))</span>
+            channel.unsafe().closeForcibly();
+            <span class="hljs-comment">// as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultChannelPromise(channel, GlobalEventExecutor.INSTANCE).setFailure(t);
+        &#125;
+        <span class="hljs-comment">// as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultChannelPromise(<span class="hljs-keyword">new</span> FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
+    &#125;
+
+    ChannelFuture regFuture = config().group().register(channel);
+    <span class="hljs-keyword">if</span> (regFuture.cause() != <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-keyword">if</span> (channel.isRegistered()) &#123;
+            channel.close();
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            channel.unsafe().closeForcibly();
+        &#125;
+    &#125;
+
+    <span class="hljs-comment">// If we are here and the promise is not failed, it's one of the following cases:</span>
+    <span class="hljs-comment">// 1) If we attempted registration from the event loop, the registration has been completed at this point.</span>
+    <span class="hljs-comment">//    i.e. It's safe to attempt bind() or connect() now because the channel has been registered.</span>
+    <span class="hljs-comment">// 2) If we attempted registration from the other thread, the registration request has been successfully</span>
+    <span class="hljs-comment">//    added to the event loop's task queue for later execution.</span>
+    <span class="hljs-comment">//    i.e. It's safe to attempt bind() or connect() now:</span>
+    <span class="hljs-comment">//         because bind() or connect() will be executed *after* the scheduled registration task is executed</span>
+    <span class="hljs-comment">//         because register(), bind(), and connect() are all bound to the same thread.</span>
+
+    <span class="hljs-keyword">return</span> regFuture;
+&#125;</code></pre>
+
+
+
+<h4 id="init"><a href="#init" class="headerlink" title="init"></a>init</h4><pre><code class="hljs java">Channel channel = <span class="hljs-keyword">null</span>;
+<span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 通过反射初始化NioServerSocketChannel</span>
+    channel = channelFactory.newChannel();
+    init(channel);
+&#125;</code></pre>
+
+<p>newChannel方法</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">newChannel</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 通过反射调用NioServerSocketChannel的构造方法</span>
+        <span class="hljs-comment">// 创建NioServerSocketChannel对象</span>
+        <span class="hljs-keyword">return</span> constructor.newInstance();
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ChannelException(<span class="hljs-string">"Unable to create Channel from class "</span> + constructor.getDeclaringClass(), t);
+    &#125;
+&#125;</code></pre>
+
+<p>NioServerSocketChannel构造方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">NioServerSocketChannel</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 创建了ServerSocketChannel实例</span>
+    <span class="hljs-keyword">this</span>(newSocket(DEFAULT_SELECTOR_PROVIDER));
+&#125;</code></pre>
+
+<p>newSocket方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ServerSocketChannel <span class="hljs-title">newSocket</span><span class="hljs-params">(SelectorProvider provider)</span> </span>&#123;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 相当于ServerSocketChannel.open()</span>
+        <span class="hljs-comment">// 创建ServerSocketChannel实例</span>
+    	<span class="hljs-keyword">return</span> provider.openServerSocketChannel();
+	&#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
+  	  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ChannelException(<span class="hljs-string">"Failed to open a server socket."</span>, e);
+	&#125;
+&#125;</code></pre>
+
+<p><strong>init方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(Channel channel)</span> </span>&#123;
+   	...
+		
+    <span class="hljs-comment">// NioSocketChannl的Pipeline    </span>
+    ChannelPipeline p = channel.pipeline();
+		
+    ...
+
+    <span class="hljs-comment">// 向Pipeline中添加了一个handler，该handler等待被调用</span>
+    p.addLast(<span class="hljs-keyword">new</span> ChannelInitializer&lt;Channel&gt;() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-comment">// register之后才调用该方法</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Channel ch)</span> </span>&#123;
+            <span class="hljs-keyword">final</span> ChannelPipeline pipeline = ch.pipeline();
+            
+            <span class="hljs-comment">// 创建handler并加入到pipeline中</span>
+            ChannelHandler handler = config.handler();
+            <span class="hljs-keyword">if</span> (handler != <span class="hljs-keyword">null</span>) &#123;
+                pipeline.addLast(handler);
+            &#125;
+
+            ch.eventLoop().execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+                <span class="hljs-meta">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+                    <span class="hljs-comment">// 添加新的handler，在发生Accept事件后建立连接</span>
+                    pipeline.addLast(<span class="hljs-keyword">new</span> ServerBootstrapAcceptor(
+                            ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                &#125;
+            &#125;);
+        &#125;
+    &#125;);
+&#125;</code></pre>
+
+<p><strong>init主要完成了以下三个操作</strong></p>
+<ul>
+<li>创建NioServerSocketChannel</li>
+<li>通过NioServerSocketChannel的构造器，创建了ServerSocketChannel</li>
+<li>由<code>initChannel</code>方法向NioServerSocketChannel中添加了两个handler，<strong>添加操作在register之后被执行</strong><ul>
+<li>一个handler负责设置配置</li>
+<li>一个handler负责发生Accepet事件后建立连接</li>
+</ul>
+</li>
+</ul>
+<h4 id="Register"><a href="#Register" class="headerlink" title="Register"></a>Register</h4><p>init执行完毕后，便执行<code>ChannelFuture regFuture = config().group().register(channel)</code>操作</p>
+<p>该方法最终调用的是<code>promise.channel().unsafe().register(this, promise)</code>方法</p>
+<p><strong>promise.channel().unsafe().register(this, promise)</strong></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register</span><span class="hljs-params">(EventLoop eventLoop, <span class="hljs-keyword">final</span> ChannelPromise promise)</span> </span>&#123;
+    ...
+
+    <span class="hljs-comment">// 获取EventLoop</span>
+    AbstractChannel.<span class="hljs-keyword">this</span>.eventLoop = eventLoop;
+
+   	<span class="hljs-comment">// 此处完成了由 主线程 到 NIO线程 的切换</span>
+    <span class="hljs-comment">// eventLoop.inEventLoop()用于判断当前线程是否为NIO线程</span>
+    <span class="hljs-keyword">if</span> (eventLoop.inEventLoop()) &#123;
+        register0(promise);
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// 向NIO线程中添加任务</span>
+            eventLoop.execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+                <span class="hljs-meta">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+                    <span class="hljs-comment">// 该方法中会执行doRegister</span>
+                    <span class="hljs-comment">// 执行真正的注册操作</span>
+                    register0(promise);
+                &#125;
+            &#125;);
+        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+           ...
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p>register0方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register0</span><span class="hljs-params">(ChannelPromise promise)</span> </span>&#123;
+    <span class="hljs-keyword">try</span> &#123;
+       	...
+            
+        <span class="hljs-comment">// 执行真正的注册操作</span>
+        doRegister();
+        neverRegistered = <span class="hljs-keyword">false</span>;
+        registered = <span class="hljs-keyword">true</span>;
+
+        <span class="hljs-comment">// Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the</span>
+        <span class="hljs-comment">// user may already fire events through the pipeline in the ChannelFutureListener.</span>
+        
+        <span class="hljs-comment">// 调用init中的initChannel方法</span>
+        pipeline.invokeHandlerAddedIfNeeded();
+
+        ...
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        ...
+    &#125;
+&#125;</code></pre>
+
+<p><strong>doRegister方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doRegister</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-keyword">boolean</span> selected = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// javaChannel()即为ServerSocketChannel</span>
+            <span class="hljs-comment">// eventLoop().unwrappedSelector()获取eventLoop中的Selector</span>
+            <span class="hljs-comment">// this为NIOServerSocketChannel，作为附件</span>
+            selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>);
+            <span class="hljs-keyword">return</span>;
+        &#125; <span class="hljs-keyword">catch</span> (CancelledKeyException e) &#123;
+            ...
+           
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p>回调initChannel</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Channel ch)</span> </span>&#123;
+    <span class="hljs-keyword">final</span> ChannelPipeline pipeline = ch.pipeline();
+    ChannelHandler handler = config.handler();
+    <span class="hljs-keyword">if</span> (handler != <span class="hljs-keyword">null</span>) &#123;
+        pipeline.addLast(handler);
+    &#125;
+
+    <span class="hljs-comment">// 添加新任务，任务负责添加handler</span>
+    <span class="hljs-comment">// 该handler负责发生Accepet事件后建立连接</span>
+    ch.eventLoop().execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+            pipeline.addLast(<span class="hljs-keyword">new</span> ServerBootstrapAcceptor(
+                    ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+        &#125;
+    &#125;);
+&#125;</code></pre>
+
+
+
+<p>Register主要完成了以下三个操作</p>
+<ul>
+<li><p>完成了主线程到NIO的<strong>线程切换</strong></p>
+<ul>
+<li>通过<code>eventLoop.inEventLoop()</code>进行线程判断，判断当前线程是否为NIO线程</li>
+<li>切换的方式为让eventLoop执行register的操作</li>
+<li><strong>register的操作在NIO线程中完成</strong></li>
+</ul>
+</li>
+<li><p><strong>调用doRegister方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// javaChannel()即为ServerSocketChannel</span>
+<span class="hljs-comment">// eventLoop().unwrappedSelector()获取eventLoop中的Selector</span>
+<span class="hljs-comment">// this为NIOServerSocketChannel，作为附件</span>
+selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>);</code></pre>
+
+<ul>
+<li><strong>将ServerSocketChannel注册到EventLoop的Selector中</strong></li>
+<li>此时还未关注事件</li>
+<li>添加NioServerSocketChannel附件</li>
+</ul>
+</li>
+<li><p>通过<code>invokeHandlerAddedIfNeeded</code>调用init中的<code>initChannel</code>方法</p>
+<ul>
+<li>initChannel方法主要创建了<strong>两个handler</strong><ul>
+<li>一个handler负责设置配置</li>
+<li>一个handler负责发生Accept事件后建立连接</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="doBind0"><a href="#doBind0" class="headerlink" title="doBind0"></a>doBind0</h3><h4 id="绑定端口"><a href="#绑定端口" class="headerlink" title="绑定端口"></a>绑定端口</h4><p>在<code>doRegister</code>和<code>invokeHandlerAddedIfNeeded</code>操作中的完成后，会调用<code>safeSetSuccess(promise)</code>方法，向Promise中设置执行成功的结果。此时<code>doBind</code>方法中由<code>initAndRegister</code>返回的ChannelFuture对象regFuture便会由NIO线程异步执行doBind0绑定操作</p>
+<pre><code class="hljs java">    		<span class="hljs-comment">// initAndRegister为异步方法，会返回ChannelFuture对象</span>
+<span class="hljs-keyword">final</span> ChannelFuture regFuture = initAndRegister();
+
+
+         regFuture.addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() &#123;
+             <span class="hljs-meta">@Override</span>
+             <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                 Throwable cause = future.cause();
+                 <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
+                     <span class="hljs-comment">// Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an</span>
+                     <span class="hljs-comment">// IllegalStateException once we try to access the EventLoop of the Channel.</span>
+                     promise.setFailure(cause);
+                 &#125; <span class="hljs-keyword">else</span> &#123;
+                     <span class="hljs-comment">// Registration was successful, so set the correct executor to use.</span>
+                     <span class="hljs-comment">// See https://github.com/netty/netty/issues/2586</span>
+                     promise.registered();
+			
+                     <span class="hljs-comment">// 如果没有异常，则执行绑定操作</span>
+                     doBind0(regFuture, channel, localAddress, promise);
+                 &#125;
+             &#125;
+         &#125;);</code></pre>
+
+<p><strong>doBind0最底层调用的是ServerSocketChannel的bind方法</strong></p>
+<p>NioServerSocketChannel.doBind方法</p>
+<p>通过该方法，绑定了对应的端口</p>
+<pre><code class="hljs java"><span class="hljs-meta">@SuppressJava</span>6Requirement(reason = <span class="hljs-string">"Usage guarded by java version check"</span>)
+<span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doBind</span><span class="hljs-params">(SocketAddress localAddress)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-keyword">if</span> (PlatformDependent.javaVersion() &gt;= <span class="hljs-number">7</span>) &#123;
+        <span class="hljs-comment">// 调用ServerSocketChannel的bind方法，绑定端口</span>
+        javaChannel().bind(localAddress, config.getBacklog());
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        javaChannel().socket().bind(localAddress, config.getBacklog());
+    &#125;
+&#125;</code></pre>
+
+
+
+<h4 id="关注事件"><a href="#关注事件" class="headerlink" title="关注事件"></a>关注事件</h4><p>在绑定端口操作完成后，会判断各种所有初始化操作是否已经完成，若完成，则会添加ServerSocketChannel感兴趣的事件</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> (!wasActive &amp;&amp; isActive()) &#123;
+    invokeLater(<span class="hljs-keyword">new</span> Runnable() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+            pipeline.fireChannelActive();
+        &#125;
+    &#125;);
+&#125;</code></pre>
+
+<p>最终在<code>AbstractNioChannel.doBeginRead</code>方法中，会添加ServerSocketChannel添加Accept事件</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doBeginRead</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-comment">// Channel.read() or ChannelHandlerContext.read() was called</span>
+    <span class="hljs-keyword">final</span> SelectionKey selectionKey = <span class="hljs-keyword">this</span>.selectionKey;
+    <span class="hljs-keyword">if</span> (!selectionKey.isValid()) &#123;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+    readPending = <span class="hljs-keyword">true</span>;
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> interestOps = selectionKey.interestOps();
+    <span class="hljs-comment">// 如果ServerSocketChannel没有关注Accept事件</span>
+    <span class="hljs-keyword">if</span> ((interestOps &amp; readInterestOp) == <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-comment">// 则让其关注Accepet事件</span>
+        selectionKey.interestOps(interestOps | readInterestOp);
+    &#125;
+&#125;</code></pre>
+
+
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通过上述步骤，完成了</p>
+<ul>
+<li>NioServerSocketChannel与ServerSocketChannel的创建</li>
+<li>ServerSocketChannel绑定到EventLoop的Selecot中，并添加NioServerSocketChannel附件</li>
+<li>绑定了对应的端口</li>
+<li>关注了Accept事件</li>
 </ul>
 
             </article>
