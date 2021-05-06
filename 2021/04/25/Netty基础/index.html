@@ -5091,70 +5091,67 @@ Iterator&lt;SelectionKey&gt; iter = selector.selectionKeys().iterator();
 &#125;</code></pre>
 
 <p>分支中，通过<code>unsafe.read()</code>方法处理的，<strong>不过此处调用的方法在AbstractNioByteChannel.NioByteUnsafe类中</strong></p>
-<pre><code class="hljs java">    <span class="hljs-meta">@Override</span>
-    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> </span>&#123;
-        <span class="hljs-comment">// 获得Channel的配置</span>
-        <span class="hljs-keyword">final</span> ChannelConfig config = config();
-        <span class="hljs-keyword">if</span> (shouldBreakReadReady(config)) &#123;
-            clearReadPending();
-            <span class="hljs-keyword">return</span>;
-        &#125;
-        <span class="hljs-keyword">final</span> ChannelPipeline pipeline = pipeline();
-        
-        <span class="hljs-comment">// 根据配置创建ByteBufAllocator（池化非池化、直接非直接内存）</span>
-        <span class="hljs-keyword">final</span> ByteBufAllocator allocator = config.getAllocator();
-        <span class="hljs-keyword">final</span> RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
-        allocHandle.reset(config);
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 获得Channel的配置</span>
+    <span class="hljs-keyword">final</span> ChannelConfig config = config();
+    <span class="hljs-keyword">if</span> (shouldBreakReadReady(config)) &#123;
+        clearReadPending();
+        <span class="hljs-keyword">return</span>;
+    &#125;
+    <span class="hljs-keyword">final</span> ChannelPipeline pipeline = pipeline();
+	<span class="hljs-comment">// 根据配置创建ByteBufAllocator（池化非池化、直接非直接内存）</span>
+	<span class="hljs-keyword">final</span> ByteBufAllocator allocator = config.getAllocator();
+    <span class="hljs-comment">// 用来分配 byteBuf，确定单次读取大小</span>
+    <span class="hljs-keyword">final</span> RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
+    allocHandle.reset(config);
 
-        ByteBuf byteBuf = <span class="hljs-keyword">null</span>;
-        <span class="hljs-keyword">boolean</span> close = <span class="hljs-keyword">false</span>;
-        <span class="hljs-keyword">try</span> &#123;
-            <span class="hljs-keyword">do</span> &#123;
-                <span class="hljs-comment">// 创建ByteBuf</span>
-                byteBuf = allocHandle.allocate(allocator);
-                <span class="hljs-comment">// 读取内容，放入ByteBUf中</span>
-                allocHandle.lastBytesRead(doReadBytes(byteBuf));
-                <span class="hljs-keyword">if</span> (allocHandle.lastBytesRead() &lt;= <span class="hljs-number">0</span>) &#123;
-                    <span class="hljs-comment">// nothing was read. release the buffer.</span>
-                    byteBuf.release();
-                    byteBuf = <span class="hljs-keyword">null</span>;
-                    close = allocHandle.lastBytesRead() &lt; <span class="hljs-number">0</span>;
-                    <span class="hljs-keyword">if</span> (close) &#123;
-                        <span class="hljs-comment">// There is nothing left to read as we received an EOF.</span>
-                        readPending = <span class="hljs-keyword">false</span>;
-                    &#125;
-                    <span class="hljs-keyword">break</span>;
-                &#125;
-
-                allocHandle.incMessagesRead(<span class="hljs-number">1</span>);
-                readPending = <span class="hljs-keyword">false</span>;
-                
-                <span class="hljs-comment">// 触发read 事件，让pipeline上的handler处理</span>
-                <span class="hljs-comment">// 这时是处理NioSocketChannel上的handler</span>
-                pipeline.fireChannelRead(byteBuf);
+    ByteBuf byteBuf = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">boolean</span> close = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-keyword">do</span> &#123;
+            <span class="hljs-comment">// 创建ByteBuf</span>
+            byteBuf = allocHandle.allocate(allocator);
+            <span class="hljs-comment">// 读取内容，放入ByteBUf中</span>
+            allocHandle.lastBytesRead(doReadBytes(byteBuf));
+            <span class="hljs-keyword">if</span> (allocHandle.lastBytesRead() &lt;= <span class="hljs-number">0</span>) &#123;
+                byteBuf.release();
                 byteBuf = <span class="hljs-keyword">null</span>;
-       		<span class="hljs-comment">// 是否继续读取</span>
-            &#125; <span class="hljs-keyword">while</span> (allocHandle.continueReading());
-
-            <span class="hljs-comment">// 触发read complete事件</span>
-            allocHandle.readComplete();
-            pipeline.fireChannelReadComplete();
-
-            <span class="hljs-keyword">if</span> (close) &#123;
-                closeOnRead(pipeline);
+                close = allocHandle.lastBytesRead() &lt; <span class="hljs-number">0</span>;
+                <span class="hljs-keyword">if</span> (close) &#123;
+                    readPending = <span class="hljs-keyword">false</span>;
+                &#125;
+                <span class="hljs-keyword">break</span>;
             &#125;
-        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
-            handleReadException(pipeline, byteBuf, t, close, allocHandle);
-        &#125; <span class="hljs-keyword">finally</span> &#123;
-            <span class="hljs-comment">// Check if there is a readPending which was not processed yet.</span>
-            <span class="hljs-comment">// This could be for two reasons:</span>
-            <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method</span>
-            <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method</span>
-            <span class="hljs-comment">//</span>
-            <span class="hljs-comment">// See https://github.com/netty/netty/issues/2254</span>
-            <span class="hljs-keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;
-                removeReadOp();
-            &#125;
+
+            allocHandle.incMessagesRead(<span class="hljs-number">1</span>);
+            readPending = <span class="hljs-keyword">false</span>;
+            <span class="hljs-comment">// 触发read 事件，让pipeline上的handler处理</span>
+            <span class="hljs-comment">// 这时是处理NioSocketChannel上的handler</span>
+            pipeline.fireChannelRead(byteBuf);
+            byteBuf = <span class="hljs-keyword">null</span>;
+        &#125; 
+        <span class="hljs-comment">// 是否要继续循环</span>
+        <span class="hljs-keyword">while</span> (allocHandle.continueReading());
+
+        allocHandle.readComplete();
+        <span class="hljs-comment">// 触发 read complete事件</span>
+        pipeline.fireChannelReadComplete();
+
+        <span class="hljs-keyword">if</span> (close) &#123;
+            closeOnRead(pipeline);
+        &#125;
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        handleReadException(pipeline, byteBuf, t, close, allocHandle);
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+         <span class="hljs-comment">// Check if there is a readPending which was not processed yet.</span>
+         <span class="hljs-comment">// This could be for two reasons:</span>
+         <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method</span>
+         <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method</span>
+         <span class="hljs-comment">//</span>
+         <span class="hljs-comment">// See https://github.com/netty/netty/issues/2254</span>
+        <span class="hljs-keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;
+            removeReadOp();
         &#125;
     &#125;
 &#125;</code></pre>
