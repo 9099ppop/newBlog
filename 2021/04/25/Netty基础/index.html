@@ -175,7 +175,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      25.3k 字
+      30.2k 字
     </span>
   
 
@@ -185,7 +185,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      369
+      442
        分钟
     </span>
   
@@ -3828,7 +3828,7 @@ serverSocketChannel.bind(<span class="hljs-keyword">new</span> InetSocketAddress
 selectionKey.interestOps(SelectionKey.OP_ACCEPT);</code></pre>
 
 <ul>
-<li>获得选择器Selector，Netty中使用NioEventloopGroup封装了线程和选择器</li>
+<li>获得选择器Selector，Netty中使用NioEventloopGroup中的NioEventloop封装了线程和选择器</li>
 <li>创建<code>NioServerSocketChannel</code>，该Channel<strong>作为附件</strong>添加到<code>ServerSocketChannel</code>中</li>
 <li>创建<code>ServerSocketChannel</code>，将其设置为非阻塞模式，并注册到Selector中，<strong>此时未关注事件，但是添加了附件</strong><code>NioServerSocketChannel</code></li>
 <li>绑定端口</li>
@@ -3967,8 +3967,10 @@ selectionKey.interestOps(SelectionKey.OP_ACCEPT);</code></pre>
 <p>newSocket方法</p>
 <pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ServerSocketChannel <span class="hljs-title">newSocket</span><span class="hljs-params">(SelectorProvider provider)</span> </span>&#123;
     <span class="hljs-keyword">try</span> &#123;
-        <span class="hljs-comment">// 相当于ServerSocketChannel.open()</span>
-        <span class="hljs-comment">// 创建ServerSocketChannel实例</span>
+        <span class="hljs-comment">// ServerSocketChannel.open方法：</span>
+        <span class="hljs-comment">// SelectorProvider.provider().openServerSocketChannel()</span>
+	    <span class="hljs-comment">// 所以此处相当于ServerSocketChannel.open()</span>
+        <span class="hljs-comment">// 创建了ServerSocketChannel实例</span>
     	<span class="hljs-keyword">return</span> provider.openServerSocketChannel();
 	&#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
   	  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ChannelException(<span class="hljs-string">"Failed to open a server socket."</span>, e);
@@ -4145,28 +4147,25 @@ selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span cla
 </li>
 </ul>
 <h3 id="doBind0"><a href="#doBind0" class="headerlink" title="doBind0"></a>doBind0</h3><h4 id="绑定端口"><a href="#绑定端口" class="headerlink" title="绑定端口"></a>绑定端口</h4><p>在<code>doRegister</code>和<code>invokeHandlerAddedIfNeeded</code>操作中的完成后，会调用<code>safeSetSuccess(promise)</code>方法，向Promise中设置执行成功的结果。此时<code>doBind</code>方法中由<code>initAndRegister</code>返回的ChannelFuture对象regFuture便会由NIO线程异步执行doBind0绑定操作</p>
-<pre><code class="hljs java">    		<span class="hljs-comment">// initAndRegister为异步方法，会返回ChannelFuture对象</span>
+<pre><code class="hljs java"><span class="hljs-comment">// initAndRegister为异步方法，会返回ChannelFuture对象</span>
 <span class="hljs-keyword">final</span> ChannelFuture regFuture = initAndRegister();
-
-
-         regFuture.addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() &#123;
-             <span class="hljs-meta">@Override</span>
-             <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
-                 Throwable cause = future.cause();
-                 <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
-                     <span class="hljs-comment">// Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an</span>
-                     <span class="hljs-comment">// IllegalStateException once we try to access the EventLoop of the Channel.</span>
-                     promise.setFailure(cause);
-                 &#125; <span class="hljs-keyword">else</span> &#123;
-                     <span class="hljs-comment">// Registration was successful, so set the correct executor to use.</span>
-                     <span class="hljs-comment">// See https://github.com/netty/netty/issues/2586</span>
-                     promise.registered();
-			
-                     <span class="hljs-comment">// 如果没有异常，则执行绑定操作</span>
-                     doBind0(regFuture, channel, localAddress, promise);
-                 &#125;
-             &#125;
-         &#125;);</code></pre>
+regFuture.addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() &#123;
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        Throwable cause = future.cause();
+        <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-comment">// Registration on the EventLoop failed so fail the ChannelPromise directly to not cause an</span>
+            <span class="hljs-comment">// IllegalStateException once we try to access the EventLoop of the Channel.</span>
+            promise.setFailure(cause);
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-comment">// Registration was successful, so set the correct executor to use.</span>
+            <span class="hljs-comment">// See https://github.com/netty/netty/issues/2586</span>
+            promise.registered();
+            <span class="hljs-comment">// 如果没有异常，则执行绑定操作</span>
+            doBind0(regFuture, channel, localAddress, promise);
+        &#125;
+    &#125;
+&#125;);</code></pre>
 
 <p><strong>doBind0最底层调用的是ServerSocketChannel的bind方法</strong></p>
 <p>NioServerSocketChannel.doBind方法</p>
@@ -4207,12 +4206,26 @@ selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span cla
     <span class="hljs-comment">// 如果ServerSocketChannel没有关注Accept事件</span>
     <span class="hljs-keyword">if</span> ((interestOps &amp; readInterestOp) == <span class="hljs-number">0</span>) &#123;
         <span class="hljs-comment">// 则让其关注Accepet事件</span>
+        <span class="hljs-comment">// readInterestOp 取值是 16</span>
+        <span class="hljs-comment">// 在 NioServerSocketChannel 创建时初始化</span>
         selectionKey.interestOps(interestOps | readInterestOp);
     &#125;
 &#125;</code></pre>
 
+<p><strong>注意</strong>：此处设置interestOps时使用的方法，<strong>避免覆盖关注的其他事件</strong></p>
+<ul>
+<li><p>首先获取Channel所有感兴趣的事件</p>
+<pre><code class="hljs java"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> interestOps = selectionKey.interestOps();</code></pre>
+</li>
+<li><p>然后再设置其感兴趣的事件</p>
+<pre><code class="hljs java">selectionKey.interestOps(interestOps | readInterestOp);</code></pre>
 
 
+
+</li>
+</ul>
+<p><strong>各个事件对应的值</strong></p>
+<p><img src="https://nyimapicture.oss-cn-beijing.aliyuncs.com/img/20210506090047.png" srcset="/img/loading.gif" alt=""></p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通过上述步骤，完成了</p>
 <ul>
 <li>NioServerSocketChannel与ServerSocketChannel的创建</li>
@@ -4220,6 +4233,946 @@ selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span cla
 <li>绑定了对应的端口</li>
 <li>关注了Accept事件</li>
 </ul>
+<h2 id="2、NioEventLoop剖析"><a href="#2、NioEventLoop剖析" class="headerlink" title="2、NioEventLoop剖析"></a>2、NioEventLoop剖析</h2><h3 id="组成-1"><a href="#组成-1" class="headerlink" title="组成"></a>组成</h3><p>NioEventLoop的重要组成部分有三个</p>
+<ul>
+<li><p><strong>Selector</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NioEventLoop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SingleThreadEventLoop</span> </span>&#123;
+    
+    ...
+        
+    <span class="hljs-comment">// selector中的selectedKeys是基于数组的</span>
+    <span class="hljs-comment">// unwrappedSelector中的selectedKeys是基于HashSet的    </span>
+    <span class="hljs-keyword">private</span> Selector selector;
+    <span class="hljs-keyword">private</span> Selector unwrappedSelector;
+    <span class="hljs-keyword">private</span> SelectedSelectionKeySet selectedKeys;
+    
+    ...
+&#125;</code></pre>
+</li>
+<li><p><strong>Thread与TaskQueue</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SingleThreadEventExecutor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractScheduledEventExecutor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">OrderedEventExecutor</span> </span>&#123;
+    <span class="hljs-comment">// 任务队列</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Queue&lt;Runnable&gt; taskQueue;
+
+    <span class="hljs-comment">// 线程</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Thread thread;
+&#125;</code></pre>
+
+
+
+</li>
+</ul>
+<h4 id="Selector的创建"><a href="#Selector的创建" class="headerlink" title="Selector的创建"></a>Selector的创建</h4><p>Selector是在NioEventLoop的构造方法中被创建的</p>
+<pre><code class="hljs java">NioEventLoop(NioEventLoopGroup parent, Executor executor, SelectorProvider selectorProvider, SelectStrategy strategy, RejectedExecutionHandler rejectedExecutionHandler, EventLoopTaskQueueFactory queueFactory) &#123;
+    
+        ...
+           
+        <span class="hljs-comment">// 初始化selector，初始化过程在openSelector中</span>
+        <span class="hljs-keyword">final</span> SelectorTuple selectorTuple = openSelector();
+        <span class="hljs-keyword">this</span>.selector = selectorTuple.selector;
+        <span class="hljs-keyword">this</span>.unwrappedSelector = selectorTuple.unwrappedSelector;
+&#125;
+
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> SelectorTuple <span class="hljs-title">openSelector</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">final</span> Selector unwrappedSelector;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 此处等同于 Selector.open()方法</span>
+        <span class="hljs-comment">// 创建了unwrappedSelector对象</span>
+        unwrappedSelector = provider.openSelector();
+    &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ChannelException(<span class="hljs-string">"failed to open a new selector"</span>, e);
+    &#125;
+&#125;</code></pre>
+
+<p>NioEventLoop的构造方法中，调用了<code>openSelector()</code>方法， 该方法会返回一个</p>
+<p><strong>SelectorTuple</strong>对象，该方法<strong>是创建Selector的核心方法</strong>。<code>openSelector()</code>方法内部调用了</p>
+<pre><code class="hljs java">unwrappedSelector = provider.openSelector();</code></pre>
+
+<p>获得了Selector对象<code>unwrappedSelector</code></p>
+<p>后面会通过反射，修改<code>unwrappedSelector</code>中SelectedKeys的实现，然后通过<code>SelectedSelectionKeySetSelector</code>方法获得selector。<strong>最后通过SelectorTuple的构造方法，将该Selector的值赋给SelectorTuple类中的selector与unwrappedSelector</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SelectorTuple</span> </span>&#123;
+    <span class="hljs-keyword">final</span> Selector unwrappedSelector;
+    <span class="hljs-keyword">final</span> Selector selector;
+
+    SelectorTuple(Selector unwrappedSelector) &#123;
+        <span class="hljs-keyword">this</span>.unwrappedSelector = unwrappedSelector;
+        <span class="hljs-keyword">this</span>.selector = unwrappedSelector;
+    &#125;
+
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 一般调用的是这个构造方法</span>
+<span class="hljs-comment">    */</span>
+    SelectorTuple(Selector unwrappedSelector, Selector selector) &#123;
+        <span class="hljs-keyword">this</span>.unwrappedSelector = unwrappedSelector;
+        <span class="hljs-keyword">this</span>.selector = selector;
+    &#125;
+&#125;</code></pre>
+
+<p><strong>再通过NioEventLoop的构造方法，将SelectorTuple中的Selector赋值给NioEventLoop中的Selector</strong></p>
+<h4 id="两个Selector"><a href="#两个Selector" class="headerlink" title="两个Selector"></a>两个Selector</h4><p>NioEventLoop中有selector和unwrappedSelector两个Selector，<strong>它们的区别主要在于SelectedKeys的数据结构</strong></p>
+<ul>
+<li>selector中的SelectedKeys是<strong>基于数组</strong>的</li>
+<li>unwrappedSelector中的是<strong>基于HashSet</strong>的</li>
+</ul>
+<p>这样做的主要目的是，<strong>数组的遍历效率要高于HashSet</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> SelectorTuple <span class="hljs-title">openSelector</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">final</span> Selector unwrappedSelector;
+    <span class="hljs-keyword">try</span> &#123;
+        unwrappedSelector = provider.openSelector();
+    &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ChannelException(<span class="hljs-string">"failed to open a new selector"</span>, e);
+    &#125;
+
+    ...
+    
+    <span class="hljs-comment">// 获得基于数组的selectedKeySet实现</span>
+    <span class="hljs-keyword">final</span> SelectedSelectionKeySet selectedKeySet = <span class="hljs-keyword">new</span> SelectedSelectionKeySet();
+
+
+    Object maybeException = AccessController.doPrivileged(<span class="hljs-keyword">new</span> PrivilegedAction&lt;Object&gt;() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+            <span class="hljs-keyword">try</span> &#123;
+                <span class="hljs-comment">// 通过反射拿到unwrappedSelector中的selectedKeys属性</span>
+                Field selectedKeysField = selectorImplClass.getDeclaredField(<span class="hljs-string">"selectedKeys"</span>);
+                Field publicSelectedKeysField = selectorImplClass.getDeclaredField(<span class="hljs-string">"publicSelectedKeys"</span>);
+
+                ...
+	
+                <span class="hljs-comment">// 暴力反射，修改私有属性</span>
+                Throwable cause = ReflectionUtil.trySetAccessible(selectedKeysField, <span class="hljs-keyword">true</span>);
+                <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-keyword">return</span> cause;
+                &#125;
+                cause = ReflectionUtil.trySetAccessible(publicSelectedKeysField, <span class="hljs-keyword">true</span>);
+                <span class="hljs-keyword">if</span> (cause != <span class="hljs-keyword">null</span>) &#123;
+                    <span class="hljs-keyword">return</span> cause;
+                &#125;
+
+                <span class="hljs-comment">// 替换为基于数组的selectedKeys实现</span>
+                selectedKeysField.set(unwrappedSelector, selectedKeySet);
+                publicSelectedKeysField.set(unwrappedSelector, selectedKeySet);
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+            &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException e) &#123;
+                <span class="hljs-keyword">return</span> e;
+            &#125; <span class="hljs-keyword">catch</span> (IllegalAccessException e) &#123;
+                <span class="hljs-keyword">return</span> e;
+            &#125;
+        &#125;
+    &#125;);
+
+    selectedKeys = selectedKeySet;
+    
+    <span class="hljs-comment">// 调用构造函数，创建unwrappedSelector与selector</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> SelectorTuple(unwrappedSelector,
+                             <span class="hljs-keyword">new</span> SelectedSelectionKeySetSelector(unwrappedSelector, selectedKeySet));
+&#125;</code></pre>
+
+<p>获得数组实现SelectedKeys的Selector的原理是反射，主要步骤如下</p>
+<ul>
+<li><p>获得<strong>基于数组</strong>的selectedKeySet实现</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 获得基于数组的selectedKeySet实现</span>
+<span class="hljs-keyword">final</span> SelectedSelectionKeySet selectedKeySet = <span class="hljs-keyword">new</span> SelectedSelectionKeySet();
+
+SelectedSelectionKeySet() &#123;
+	keys = <span class="hljs-keyword">new</span> SelectionKey[<span class="hljs-number">1024</span>];
+&#125;</code></pre>
+</li>
+<li><p>通过<strong>反射</strong>拿到unwrappedSelector中的SelectedKeySet并将其<strong>替换为selectedKeySet</strong></p>
+</li>
+<li><p><strong>通过Selector的构造方法</strong>获得selector</p>
+<pre><code class="hljs java"><span class="hljs-keyword">new</span> SelectedSelectionKeySetSelector(unwrappedSelector, selectedKeySet)</code></pre>
+</li>
+<li><p><strong>通过SelectorTuple的构造方法</strong>获得拥有两种Selector的SelectorTuple对象，并返回给NioEventLoop</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 调用构造函数，创建unwrappedSelector与selector</span>
+<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> SelectorTuple(unwrappedSelector, <span class="hljs-keyword">new</span> SelectedSelectionKeySetSelector(unwrappedSelector, selectedKeySet));</code></pre>
+
+
+
+
+
+</li>
+</ul>
+<h3 id="NIO线程启动时机"><a href="#NIO线程启动时机" class="headerlink" title="NIO线程启动时机"></a>NIO线程启动时机</h3><h4 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h4><p>NioEventLoop中的线程，<strong>在首次执行任务时，才会被创建，且只会被创建一次</strong></p>
+<p><strong>测试代码</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TestNioEventLoop</span> </span>&#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+        EventLoop eventLoop = <span class="hljs-keyword">new</span> NioEventLoopGroup().next();
+        <span class="hljs-comment">// 使用NioEventLoop执行任务</span>
+        eventLoop.execute(()-&gt;&#123;
+            System.out.println(<span class="hljs-string">"hello"</span>);
+        &#125;);
+    &#125;
+&#125;</code></pre>
+
+<p>进入<code>execute</code>执行任务</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable task)</span> </span>&#123;
+    <span class="hljs-comment">// 检测传入的任务是否为空，为空会抛出NullPointerException</span>
+    ObjectUtil.checkNotNull(task, <span class="hljs-string">"task"</span>);
+    <span class="hljs-comment">// 执行任务</span>
+    <span class="hljs-comment">// 此处判断了任务是否为懒加载任务，wakesUpForTask的返回值只会为true</span>
+    execute(task, !(task <span class="hljs-keyword">instanceof</span> LazyRunnable) &amp;&amp; wakesUpForTask(task));
+&#125;</code></pre>
+
+<p>进入上述代码的<code>execute</code>方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable task, <span class="hljs-keyword">boolean</span> immediate)</span> </span>&#123;
+    <span class="hljs-comment">// 判断当前线程是否为NIO线程</span>
+    <span class="hljs-comment">// 判断方法为 return thread == this.thread;</span>
+    <span class="hljs-comment">// this.thread即为NIO线程，首次执行任务时，其为null</span>
+    <span class="hljs-keyword">boolean</span> inEventLoop = inEventLoop();
+    
+    <span class="hljs-comment">// 向任务队列taskQueue中添加任务</span>
+    addTask(task);
+    
+    <span class="hljs-comment">// 当前线程不是NIO线程，则进入if语句</span>
+    <span class="hljs-keyword">if</span> (!inEventLoop) &#123;
+        <span class="hljs-comment">// 启动NIO线程的核心方法</span>
+        startThread();
+        
+        ...
+        
+    &#125;
+	
+    <span class="hljs-comment">// 有任务需要被执行时，唤醒阻塞的NIO线程</span>
+    <span class="hljs-keyword">if</span> (!addTaskWakesUp &amp;&amp; immediate) &#123;
+        wakeup(inEventLoop);
+    &#125;
+&#125;</code></pre>
+
+<p>进入<code>startThread</code>方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">startThread</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 查看NIO线程状态是否为未启动</span>
+    <span class="hljs-comment">// 该if代码块只会执行一次</span>
+    <span class="hljs-comment">// state一开始的值就是ST_NOT_STARTED</span>
+    <span class="hljs-comment">// private volatile int state = ST_NOT_STARTED;</span>
+    <span class="hljs-keyword">if</span> (state == ST_NOT_STARTED) &#123;
+        <span class="hljs-comment">// 通过原子属性更新器将状态更新为启动（ST_STARTED）</span>
+        <span class="hljs-keyword">if</span> (STATE_UPDATER.compareAndSet(<span class="hljs-keyword">this</span>, ST_NOT_STARTED, ST_STARTED)) &#123;
+            <span class="hljs-keyword">boolean</span> success = <span class="hljs-keyword">false</span>;
+            <span class="hljs-keyword">try</span> &#123;
+                <span class="hljs-comment">// 执行启动线程</span>
+                doStartThread();
+                success = <span class="hljs-keyword">true</span>;
+            &#125; <span class="hljs-keyword">finally</span> &#123;
+                <span class="hljs-keyword">if</span> (!success) &#123;
+                    STATE_UPDATER.compareAndSet(<span class="hljs-keyword">this</span>, ST_STARTED, ST_NOT_STARTED);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p><strong>进入<code>doStartThread</code>，真正创建NIO线程并执行任务</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doStartThread</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">assert</span> thread == <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// 创建NIO线程并执行任务</span>
+    executor.execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+            <span class="hljs-comment">// thread即为NIO线程</span>
+            thread = Thread.currentThread();
+            <span class="hljs-keyword">if</span> (interrupted) &#123;
+                thread.interrupt();
+            &#125;
+
+            <span class="hljs-keyword">boolean</span> success = <span class="hljs-keyword">false</span>;
+            updateLastExecutionTime();
+            <span class="hljs-keyword">try</span> &#123;
+                <span class="hljs-comment">// 执行内部run方法</span>
+                SingleThreadEventExecutor.<span class="hljs-keyword">this</span>.run();
+                success = <span class="hljs-keyword">true</span>;
+            &#125; 
+            
+            ...
+    &#125;);
+&#125;</code></pre>
+
+<p>通过<code>SingleThreadEventExecutor.this.run()</code>执行传入的任务（task）</p>
+<p>该run方法是<strong>NioEvnetLoop的run方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">int</span> selectCnt = <span class="hljs-number">0</span>;
+    <span class="hljs-comment">// 死循环，不断地从任务队列中获取各种任务来执行</span>
+    <span class="hljs-keyword">for</span> (;;) &#123;	
+      	<span class="hljs-comment">// 执行各种任务</span>
+   		<span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">int</span> strategy;
+            <span class="hljs-keyword">try</span> &#123;
+                strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
+                <span class="hljs-keyword">switch</span> (strategy) &#123;
+                <span class="hljs-keyword">case</span> SelectStrategy.CONTINUE:
+                    <span class="hljs-keyword">continue</span>;
+
+                <span class="hljs-keyword">case</span> SelectStrategy.BUSY_WAIT:
+                    <span class="hljs-comment">// fall-through to SELECT since the busy-wait is not supported with NIO</span>
+
+                <span class="hljs-keyword">case</span> SelectStrategy.SELECT:
+                    <span class="hljs-keyword">long</span> curDeadlineNanos = nextScheduledTaskDeadlineNanos();
+                    <span class="hljs-keyword">if</span> (curDeadlineNanos == -<span class="hljs-number">1L</span>) &#123;
+                        curDeadlineNanos = NONE; <span class="hljs-comment">// nothing on the calendar</span>
+                    &#125;
+                    nextWakeupNanos.set(curDeadlineNanos);
+                    <span class="hljs-keyword">try</span> &#123;
+                        <span class="hljs-keyword">if</span> (!hasTasks()) &#123;
+                            strategy = select(curDeadlineNanos);
+                        &#125;
+                    &#125; <span class="hljs-keyword">finally</span> &#123;
+                        <span class="hljs-comment">// This update is just to help block unnecessary selector wakeups</span>
+                        <span class="hljs-comment">// so use of lazySet is ok (no race condition)</span>
+                        nextWakeupNanos.lazySet(AWAKE);
+                    &#125;
+                    <span class="hljs-comment">// fall through</span>
+                <span class="hljs-keyword">default</span>:
+                &#125;
+       		&#125;
+    	&#125;
+	&#125;</code></pre>
+
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h4 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h4><p>NioEvnetLoop需要IO事件、普通任务以及定时任务，任务在run方法的for循环中</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">int</span> selectCnt = <span class="hljs-number">0</span>;
+    <span class="hljs-comment">// 死循环，不断地从任务队列中获取各种任务来执行</span>
+    <span class="hljs-keyword">for</span> (;;) &#123;
+      	<span class="hljs-comment">// 执行各种任务</span>
+   		...
+    &#125;
+&#125;</code></pre>
+
+<p>中被执行，但<strong>该循环不会空转，执行到某些代码时，会被阻塞</strong></p>
+<p>run方法中有SELECT分支</p>
+<pre><code class="hljs java"><span class="hljs-keyword">case</span> SelectStrategy.SELECT:
+	<span class="hljs-keyword">long</span> curDeadlineNanos = nextScheduledTaskDeadlineNanos();
+	<span class="hljs-keyword">if</span> (curDeadlineNanos == -<span class="hljs-number">1L</span>) &#123;
+        curDeadlineNanos = NONE; <span class="hljs-comment">// nothing on the calendar</span>
+    &#125;
+	nextWakeupNanos.set(curDeadlineNanos);
+	<span class="hljs-keyword">try</span> &#123;
+    	<span class="hljs-keyword">if</span> (!hasTasks()) &#123;
+            <span class="hljs-comment">// 执行select方法</span>
+            strategy = select(curDeadlineNanos);
+        &#125;
+    &#125;
+	...</code></pre>
+
+<p>会执行NioEvnetLoop的<code>select</code>方法，<strong>该方法内部会根据情况，执行selector的有参和无参的select方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">select</span><span class="hljs-params">(<span class="hljs-keyword">long</span> deadlineNanos)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;
+    <span class="hljs-comment">// 如果没有指定阻塞事件，就调用select()</span>
+    <span class="hljs-keyword">if</span> (deadlineNanos == NONE) &#123;
+        <span class="hljs-keyword">return</span> selector.select();
+    &#125;
+    <span class="hljs-comment">// 否则调用select(timeoutMillis)，指定时间内未发生事件就停止阻塞</span>
+    <span class="hljs-comment">// Timeout will only be 0 if deadline is within 5 microsecs</span>
+    <span class="hljs-keyword">long</span> timeoutMillis = deadlineToDelayNanos(deadlineNanos + <span class="hljs-number">995000L</span>) / <span class="hljs-number">1000000L</span>;
+    <span class="hljs-keyword">return</span> timeoutMillis &lt;= <span class="hljs-number">0</span> ? selector.selectNow() : selector.select(timeoutMillis);
+&#125;</code></pre>
+
+<p>但需要注意的是，<strong><code>select</code>方法是会阻塞线程的，当没有IO事件，但有其他任务需要执行时，需要唤醒线程</strong></p>
+<p>唤醒是通过execute最后的if代码块来完成的</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 有任务需要被执行时，唤醒阻塞的NIO线程</span>
+<span class="hljs-keyword">if</span> (!addTaskWakesUp &amp;&amp; immediate) &#123;
+    wakeup(inEventLoop);
+&#125;</code></pre>
+
+<p><code>NioEventLoop.wakeup</code>唤醒被selector.select方法阻塞的NIO线程</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">wakeup</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> inEventLoop)</span> </span>&#123;
+    <span class="hljs-comment">// 只有当其他线程给当前NIO线程提交任务时（如执行execute），才会被唤醒</span>
+    <span class="hljs-comment">// 通过AtomicLong进行更新，保证每次只能有一个线程唤醒成功</span>
+    <span class="hljs-keyword">if</span> (!inEventLoop &amp;&amp; nextWakeupNanos.getAndSet(AWAKE) != AWAKE) &#123;
+        <span class="hljs-comment">// 唤醒被selector.select方法阻塞的NIO线程</span>
+        selector.wakeup();
+    &#125;
+&#125;</code></pre>
+
+<p>唤醒时需要进行两个判断</p>
+<ul>
+<li>判断提交任务的<strong>是否为NIO线程</strong><ul>
+<li>若是其他线程，才能唤醒NIO线程</li>
+<li>若是NIO线程自己，则不能唤醒</li>
+</ul>
+</li>
+<li>通过<strong>AtomicLong</strong>保证有多个线程同时提交任务时，只有一个线程能够唤醒NIO线程</li>
+</ul>
+<h4 id="SELECT分支"><a href="#SELECT分支" class="headerlink" title="SELECT分支"></a>SELECT分支</h4><p>run方法的switch语句有多条分支，具体执行分支的代码由strategy变量控制</p>
+<pre><code class="hljs java"><span class="hljs-keyword">int</span> strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
+<span class="hljs-keyword">switch</span> (strategy) &#123;
+	...
+&#125;</code></pre>
+
+<p>strategy的值由<code>calculateStrategy</code>方法确定</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">calculateStrategy</span><span class="hljs-params">(IntSupplier selectSupplier, <span class="hljs-keyword">boolean</span> hasTasks)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-comment">// selectSupplier.get() 底层是 selector.selectNow();</span>
+    <span class="hljs-keyword">return</span> hasTasks ? selectSupplier.get() : SelectStrategy.SELECT;
+&#125;</code></pre>
+
+<p>该方法会<strong>根据hasTaks变量判断任务队列中是否有任务</strong></p>
+<ul>
+<li><p>若有任务，则<strong>通过selectSupplier获得strategy的值</strong></p>
+<ul>
+<li><p><strong>get方法会selectNow方法，顺便拿到IO事件</strong></p>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> IntSupplier selectNowSupplier = <span class="hljs-keyword">new</span> IntSupplier() &#123;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">get</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+        <span class="hljs-keyword">return</span> NioEventLoop.<span class="hljs-keyword">this</span>.selectNow();
+    &#125;
+&#125;;
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">selectNow</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.selector.selectNow();
+&#125;</code></pre>
+</li>
+</ul>
+</li>
+<li><p>若没有任务，就会进入SELECT分支</p>
+</li>
+</ul>
+<p>也就说，<strong>当任务队列中没有任务时，才会进入SELECT分支，让NIO线程阻塞，而不是空转。若有任务，则会通过<code>get</code>方法调用<code>selector.selectNow</code>方法，顺便拿到IO事件</strong></p>
+<h3 id="Java-NIO空轮询BUG"><a href="#Java-NIO空轮询BUG" class="headerlink" title="Java NIO空轮询BUG"></a>Java NIO空轮询BUG</h3><p> Java NIO空轮询BUG也就是JavaNIO在Linux系统下的epoll空轮询问题</p>
+<p><strong>在NioEventLoop中，因为run方法中存在一个死循环，需要通过selector.select方法来阻塞线程。但是select方法因为BUG，可能无法阻塞线程，导致循环一直执行，使得CPU负载升高</strong></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+    ...
+    <span class="hljs-keyword">for</span>(;;)&#123;
+        ...
+        <span class="hljs-comment">// 可能发生空轮询，无法阻塞NIO线程</span>
+        strategy = select(curDeadlineNanos);  
+        ...     
+    
+     	<span class="hljs-keyword">if</span>(...) &#123;
+			...
+     	&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (unexpectedSelectorWakeup(selectCnt) )&#123;
+            <span class="hljs-comment">// 通过unexpectedSelectorWakeup方法中的rebuildSelector重建selector</span>
+            <span class="hljs-comment">// 并将selectCnt重置为0</span>
+            selectCnt = <span class="hljs-number">0</span>;
+        &#125;
+	&#125;
+&#125;</code></pre>
+
+<p><strong>Netty中通过<code>selectCnt</code>变量来检测<code>select</code>方法是否发生空轮询BUG</strong></p>
+<p>若发生空轮询BUG，那么selectCnt的值会<strong>增长是十分迅速</strong>。当<code>selectCnt</code>的值大于等于<code>SELECTOR_AUTO_REBUILD_THRESHOLD</code>（默认512）时，Netty则判断其出现了空轮询BUG，进行如下处理</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> (SELECTOR_AUTO_REBUILD_THRESHOLD &gt; <span class="hljs-number">0</span> &amp;&amp; selectCnt &gt;= SELECTOR_AUTO_REBUILD_THRESHOLD) &#123;
+    <span class="hljs-comment">// The selector returned prematurely many times in a row.</span>
+    <span class="hljs-comment">// Rebuild the selector to work around the problem.</span>
+    logger.warn(<span class="hljs-string">"Selector.select() returned prematurely &#123;&#125; times in a row; rebuilding Selector &#123;&#125;."</span>,selectCnt, selector);
+    <span class="hljs-comment">// 重建selector，将原selector的配置信息传给新selector</span>
+    <span class="hljs-comment">// 再用新selector覆盖旧selector</span>
+    rebuildSelector();
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+&#125;</code></pre>
+
+<p><strong>通过<code>rebuildSelector</code>方法重建selector，将原selector的配置信息传给新selector，再用新selector覆盖旧selector。同时将selectCnt的值设置为0</strong></p>
+<h3 id="ioRatio"><a href="#ioRatio" class="headerlink" title="ioRatio"></a>ioRatio</h3><p>NioEventLoop可以处理IO事件和其他任务。不同的操作所耗费的时间是不同的，<strong>想要控制NioEventLoop处理IO事件花费时间占执行所有操作的总时间的比例，需要通过ioRatio来控制</strong></p>
+<p><strong>NioEventLoop.run方法</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 处理IO事件时间比例，默认为50%</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> ioRatio = <span class="hljs-keyword">this</span>.ioRatio;
+
+<span class="hljs-comment">// 如果IO事件时间比例设置为100%</span>
+<span class="hljs-keyword">if</span> (ioRatio == <span class="hljs-number">100</span>) &#123;
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 如果需要去处理IO事件</span>
+        <span class="hljs-keyword">if</span> (strategy &gt; <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-comment">// 先处理IO事件</span>
+            processSelectedKeys();
+        &#125;
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        <span class="hljs-comment">// Ensure we always run tasks.</span>
+        <span class="hljs-comment">// 剩下的时间都去处理普通任务和定时任务</span>
+        ranTasks = runAllTasks();
+    &#125;
+&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (strategy &gt; <span class="hljs-number">0</span>) &#123; <span class="hljs-comment">// 如果需要去处理IO事件</span>
+    <span class="hljs-comment">// 记录处理IO事件前的时间</span>
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> ioStartTime = System.nanoTime();
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 去处理IO事件</span>
+        processSelectedKeys();
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        <span class="hljs-comment">// Ensure we always run tasks.</span>
+        <span class="hljs-comment">// ioTime为处理IO事件耗费的事件</span>
+        <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> ioTime = System.nanoTime() - ioStartTime;
+        <span class="hljs-comment">// 计算出处理其他任务的事件</span>
+        <span class="hljs-comment">// 超过设定的时间后，将会停止任务的执行，会在下一次循环中再继续执行</span>
+        ranTasks = runAllTasks(ioTime * (<span class="hljs-number">100</span> - ioRatio) / ioRatio);
+    &#125;
+&#125; <span class="hljs-keyword">else</span> &#123; <span class="hljs-comment">// 没有IO事件需要处理</span>
+    <span class="hljs-comment">// This will run the minimum number of tasks</span>
+    <span class="hljs-comment">// 直接处理普通和定时任务</span>
+    ranTasks = runAllTasks(<span class="hljs-number">0</span>); 
+&#125;</code></pre>
+
+<p><strong>通过ioRatio控制各个任务执行的过程如下</strong></p>
+<ul>
+<li><p>判断ioRatio是否为100</p>
+<ul>
+<li><p>若是，判断是否需要处理IO事件（strategy&gt;0）</p>
+<ul>
+<li>若需要处理IO事件，则先处理IO事件</li>
+</ul>
+</li>
+<li><p>若否（或IO事件已经处理完毕），<strong>接下来去执行所有的普通任务和定时任务，直到所有任务都被处理完</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 没有指定执行任务的时间</span>
+ranTasks = runAllTasks();</code></pre>
+</li>
+</ul>
+</li>
+<li><p>若ioRatio不为100</p>
+<ul>
+<li><p>先去处理IO事件，<strong>记录处理IO事件所花费的事件保存在ioTime中</strong></p>
+</li>
+<li><p>接下来去处理其他任务，<strong>根据ioTime与ioRatio计算执行其他任务可用的时间</strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 比如ioTime为10s，ioRatio为50</span>
+<span class="hljs-comment">// 那么通过 10*(100-50)/50=10 计算出其他任务可用的时间为 10s</span>
+<span class="hljs-comment">// 处理IO事件占用的事件总比例为50%</span>
+ranTasks = runAllTasks(ioTime * (<span class="hljs-number">100</span> - ioRatio) / ioRatio);</code></pre>
+</li>
+<li><p>执行其他任务一旦超过可用时间，则会停止执行，在下一次循环中再继续执行</p>
+</li>
+</ul>
+</li>
+<li><p>若没有IO事件需要处理，则去执行<strong>最少数量</strong>的普通任务和定时任务</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 运行最少数量的任务</span>
+ranTasks = runAllTasks(<span class="hljs-number">0</span>);</code></pre>
+
+
+
+
+
+</li>
+</ul>
+<h3 id="处理事件"><a href="#处理事件" class="headerlink" title="处理事件"></a>处理事件</h3><p>IO事件是通过<code>NioEventLoop.processSelectedKeys()</code>方法处理的</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processSelectedKeys</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-comment">// 如果selectedKeys是基于数组的</span>
+    <span class="hljs-comment">// 一般情况下都走这个分支</span>
+    <span class="hljs-keyword">if</span> (selectedKeys != <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-comment">// 处理各种IO事件</span>
+        processSelectedKeysOptimized();
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        processSelectedKeysPlain(selector.selectedKeys());
+    &#125;
+&#125;</code></pre>
+
+<p>processSelectedKeysOptimized方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processSelectedKeysOptimized</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; selectedKeys.size; ++i) &#123;
+        <span class="hljs-comment">// 拿到SelectionKeyec</span>
+        <span class="hljs-keyword">final</span> SelectionKey k = selectedKeys.keys[i];
+        <span class="hljs-comment">// null out entry in the array to allow to have it GC'ed once the Channel close</span>
+        <span class="hljs-comment">// See https://github.com/netty/netty/issues/2363</span>
+        selectedKeys.keys[i] = <span class="hljs-keyword">null</span>;
+
+        <span class="hljs-comment">// 获取SelectionKey上的附件，即NioServerSocketChannel</span>
+        <span class="hljs-keyword">final</span> Object a = k.attachment();
+
+        <span class="hljs-keyword">if</span> (a <span class="hljs-keyword">instanceof</span> AbstractNioChannel) &#123;
+            <span class="hljs-comment">// 处理事件，传入附件NioServerSocketChannel</span>
+            processSelectedKey(k, (AbstractNioChannel) a);
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+            NioTask&lt;SelectableChannel&gt; task = (NioTask&lt;SelectableChannel&gt;) a;
+            processSelectedKey(k, task);
+        &#125;
+
+        <span class="hljs-keyword">if</span> (needsToSelectAgain) &#123;
+            <span class="hljs-comment">// null out entries in the array to allow to have it GC'ed once the Channel close</span>
+            <span class="hljs-comment">// See https://github.com/netty/netty/issues/2363</span>
+            selectedKeys.reset(i + <span class="hljs-number">1</span>);
+
+            selectAgain();
+            i = -<span class="hljs-number">1</span>;
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p>该方法中通过fori的方法，遍历基于数组的SelectedKey，通过</p>
+<pre><code class="hljs java"><span class="hljs-keyword">final</span> SelectionKey k = selectedKeys.keys[i];</code></pre>
+
+<p>获取到SelectionKey，<strong>然后获取其再Register时添加的附件<code>NioServerSocketChannel</code></strong></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 获取SelectionKey上的附件，即NioServerSocketChannel</span>
+<span class="hljs-keyword">final</span> Object a = k.attachment();</code></pre>
+
+<p>如果附件继承自AbstractNioChannel，则会调用</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 处理事件，传入附件NioServerSocketChannel</span>
+processSelectedKey(k, (AbstractNioChannel) a);</code></pre>
+
+<p>去处理各个事件</p>
+<p><strong>真正处理各种事件的方法<code>processSelectedKey</code></strong></p>
+<p>获取SelectionKey的事件，然后进行相应处理</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processSelectedKey</span><span class="hljs-params">(SelectionKey k, AbstractNioChannel ch)</span> </span>&#123;
+    <span class="hljs-keyword">final</span> AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();
+    <span class="hljs-keyword">if</span> (!k.isValid()) &#123;
+        <span class="hljs-keyword">final</span> EventLoop eventLoop;
+        <span class="hljs-keyword">try</span> &#123;
+            eventLoop = ch.eventLoop();
+        &#125; <span class="hljs-keyword">catch</span> (Throwable ignored) &#123;
+            <span class="hljs-comment">// If the channel implementation throws an exception because there is no event loop, we ignore this</span>
+            <span class="hljs-comment">// because we are only trying to determine if ch is registered to this event loop and thus has authority</span>
+            <span class="hljs-comment">// to close ch.</span>
+            <span class="hljs-keyword">return</span>;
+        &#125;
+        <span class="hljs-comment">// Only close ch if ch is still registered to this EventLoop. ch could have deregistered from the event loop</span>
+        <span class="hljs-comment">// and thus the SelectionKey could be cancelled as part of the deregistration process, but the channel is</span>
+        <span class="hljs-comment">// still healthy and should not be closed.</span>
+        <span class="hljs-comment">// See https://github.com/netty/netty/issues/5125</span>
+        <span class="hljs-keyword">if</span> (eventLoop == <span class="hljs-keyword">this</span>) &#123;
+            <span class="hljs-comment">// close the channel if the key is not valid anymore</span>
+            unsafe.close(unsafe.voidPromise());
+        &#125;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-keyword">int</span> readyOps = k.readyOps();
+        <span class="hljs-comment">// We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise</span>
+        <span class="hljs-comment">// the NIO JDK channel implementation may throw a NotYetConnectedException.</span>
+        <span class="hljs-keyword">if</span> ((readyOps &amp; SelectionKey.OP_CONNECT) != <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-comment">// remove OP_CONNECT as otherwise Selector.select(..) will always return without blocking</span>
+            <span class="hljs-comment">// See https://github.com/netty/netty/issues/924</span>
+            <span class="hljs-keyword">int</span> ops = k.interestOps();
+            ops &amp;= ~SelectionKey.OP_CONNECT;
+            k.interestOps(ops);
+
+            unsafe.finishConnect();
+        &#125;
+
+        <span class="hljs-comment">// Process OP_WRITE first as we may be able to write some queued buffers and so free memory.</span>
+        <span class="hljs-keyword">if</span> ((readyOps &amp; SelectionKey.OP_WRITE) != <span class="hljs-number">0</span>) &#123;
+            <span class="hljs-comment">// Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write</span>
+            ch.unsafe().forceFlush();
+        &#125;
+
+        <span class="hljs-comment">// Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead</span>
+        <span class="hljs-comment">// to a spin loop</span>
+        <span class="hljs-keyword">if</span> ((readyOps &amp; (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != <span class="hljs-number">0</span> || readyOps == <span class="hljs-number">0</span>) &#123;
+            unsafe.read();
+        &#125;
+    &#125; <span class="hljs-keyword">catch</span> (CancelledKeyException ignored) &#123;
+        unsafe.close(unsafe.voidPromise());
+    &#125;
+&#125;</code></pre>
+
+
+
+
+
+<h2 id="3、Accept剖析"><a href="#3、Accept剖析" class="headerlink" title="3、Accept剖析"></a>3、Accept剖析</h2><h3 id="NIO中处理Accept事件流程"><a href="#NIO中处理Accept事件流程" class="headerlink" title="NIO中处理Accept事件流程"></a>NIO中处理Accept事件流程</h3><p>NIO中处理Accept事件主要有以下六步</p>
+<ul>
+<li>selector.select()阻塞线程，直到事件发生</li>
+<li>遍历selectionKeys</li>
+<li>获取一个key，判断事件类型是否为Accept</li>
+</ul>
+<hr>
+<ul>
+<li>创建SocketChannel，设置为非阻塞</li>
+<li>将SocketChannel注册到selector中</li>
+<li>关注selectionKeys的read事件</li>
+</ul>
+<p>代码如下</p>
+<pre><code class="hljs java"><span class="hljs-comment">// 阻塞直到事件发生</span>
+selector.select();
+
+Iterator&lt;SelectionKey&gt; iter = selector.selectionKeys().iterator();
+<span class="hljs-keyword">while</span> (iter.hasNext()) &#123;    
+    <span class="hljs-comment">// 拿到一个事件</span>
+    SelectionKey key = iter.next();
+    
+    <span class="hljs-comment">// 如果是 accept 事件</span>
+    <span class="hljs-keyword">if</span> (key.isAcceptable()) &#123;
+        
+        <span class="hljs-comment">// 执行accept，获得SocketChannel</span>
+        SocketChannel channel = serverSocketChannel.accept();
+        channel.configureBlocking(<span class="hljs-keyword">false</span>);
+        
+        <span class="hljs-comment">// 将SocketChannel注册到selector中，并关注read事件</span>
+        channel.register(selector, SelectionKey.OP_READ);
+    &#125;
+    <span class="hljs-comment">// ...</span>
+&#125;</code></pre>
+
+<p><strong>其中前三步，在NioEventLoop剖析中已经分析过了，所以接下来主要分析后三步</strong></p>
+<h3 id="SocketChannel的创建与注册"><a href="#SocketChannel的创建与注册" class="headerlink" title="SocketChannel的创建与注册"></a>SocketChannel的创建与注册</h3><p>发生Accept事件后，会执行<code>NioEventLoop.run</code>方法的如下if分支</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> ((readyOps &amp; (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != <span class="hljs-number">0</span> || readyOps == <span class="hljs-number">0</span>) &#123;
+	unsafe.read();
+&#125;</code></pre>
+
+<p><code>NioMessageUnsafe.read</code>方法</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> </span>&#123;
+
+    ...
+    
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">do</span> &#123;
+				<span class="hljs-comment">// doReadMessages中执行了accept获得了SocketChannel</span>
+                <span class="hljs-comment">// 并创建NioSocketChannel作为消息放入readBuf</span>
+                <span class="hljs-comment">// readBuf是一个ArrayList用来缓存消息</span>
+                <span class="hljs-comment">// private final List&lt;Object&gt; readBuf = new ArrayList&lt;Object&gt;();</span>
+                <span class="hljs-keyword">int</span> localRead = doReadMessages(readBuf);
+                
+                ...
+                
+				<span class="hljs-comment">// localRead值为1，就一条消息，即接收一个客户端连接</span>
+                allocHandle.incMessagesRead(localRead);
+            &#125; <span class="hljs-keyword">while</span> (allocHandle.continueReading());
+        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+            exception = t;
+        &#125;
+
+        <span class="hljs-keyword">int</span> size = readBuf.size();
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; size; i ++) &#123;
+            readPending = <span class="hljs-keyword">false</span>;
+            <span class="hljs-comment">// 触发read事件，让pipeline上的handler处理</span>
+            <span class="hljs-comment">// ServerBootstrapAcceptor.channelRead</span>
+            pipeline.fireChannelRead(readBuf.get(i));
+        &#125;
+        
+        ...
+        
+    &#125; <span class="hljs-keyword">finally</span> &#123;
+        <span class="hljs-keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;
+            removeReadOp();
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p><code>NioSocketChannel.doReadMessages</code>方法</p>
+<p>该方法中处理accpet事件，<strong>获得SocketChannel</strong>，同时<strong>创建了NioSocketChannel</strong>，作为消息放在了readBuf中</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">doReadMessages</span><span class="hljs-params">(List&lt;Object&gt; buf)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-comment">// 处理accpet事件，获得SocketChannel</span>
+    SocketChannel ch = SocketUtils.accept(javaChannel());
+
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-keyword">if</span> (ch != <span class="hljs-keyword">null</span>) &#123;
+            <span class="hljs-comment">// 创建了NioSocketChannel，作为消息放在了readBuf中</span>
+            buf.add(<span class="hljs-keyword">new</span> NioSocketChannel(<span class="hljs-keyword">this</span>, ch));
+            <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+        &#125;
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+       ...
+    &#125;
+
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+&#125;</code></pre>
+
+<p> <code>ServerBootstrapAcceptor.channelRead</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> </span>&#123;
+    <span class="hljs-comment">// 这时的msg是NioSocketChannel</span>
+    <span class="hljs-keyword">final</span> Channel child = (Channel) msg;
+
+    <span class="hljs-comment">// NioSocketChannel添加childHandler，即初始化器</span>
+    child.pipeline().addLast(childHandler);
+
+    <span class="hljs-comment">// 设置选项</span>
+    setChannelOptions(child, childOptions, logger);
+
+    <span class="hljs-keyword">for</span> (Entry&lt;AttributeKey&lt;?&gt;, Object&gt; e: childAttrs) &#123;
+        child.attr((AttributeKey&lt;Object&gt;) e.getKey()).set(e.getValue());
+    &#125;
+
+    <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 注册 NioSocketChannel到nio worker线程，接下来的处理也移交至nio worker线程</span>
+        childGroup.register(child).addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+                <span class="hljs-keyword">if</span> (!future.isSuccess()) &#123;
+                    forceClose(child, future.cause());
+                &#125;
+            &#125;
+        &#125;);
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        forceClose(child, t);
+    &#125;
+&#125;</code></pre>
+
+
+
+<p>通过<code>AbstractUnsafe.register</code>  方法，将SocketChannel注册到了Selector中，<strong>过程与启动流程中的Register过程类似</strong></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register</span><span class="hljs-params">(EventLoop eventLoop, <span class="hljs-keyword">final</span> ChannelPromise promise)</span> </span>&#123;
+    
+    ...
+
+    AbstractChannel.<span class="hljs-keyword">this</span>.eventLoop = eventLoop;
+
+    <span class="hljs-keyword">if</span> (eventLoop.inEventLoop()) &#123;
+        register0(promise);
+    &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// 这行代码完成的是nio boss -&gt; nio worker线程的切换</span>
+            eventLoop.execute(<span class="hljs-keyword">new</span> Runnable() &#123;
+                <span class="hljs-meta">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;
+                    <span class="hljs-comment">// 真正的注册操作</span>
+                    register0(promise);
+                &#125;
+            &#125;);
+        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+            ...
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p><code>AbstractChannel.AbstractUnsafe.register0</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register0</span><span class="hljs-params">(ChannelPromise promise)</span> </span>&#123;
+    <span class="hljs-keyword">try</span> &#123;
+        
+        ...
+            
+        <span class="hljs-comment">// 该方法将SocketChannel注册到Selector中</span>
+        doRegister();
+        
+        <span class="hljs-comment">// 执行初始化器，执行前 pipeline 中只有 head -&gt; 初始化器 -&gt; tail</span>
+        pipeline.invokeHandlerAddedIfNeeded();
+        <span class="hljs-comment">// 执行后就是 head -&gt; logging handler -&gt; my handler -&gt; tail</span>
+
+        safeSetSuccess(promise);
+        pipeline.fireChannelRegistered();
+        
+        <span class="hljs-keyword">if</span> (isActive()) &#123;
+            <span class="hljs-keyword">if</span> (firstRegistration) &#123;
+                <span class="hljs-comment">// 触发pipeline上active事件</span>
+                pipeline.fireChannelActive();
+            &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (config().isAutoRead()) &#123;
+                beginRead();
+            &#125;
+        &#125;
+    &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+        closeForcibly();
+        closeFuture.setClosed();
+        safeSetFailure(promise, t);
+    &#125;
+&#125;</code></pre>
+
+<p><code>AbstractNioChannel.doRegister</code>将SocketChannel注册到Selector中</p>
+<pre><code class="hljs java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doRegister</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-keyword">boolean</span> selected = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-comment">// 将Selector注册到Selector中</span>
+            selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), <span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>);
+            <span class="hljs-keyword">return</span>;
+        &#125; <span class="hljs-keyword">catch</span> (CancelledKeyException e) &#123;
+            ...
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p> <code>HeadContext.channelActive</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelActive</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> </span>&#123;
+    ctx.fireChannelActive();
+	<span class="hljs-comment">// 触发read(NioSocketChannel这里read只是为了触发channel的事件注册，还未涉及数据读取)</span>
+    readIfIsAutoRead();
+&#125;</code></pre>
+
+<p><code>AbstractNioChannel.doBeginRead</code>，通过该方法，SocketChannel关注了read事件</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doBeginRead</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+    <span class="hljs-comment">// Channel.read() or ChannelHandlerContext.read() was called</span>
+    <span class="hljs-keyword">final</span> SelectionKey selectionKey = <span class="hljs-keyword">this</span>.selectionKey;
+    <span class="hljs-keyword">if</span> (!selectionKey.isValid()) &#123;
+        <span class="hljs-keyword">return</span>;
+    &#125;
+
+    readPending = <span class="hljs-keyword">true</span>;
+	<span class="hljs-comment">// 这时候 interestOps是0</span>
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> interestOps = selectionKey.interestOps();
+    <span class="hljs-keyword">if</span> ((interestOps &amp; readInterestOp) == <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-comment">// 关注read事件</span>
+        selectionKey.interestOps(interestOps | readInterestOp);
+    &#125;
+&#125;</code></pre>
+
+
+
+<h2 id="4、Read剖析"><a href="#4、Read剖析" class="headerlink" title="4、Read剖析"></a>4、Read剖析</h2><p>read事件的处理也是在</p>
+<pre><code class="hljs java"><span class="hljs-keyword">if</span> ((readyOps &amp; (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != <span class="hljs-number">0</span> || readyOps == <span class="hljs-number">0</span>) &#123;
+	unsafe.read();
+&#125;</code></pre>
+
+<p>分支中，通过<code>unsafe.read()</code>方法处理的，<strong>不过此处调用的方法在AbstractNioByteChannel.NioByteUnsafe类中</strong></p>
+<pre><code class="hljs java">    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-comment">// 获得Channel的配置</span>
+        <span class="hljs-keyword">final</span> ChannelConfig config = config();
+        <span class="hljs-keyword">if</span> (shouldBreakReadReady(config)) &#123;
+            clearReadPending();
+            <span class="hljs-keyword">return</span>;
+        &#125;
+        <span class="hljs-keyword">final</span> ChannelPipeline pipeline = pipeline();
+        
+        <span class="hljs-comment">// 根据配置创建ByteBufAllocator（池化非池化、直接非直接内存）</span>
+        <span class="hljs-keyword">final</span> ByteBufAllocator allocator = config.getAllocator();
+        <span class="hljs-keyword">final</span> RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
+        allocHandle.reset(config);
+
+        ByteBuf byteBuf = <span class="hljs-keyword">null</span>;
+        <span class="hljs-keyword">boolean</span> close = <span class="hljs-keyword">false</span>;
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-keyword">do</span> &#123;
+                <span class="hljs-comment">// 创建ByteBuf</span>
+                byteBuf = allocHandle.allocate(allocator);
+                <span class="hljs-comment">// 读取内容，放入ByteBUf中</span>
+                allocHandle.lastBytesRead(doReadBytes(byteBuf));
+                <span class="hljs-keyword">if</span> (allocHandle.lastBytesRead() &lt;= <span class="hljs-number">0</span>) &#123;
+                    <span class="hljs-comment">// nothing was read. release the buffer.</span>
+                    byteBuf.release();
+                    byteBuf = <span class="hljs-keyword">null</span>;
+                    close = allocHandle.lastBytesRead() &lt; <span class="hljs-number">0</span>;
+                    <span class="hljs-keyword">if</span> (close) &#123;
+                        <span class="hljs-comment">// There is nothing left to read as we received an EOF.</span>
+                        readPending = <span class="hljs-keyword">false</span>;
+                    &#125;
+                    <span class="hljs-keyword">break</span>;
+                &#125;
+
+                allocHandle.incMessagesRead(<span class="hljs-number">1</span>);
+                readPending = <span class="hljs-keyword">false</span>;
+                
+                <span class="hljs-comment">// 触发read 事件，让pipeline上的handler处理</span>
+                <span class="hljs-comment">// 这时是处理NioSocketChannel上的handler</span>
+                pipeline.fireChannelRead(byteBuf);
+                byteBuf = <span class="hljs-keyword">null</span>;
+       		<span class="hljs-comment">// 是否继续读取</span>
+            &#125; <span class="hljs-keyword">while</span> (allocHandle.continueReading());
+
+            <span class="hljs-comment">// 触发read complete事件</span>
+            allocHandle.readComplete();
+            pipeline.fireChannelReadComplete();
+
+            <span class="hljs-keyword">if</span> (close) &#123;
+                closeOnRead(pipeline);
+            &#125;
+        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;
+            handleReadException(pipeline, byteBuf, t, close, allocHandle);
+        &#125; <span class="hljs-keyword">finally</span> &#123;
+            <span class="hljs-comment">// Check if there is a readPending which was not processed yet.</span>
+            <span class="hljs-comment">// This could be for two reasons:</span>
+            <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method</span>
+            <span class="hljs-comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method</span>
+            <span class="hljs-comment">//</span>
+            <span class="hljs-comment">// See https://github.com/netty/netty/issues/2254</span>
+            <span class="hljs-keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;
+                removeReadOp();
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p><code>DefaultMaxMessagesRecvByteBufAllocator.MaxMessageHandle.continueReading(io.netty.util.UncheckedBooleanSupplier)</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">continueReading</span><span class="hljs-params">(UncheckedBooleanSupplier maybeMoreDataSupplier)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> 
+           <span class="hljs-comment">// 一般为true</span>
+           config.isAutoRead() &amp;&amp;
+           <span class="hljs-comment">// respectMaybeMoreData默认为true</span>
+           <span class="hljs-comment">// maybeMoreDataSupplier的逻辑是如果预期读取字节与实际读取字节相等，返回true</span>
+           (!respectMaybeMoreData || maybeMoreDataSupplier.get()) &amp;&amp;
+           <span class="hljs-comment">// 小于最大次数，maxMessagePerRead默认16</span>
+           totalMessages &lt; maxMessagePerRead &amp;&amp;
+           <span class="hljs-comment">// 实际读到了数据</span>
+           totalBytesRead &gt; <span class="hljs-number">0</span>;
+&#125;</code></pre>
+
 
             </article>
             <hr>
